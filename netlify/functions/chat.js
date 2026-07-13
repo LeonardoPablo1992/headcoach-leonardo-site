@@ -80,7 +80,11 @@ exports.handler = async function (event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: contents,
-          generationConfig: { maxOutputTokens: 300, temperature: 0.6 }
+          generationConfig: {
+            maxOutputTokens: 800,
+            temperature: 0.6,
+            thinkingConfig: { thinkingBudget: 0 }
+          }
         })
       }
     );

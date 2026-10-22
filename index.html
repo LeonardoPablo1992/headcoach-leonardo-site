@@ -100,6 +100,20 @@
     border: 1.5px solid var(--accent);
     color: var(--accent);
   }
+  .nav-cta { display: flex; gap: 10px; align-items: center; flex-shrink: 0; margin-left: 18px; }
+  .nav-cta .btn { white-space: nowrap; padding: 10px 16px; font-size: 0.78rem; }
+  .nav-links a { white-space: nowrap; }
+  @media (max-width: 1240px) { .nav-links { gap: 20px; } }
+  @media (max-width: 1080px) { .nav-links { gap: 14px; font-size: 0.78rem; } }
+  .btn-outline.btn-atletas:hover { background: rgba(154,163,115,0.12); }
+  .board-cta { text-align: center; margin-top: 32px; }
+  .board-cta p { color: var(--text-muted); margin: 0 0 14px; }
+  @media (max-width: 600px) {
+    .nav-cta .btn { padding: 9px 12px; font-size: 0.72rem; letter-spacing: 1px; white-space: normal; }
+    .nav-cta { flex-shrink: 1; min-width: 0; gap: 8px; }
+    nav { gap: 10px; }
+    .nav-cta { margin-left: 0; }
+  }
 
   .hero {
     padding: 90px 0 70px;
@@ -388,7 +402,10 @@
         <a href="#testimonios">Testimonios</a>
         <a href="#contacto">Contacto</a>
       </div>
-      <a href="#contacto" class="btn">Quiero mi entrenamiento</a>
+      <div class="nav-cta">
+        <a href="https://atletas.headcoachleonardopablo.com" class="btn btn-outline btn-atletas">Acceso atletas</a>
+        <a href="#contacto" class="btn">Quiero mi entrenamiento</a>
+      </div>
     </nav>
   </div>
 </header>
@@ -549,6 +566,10 @@
         <div class="board-row"><span class="blur-label">Sesión B</span><div class="blur-bar"></div></div>
         <div class="board-row"><span class="blur-label">Nutrición</span><div class="blur-bar"></div></div>
       </div>
+    </div>
+    <div class="board-cta">
+      <p>¿Ya entrenas conmigo? Entra a tu página, marca tus series y sube tus evidencias.</p>
+      <a href="https://atletas.headcoachleonardopablo.com" class="btn">Acceso atletas</a>
     </div>
   </div>
 </section>

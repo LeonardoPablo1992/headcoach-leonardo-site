@@ -1,3 +1,11 @@
 [build]
   functions = "netlify/functions"
   publish = "."
+
+# Respaldo de conexión del portal de atletas: si una red (por ejemplo datos móviles)
+# no llega a supabase.co, el portal habla con el mismo servidor a través de este dominio.
+[[redirects]]
+  from = "/sb/*"
+  to = "https://sdswyjkwupxwxgzjqpct.supabase.co/:splat"
+  status = 200
+  force = true

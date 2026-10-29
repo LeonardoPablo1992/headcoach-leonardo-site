@@ -5,12 +5,6 @@
 # Copia alterna del portal de atletas en headcoachleonardopablo.com/atletas/ (para redes celulares
 # que no cargan github.io): Netlify trae el portal desde GitHub Pages y lo sirve desde este dominio.
 [[redirects]]
-  from = "/atletas"
-  to = "/atletas/"
-  status = 301
-  force = true
-
-[[redirects]]
   from = "/atletas/*"
   to = "https://atletas.headcoachleonardopablo.com/:splat"
   status = 200

@@ -2,13 +2,8 @@
   functions = "netlify/functions"
   publish = "."
 
-# Copia alterna del portal de atletas en headcoachleonardopablo.com/atletas/ (para redes celulares
-# que no cargan github.io): Netlify trae el portal desde GitHub Pages y lo sirve desde este dominio.
-[[redirects]]
-  from = "/atletas/*"
-  to = "https://atletas.headcoachleonardopablo.com/:splat"
-  status = 200
-  force = true
+# El portal de atletas (ProTrainerPlus) vive en /atletas/ de este sitio.
+# atletas.headcoachleonardopablo.com solo redirige aquí.
 
 # Respaldo de conexión del portal de atletas: si una red (por ejemplo datos móviles)
 # no llega a supabase.co, el portal habla con el mismo servidor a través de este dominio.

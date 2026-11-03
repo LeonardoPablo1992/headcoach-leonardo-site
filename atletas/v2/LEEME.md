@@ -91,3 +91,8 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Si una cuenta nueva no confirma su correo en **24 horas**, se descarta sola (acceso, perfil y solicitudes pendientes). Corre cada hora con `pg_cron` (tarea `ptp-descartar-no-verificados`).
 - Nunca toca cuentas que ya entraron, con entrenamientos, con coach activo, coaches en prueba/activos ni al coach principal.
 - Para correrla a mano: `select public.pt_purge_unverified();` (devuelve cuántas cuentas descartó).
+
+## Perfil del coach, catálogo interactivo y calificaciones (calificaciones.sql)
+- **Perfil del coach:** foto de perfil, años de experiencia, certificaciones (una por línea), especialidades, ciudad, modalidad, cuotas por entrenamiento y casilla «Mostrar mis cuotas en el catálogo» (si se desmarca, aparece «Precio a consultar»). Todo vive en `pt_coach_profiles.doc` (`years`, `certs`, `prices`, `showPrices`).
+- **Elige a tu coach:** búsqueda libre (nombre, especialidad, ciudad, certificación), chips por especialidad, filtros por calificación mínima, experiencia, ciudad, modalidad, precio máximo y «con certificaciones», y orden (mejor calificados, más experiencia, menor precio, nombre). Cada tarjeta muestra foto, estrellas (1–5) con número de opiniones, experiencia y certificaciones.
+- **Calificaciones:** el cliente califica a su coach actual en compromiso, resultados, seguimiento, puntualidad y conocimiento (1–5) + comentario opcional; puede editarla. Es anónima: el catálogo muestra el promedio y el coach ve promedios por aspecto y comentarios sin nombre en «Mi perfil de coach». El administrador ve las estrellas de cada coach. Tabla `pt_coach_ratings`; funciones `pt_rate_coach`, `pt_coach_rating_summary`, `pt_my_coach_reviews`.

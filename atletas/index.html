@@ -938,6 +938,36 @@ details.lgrp[open] .chev{transform:rotate(180deg)}
 .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;flex:0 0 auto}.av.sm{width:30px;height:30px;font-size:11.5px}
 .chip{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:800;background:var(--line-2);color:var(--muted);white-space:nowrap}
 .ch-ok{background:var(--green-100);color:var(--green-d)}.ch-wait{background:var(--tb-ffedd5);color:var(--tt-c2410c)}.ch-trial{background:var(--tb-e0f2fe);color:var(--tt-0369a1)}.ch-no{background:var(--tb-fee2e2);color:var(--tt-b91c1c)}.ch-main{background:var(--tb-fef3c7);color:var(--tt-92400e)}
+.rt{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;margin-top:2px}.rt b{font-weight:800}.rt small{color:var(--muted)}
+.rt-none{color:var(--muted);font-size:12px}
+.stars{font-size:15px;letter-spacing:1px;background:linear-gradient(90deg,#f5b301 var(--p),var(--line) var(--p));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+.cc-cert{display:flex;flex-wrap:wrap;gap:6px}.cc-cert span{background:var(--tb-fef3c7);color:var(--tt-92400e);border-radius:10px;padding:3px 9px;font-size:11.5px;font-weight:700}
+.cc-pr-h{font-weight:800;font-size:12px;color:var(--muted)}.cc-pr-q{font-size:12.5px;color:var(--muted);font-weight:600}
+.cf{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+.cf-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.cf-q{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:0 14px;background:var(--bg)}
+.cf-q input{border:0;background:transparent;padding:10px 0;flex:1;outline:none;font-size:14px;color:var(--ink)}
+.cf-s{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted);font-weight:700}
+.cf-s select,.cf-s input{border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--card);color:var(--ink);font-size:13px;min-width:120px}
+.cf-s input{width:130px}
+.cf-k{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding-bottom:7px}
+.cf-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.cf-c{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.cf-c.on{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.cf-n{font-size:12.5px;color:var(--muted);font-weight:700;margin:2px 4px 8px}
+.rc-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.rc-t{display:flex;flex-direction:column}.rc-t small{color:var(--muted);font-size:12px}
+.rc-st{display:flex;gap:2px}.rc-st button{border:0;background:none;font-size:28px;line-height:1;color:var(--line);cursor:pointer;padding:0 2px;transition:transform .15s}
+.rc-st button.on{color:#f5b301}.rc-st button:hover{transform:scale(1.15)}
+.rc-avg{margin-top:8px;font-size:13px;font-weight:700}
+.rc-box{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--tb-fffbeb);border:1px solid var(--tl-fde68a);border-radius:14px;padding:10px 12px;font-size:13px}
+.rb{display:flex;flex-direction:column;gap:6px}.rb-r{display:grid;grid-template-columns:130px 1fr 34px;gap:8px;align-items:center;font-size:12.5px}
+.rb-r i{height:8px;border-radius:9px;background:var(--line-2);overflow:hidden;display:block}.rb-r i b{display:block;height:100%;background:#f5b301;border-radius:9px}.rb-r em{font-style:normal;font-weight:800;text-align:right}
+.rv-l{display:flex;flex-direction:column;gap:6px;margin-top:10px}.rv{background:var(--bg);border-radius:12px;padding:8px 10px}.rv p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+.cp-rt{border-top:1px solid var(--line);margin-top:10px;padding-top:6px}
+.row>.cc-ph{flex:0 0 88px!important;width:88px;height:88px;border-radius:50%;font-size:26px}
+.row>.upl{flex:0 0 auto!important}
+.row>.btn.ghost.sm{flex:0 0 auto!important}
 </style>
 </head>
 <body>
@@ -1467,6 +1497,7 @@ async function loadCatalog(){
   if(!MT){CATALOG=[];MYLINKS=[];return}
   try{const [c,l]=await Promise.all([SB.from('pt_coach_profiles').select('email,doc,public').eq('public',true),SB.from('pt_links').select('*').eq('athlete_email',ME.email)]);
     CATALOG=(c.data||[]).map(r=>({email:r.email,...(r.doc||{})})).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es'));MYLINKS=l.data||[]}catch(e){CATALOG=[];MYLINKS=[]}
+  await loadRatings();
 }
 const needsCoach=()=>!!(MT&&S&&!IS_COACH&&!ROLE.linked);
 const coachCard=em=>CATALOG.find(c=>c.email===em)||null;
@@ -1476,12 +1507,13 @@ function coachCardHTML(c,mode){
   const hasPend=MYLINKS.some(l=>l.status==='pending');
   const photo=c.photo?`<img class="cc-ph" src="${c.photo}" alt="${esc(c.name||'')}">`:`<div class="cc-ph cc-in" style="background:${colorFor(c.email)}">${initials(c.name||c.email)}</div>`;
   return `<div class="cc">
-    <div class="cc-top">${photo}<div style="min-width:0"><h3>${esc(c.name||c.email)}</h3>${c.title?`<div class="cc-ti">${esc(c.title)}</div>`:''}<div class="cc-meta">${[c.city&&`📍 ${esc(c.city)}`,c.modality&&`💻 ${esc(c.modality)}`].filter(Boolean).join(' · ')}</div></div></div>
+    <div class="cc-top">${photo}<div style="min-width:0"><h3>${esc(c.name||c.email)}</h3>${c.title?`<div class="cc-ti">${esc(c.title)}</div>`:''}${starsHTML((RATINGS[c.email]||{}).avg,(RATINGS[c.email]||{}).n)}<div class="cc-meta">${[+c.years>0&&`🏅 ${+c.years} ${+c.years===1?'año':'años'} de experiencia`,c.city&&`📍 ${esc(c.city)}`,c.modality&&`💻 ${esc(c.modality)}`].filter(Boolean).join(' · ')}</div></div></div>
+    ${certsOf(c).length?`<div class="cc-cert">${certsOf(c).map(s=>`<span>🎓 ${esc(s)}</span>`).join('')}</div>`:''}
     ${(c.specialties||[]).length?`<div class="cc-sp">${c.specialties.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
     ${c.bio?`<p class="cc-bio">${esc(c.bio)}</p>`:''}
-    ${(c.prices||[]).length?`<div class="cc-pr">${c.prices.map(p=>`<div><span>${esc(p.label)}</span><b>${mxn(p.price)}</b></div>`).join('')}</div>`:''}
+    ${showsPrices(c)?`<div class="cc-pr"><div class="cc-pr-h">💲 Cuotas</div>${coachPrices(c).map(p=>`<div><span>${esc(p.label)}</span><b>${mxn(p.price)}</b></div>`).join('')}</div>`:`<div class="cc-pr cc-pr-q">💬 Precio a consultar con el coach</div>`}
     ${c.web||c.instagram?`<div class="cc-links">${c.web?`<a href="${esc(c.web)}" target="_blank" rel="noopener">🌐 Sitio</a>`:''}${c.instagram?`<a href="https://instagram.com/${esc(String(c.instagram).replace(/^@/,''))}" target="_blank" rel="noopener">📸 ${esc(c.instagram)}</a>`:''}</div>`:''}
-    ${mode==='mine'?'<div class="cc-st ok">✅ Es tu coach</div>'+linkCallHTML(MYLINKS.find(l=>l.coach_email===c.email&&l.status==='active'),c.name||'tu coach'):
+    ${mode==='mine'?'<div class="cc-st ok">✅ Es tu coach</div>'+myCoachRateHTML(c.email)+linkCallHTML(MYLINKS.find(l=>l.coach_email===c.email&&l.status==='active'),c.name||'tu coach'):
       inv?`<div class="cc-st">💌 ${esc(c.name||'')} te invitó a entrenar</div><div class="cc-f"><button class="btn ghost sm" onclick="respondInvite('${c.email}',false)">Rechazar</button><button class="btn primary sm" onclick="respondInvite('${c.email}',true)">Aceptar</button></div>`:
       pend?`<div class="cc-st wait">⏳ Solicitud enviada · espera su respuesta</div>${linkCallHTML(pend,c.name||'tu coach')}<div class="cc-f"><button class="btn ghost sm" onclick="cancelCoachRequest()">Cancelar solicitud</button></div>`:
       `${rej?'<div class="cc-st no">La solicitud anterior no fue aceptada.</div>':''}<div class="cc-f"><button class="btn primary" ${hasPend?'disabled title="Ya tienes una solicitud en espera"':''} onclick="requestCoach('${c.email}')">💪 Quiero entrenar contigo</button></div>`}
@@ -1490,7 +1522,7 @@ function coachCardHTML(c,mode){
 function catalogHTML(){
   const fn=esc(String(ME.name||'').split(' ')[0]||'');
   return `<div class="cat-wrap"><div class="cat-h"><div class="cat-ic">🏋️</div><div><h2>Elige a tu coach</h2><p>Hola${fn?' '+fn:''} 👋 Conoce a los coaches de ProTrainerPlus y envíale una solicitud al que más te guste. Cuando la acepte, verás aquí tu plan.</p></div></div>
-    ${CATALOG.length?`<div class="cat-grid">${CATALOG.map(c=>coachCardHTML(c)).join('')}</div>`:'<div class="card empty-state">Aún no hay coaches en el catálogo.</div>'}
+    ${CATALOG.length?(()=>{const L=filteredCoaches();return catalogFiltersHTML()+`<div class="cf-n">${L.length===CATALOG.length?`${L.length} ${L.length===1?'coach':'coaches'}`:`${L.length} de ${CATALOG.length} coaches`}</div>`+(L.length?`<div class="cat-grid">${L.map(c=>coachCardHTML(c)).join('')}</div>`:'<div class="card empty-state">Ningún coach coincide con esos filtros. <button class="linkbtn" onclick="cfClear()">Limpiar filtros</button></div>')})():'<div class="card empty-state">Aún no hay coaches en el catálogo.</div>'}
     <div class="muted" style="font-size:12px;text-align:center;margin:16px 0">¿Tienes dudas? Escríbenos a <a href="mailto:coach@headcoachleonardopablo.com" style="color:var(--green-d)">coach@headcoachleonardopablo.com</a></div></div>`;
 }
 async function cancelCoachRequest(){try{await SB.rpc('pt_cancel_request');await loadCatalog();renderApp();toast('Solicitud cancelada')}catch(e){toast('No se pudo cancelar')}}
@@ -1638,7 +1670,7 @@ const ADM={coaches:[],clients:[],loaded:false,loading:false,err:'',q:''};
 async function loadAdmin(force){
   if(!IS_ADMIN||ADM.loading||(ADM.loaded&&!force))return;ADM.loading=true;
   try{const [c,l]=await Promise.all([SB.rpc('pt_admin_coaches'),SB.rpc('pt_admin_clients')]);if(c.error)throw c.error;if(l.error)throw l.error;
-    ADM.coaches=c.data||[];ADM.clients=l.data||[];ADM.err=''}
+    ADM.coaches=c.data||[];ADM.clients=l.data||[];ADM.err='';await loadRatings()}
   catch(e){ADM.err=/function|schema cache/i.test(String(e.message))?'setup':String(e.message||e)}
   ADM.loaded=true;ADM.loading=false;if(S)renderApp();
 }
@@ -1672,7 +1704,7 @@ function adminHTML(){
       ${pend.map(c=>`<div class="adm-pr"><span class="av" style="background:${colorFor(c.email)}">${initials(c.name||c.email)}</span><div class="adm-n"><b>${esc(c.name||c.email)}</b><span>${esc(c.email)} · se registró ${new Date(c.created_at).toLocaleDateString('es-MX',{day:'numeric',month:'short'})}</span></div><div class="adm-act"><button class="btn ghost sm" onclick="adminReview('${c.email}',false)">Rechazar</button><button class="btn primary sm" onclick="adminReview('${c.email}',true)">✅ Aceptar</button></div></div>`).join('')}
       <div class="muted" style="font-size:12px;margin-top:6px">Al aceptarlo empieza su prueba gratis de 14 días y aparece en el catálogo de coaches.</div></div>`:''}
     <div class="card adm-list"><div class="adm-sh">🏋️ Coaches y sus clientes <span class="sp"></span><input class="adm-q" placeholder="Buscar coach o cliente" value="${esc(ADM.q)}" oninput="ADM.q=this.value;clearTimeout(window.__aq);window.__aq=setTimeout(()=>{renderApp();const i=document.querySelector('.adm-q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},250)"></div>
-      ${shown.map(c=>{const cs=byCoach(c.email);return `<details class="adm-co" ${q||shown.length<=3?'open':''}><summary><span class="av" style="background:${colorFor(c.email)}">${initials(c.name||c.email)}</span><div class="adm-n"><b>${esc(c.name||c.email)}</b><span>${esc(c.email)}</span></div>${coachStatusChip(c)}<span class="adm-cnt">👥 ${c.clients}${c.requests?` · 💌 ${c.requests}`:''}</span></summary>
+      ${shown.map(c=>{const cs=byCoach(c.email);return `<details class="adm-co" ${q||shown.length<=3?'open':''}><summary><span class="av" style="background:${colorFor(c.email)}">${initials(c.name||c.email)}</span><div class="adm-n"><b>${esc(c.name||c.email)}</b><span>${esc(c.email)}</span>${RATINGS[c.email]?starsHTML(RATINGS[c.email].avg,RATINGS[c.email].n):''}</div>${coachStatusChip(c)}<span class="adm-cnt">👥 ${c.clients}${c.requests?` · 💌 ${c.requests}`:''}</span></summary>
         ${cs.length?cs.map(admClientRow).join(''):'<div class="muted adm-empty">Sin clientes todavía.</div>'}
         ${!c.is_main&&c.status==='rejected'?`<div class="adm-f"><button class="btn soft sm" onclick="adminReview('${c.email}',true)">Aceptar de todos modos</button></div>`:''}</details>`}).join('')||'<div class="muted adm-empty">Sin resultados.</div>'}
       ${none.length?`<details class="adm-co"><summary><span class="av" style="background:#94a3b8">?</span><div class="adm-n"><b>Clientes sin coach</b><span>Registrados que aún no eligen coach</span></div><span class="adm-cnt">👥 ${none.length}</span></summary>${none.map(admClientRow).join('')}</details>`:''}
@@ -1685,6 +1717,102 @@ async function adminReview(em,ok){
   toast(ok?`✅ ${c?c.name:em} ya puede usar ProTrainerPlus`:'Solicitud rechazada');await loadAdmin(true);
 }
 
+/* =========================================================
+   CALIFICACIONES (1 a 5 estrellas) · catálogo interactivo con filtros
+========================================================= */
+let RATINGS={},MYRATINGS=[];
+const RCRIT=[['compromiso','🤝','Compromiso','¿Se involucra contigo y con tus metas?'],['resultados','📈','Resultados','¿Estás viendo el avance que buscabas?'],['seguimiento','🔁','Seguimiento','¿Revisa tu avance y te responde?'],['puntualidad','⏰','Puntualidad','¿Cumple horarios y entregas a tiempo?'],['conocimiento','🧠','Conocimiento','¿Explica con claridad y con base?']];
+async function loadRatings(){try{const {data,error}=await SB.rpc('pt_coach_rating_summary');if(error)throw error;RATINGS={};(data||[]).forEach(r=>RATINGS[r.coach_email]=r)}catch(e){RATINGS={}}
+  if(ME&&!IS_COACH)try{const {data}=await SB.from('pt_coach_ratings').select('*').eq('athlete_email',ME.email);MYRATINGS=data||[]}catch(e){MYRATINGS=[]}}
+function starsHTML(avg,n,opt){
+  opt=opt||{};const a=+avg||0,p=Math.max(0,Math.min(100,a/5*100));
+  if(!n&&!opt.always)return `<span class="rt rt-none">☆ Sin calificaciones aún</span>`;
+  return `<span class="rt"><span class="stars" style="--p:${p}%" aria-label="${a.toFixed(1)} de 5 estrellas">★★★★★</span>${n?`<b>${a.toFixed(1)}</b>${opt.nc?'':`<small>(${n} ${n===1?'opinión':'opiniones'})</small>`}`:''}</span>`;
+}
+const coachPrices=c=>(c.prices||[]).filter(p=>p.label&&+p.price>0);
+const showsPrices=c=>c.showPrices!==false&&coachPrices(c).length>0;
+const minPrice=c=>showsPrices(c)?Math.min(...coachPrices(c).map(p=>+p.price)):null;
+const certsOf=c=>Array.isArray(c.certs)?c.certs.filter(Boolean):String(c.certs||'').split(/\n|,/).map(s=>s.trim()).filter(Boolean);
+
+/* --- filtros del catálogo --- */
+const CF_DEF={q:'',spec:'',city:'',mod:'',minR:0,minY:0,maxP:'',cert:false,sort:'rating'};
+function cf(){S.ui.cf=S.ui.cf||{...CF_DEF};return S.ui.cf}
+function cfSet(k,v){cf()[k]=v;renderApp()}
+function cfType(k,el){cf()[k]=el.value;const id=el.id,pos=el.selectionStart;clearTimeout(window.__cft);window.__cft=setTimeout(()=>{renderApp();const i=document.getElementById(id);if(i){i.focus();try{i.setSelectionRange(pos,pos)}catch(e){}}},220)}
+function cfClear(){S.ui.cf={...CF_DEF};renderApp()}
+function filteredCoaches(){
+  const f=cf(),q=normTxt(f.q.trim());
+  let list=CATALOG.filter(c=>{
+    const r=RATINGS[c.email]||{},yrs=+c.years||0;
+    if(q&&!normTxt([c.name,c.title,c.bio,c.city,(c.specialties||[]).join(' '),certsOf(c).join(' ')].join(' ')).includes(q))return false;
+    if(f.spec&&!(c.specialties||[]).some(s=>normTxt(s)===normTxt(f.spec)))return false;
+    if(f.city&&normTxt(c.city||'')!==normTxt(f.city))return false;
+    if(f.mod&&!normTxt(c.modality||'').includes(normTxt(f.mod)))return false;
+    if(+f.minR&&!(+r.avg>=+f.minR))return false;
+    if(+f.minY&&yrs<+f.minY)return false;
+    if(f.cert&&!certsOf(c).length)return false;
+    if(+f.maxP){const mp=minPrice(c);if(mp==null||mp>+f.maxP)return false}
+    return true});
+  const by={rating:(a,b)=>((+(RATINGS[b.email]||{}).avg||0)-(+(RATINGS[a.email]||{}).avg||0))||((RATINGS[b.email]||{}).n||0)-((RATINGS[a.email]||{}).n||0),
+    years:(a,b)=>(+b.years||0)-(+a.years||0),price:(a,b)=>(minPrice(a)??1e9)-(minPrice(b)??1e9),name:(a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es')};
+  return list.sort(by[f.sort]||by.rating);
+}
+function catalogFiltersHTML(){
+  const f=cf(),uniq=a=>[...new Map(a.filter(Boolean).map(x=>[normTxt(x),x])).values()].sort((x,y)=>x.localeCompare(y,'es'));
+  const specs=uniq(CATALOG.flatMap(c=>c.specialties||[])),cities=uniq(CATALOG.map(c=>c.city)),act=Object.keys(CF_DEF).some(k=>k!=='sort'&&String(f[k])!==String(CF_DEF[k]));
+  const sel=(k,opts,lbl)=>`<label class="cf-s"><span>${lbl}</span><select onchange="cfSet('${k}',this.value)">${opts.map(([v,t])=>`<option value="${esc(v)}" ${String(f[k])===String(v)?'selected':''}>${esc(t)}</option>`).join('')}</select></label>`;
+  return `<div class="cf">
+    <div class="cf-row"><div class="cf-q">🔎<input id="cf_q" placeholder="Busca por nombre, especialidad, ciudad o certificación" value="${esc(f.q)}" oninput="cfType('q',this)"></div>
+      ${sel('sort',[['rating','⭐ Mejor calificados'],['years','🏅 Más experiencia'],['price','💲 Menor precio'],['name','🔤 Nombre']],'Ordenar')}</div>
+    ${specs.length?`<div class="cf-chips"><button class="cf-c ${!f.spec?'on':''}" onclick="cfSet('spec','')">Todas</button>${specs.map(s=>`<button class="cf-c ${normTxt(f.spec)===normTxt(s)?'on':''}" onclick="cfSet('spec',${esc(JSON.stringify(s))})">${esc(s)}</button>`).join('')}</div>`:''}
+    <div class="cf-row cf-more">
+      ${sel('minR',[[0,'Cualquiera'],[3,'★ 3 o más'],[4,'★ 4 o más'],[4.5,'★ 4.5 o más']],'Calificación')}
+      ${sel('minY',[[0,'Cualquiera'],[1,'1+ años'],[3,'3+ años'],[5,'5+ años'],[10,'10+ años']],'Experiencia')}
+      ${cities.length?sel('city',[['','Todas'],...cities.map(c=>[c,c])],'Ciudad'):''}
+      ${sel('mod',[['','Todas'],['En línea','En línea'],['Presencial','Presencial']],'Modalidad')}
+      <label class="cf-s"><span>Precio máx. (MXN)</span><input id="cf_p" type="number" min="0" step="50" placeholder="Sin límite" value="${esc(f.maxP)}" oninput="cfType('maxP',this)"></label>
+      <label class="cf-k"><input type="checkbox" ${f.cert?'checked':''} onchange="cfSet('cert',this.checked)"> 🎓 Con certificaciones</label>
+      ${act?`<button class="linkbtn" onclick="cfClear()">Limpiar filtros</button>`:''}
+    </div></div>`;
+}
+
+/* --- el cliente califica a su coach --- */
+function myRatingOf(em){return MYRATINGS.find(r=>r.coach_email===em)||null}
+function openRateCoach(em){
+  const c=coachCard(em)||{email:em,name:'tu coach'},mine=myRatingOf(em);
+  S.ui.rate=S.ui.rate&&S.ui.rate.coach===em?S.ui.rate:{coach:em,comment:mine?mine.comment||'':'',...Object.fromEntries(RCRIT.map(([k])=>[k,mine?mine[k]:0]))};
+  const r=S.ui.rate,done=RCRIT.every(([k])=>r[k]>0);
+  openModal(`<div class="modal" style="max-width:560px"><div class="modal-h"><h3>⭐ Califica a ${esc((c.name||'tu coach'))}</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
+  <div class="modal-b"><p class="muted" style="margin:0 0 10px">Tu calificación es anónima: tu coach y los demás clientes solo ven el promedio. Puedes cambiarla cuando quieras.</p>
+    ${RCRIT.map(([k,e,t,d])=>`<div class="rc-row"><div class="rc-t"><b>${e} ${t}</b><small>${d}</small></div><div class="rc-st" role="radiogroup" aria-label="${t}">${[1,2,3,4,5].map(n=>`<button type="button" class="${r[k]>=n?'on':''}" aria-label="${n} de 5" onclick="rateSet('${k}',${n})">★</button>`).join('')}</div></div>`).join('')}
+    <div class="field" style="margin-top:12px"><label>Comentario (opcional)</label><textarea id="rt_c" rows="3" maxlength="600" placeholder="¿Qué es lo que más te ha ayudado?" oninput="S.ui.rate.comment=this.value">${esc(r.comment)}</textarea></div>
+    ${done?`<div class="rc-avg">Tu promedio: ${starsHTML(RCRIT.reduce((s,[k])=>s+r[k],0)/5,1,{always:true,nc:true})}</div>`:'<div class="muted" style="font-size:12.5px">Toca las estrellas de cada aspecto (1 = muy mal · 5 = excelente).</div>'}
+  </div><div class="modal-f"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn primary" id="rt_b" ${done?'':'disabled'} onclick="saveRating()">${mine?'Actualizar calificación':'Enviar calificación'}</button></div></div>`);
+}
+function rateSet(k,n){const t=document.getElementById('rt_c');if(t)S.ui.rate.comment=t.value;S.ui.rate[k]=n;openRateCoach(S.ui.rate.coach)}
+async function saveRating(){
+  const r=S.ui.rate,b=document.getElementById('rt_b');b.disabled=true;b.textContent='Guardando…';
+  const {error}=await SB.rpc('pt_rate_coach',{p_coach:r.coach,p_compromiso:r.compromiso,p_resultados:r.resultados,p_seguimiento:r.seguimiento,p_puntualidad:r.puntualidad,p_conocimiento:r.conocimiento,p_comment:(r.comment||'').trim()||null});
+  if(error){b.disabled=false;b.textContent='Enviar calificación';toast(/not_your_coach/.test(error.message)?'Solo puedes calificar a tu coach actual':/function|schema cache/i.test(error.message)?'Las calificaciones aún no están activas':'No se pudo guardar');return}
+  S.ui.rate=null;closeModal();await loadRatings();renderApp();toast('¡Gracias por calificar a tu coach! ⭐');
+}
+function myCoachRateHTML(em){
+  const mine=myRatingOf(em),avg=mine?RCRIT.reduce((s,[k])=>s+mine[k],0)/5:0;
+  return `<div class="rc-box">${mine?`<div>Tu calificación: ${starsHTML(avg,1,{always:true,nc:true})}</div>`:'<div><b>¿Cómo va tu experiencia?</b> Califica a tu coach en 5 aspectos.</div>'}<button class="btn ${mine?'soft':'primary'} sm" onclick="S.ui.rate=null;openRateCoach('${em}')">⭐ ${mine?'Editar mi calificación':'Calificar a mi coach'}</button></div>`;
+}
+
+/* --- el coach ve sus calificaciones --- */
+function ratingBarsHTML(r){
+  if(!r||!r.n)return '<div class="muted" style="font-size:13px">Aún no tienes calificaciones. Tus clientes pueden calificarte desde su perfil.</div>';
+  return `<div class="rb">${starsHTML(r.avg,r.n)}${RCRIT.map(([k,e,t])=>`<div class="rb-r"><span>${e} ${t}</span><i><b style="width:${(+r[k]||0)/5*100}%"></b></i><em>${(+r[k]||0).toFixed(1)}</em></div>`).join('')}</div>`;
+}
+async function coachRatingsInto(id){
+  const el=document.getElementById(id);if(!el)return;await loadRatings();const r=RATINGS[ME.email];let rev=[];
+  try{const {data}=await SB.rpc('pt_my_coach_reviews');rev=data||[]}catch(e){}
+  if(!document.getElementById(id))return;
+  el.innerHTML=ratingBarsHTML(r)+(rev.length?`<div class="rv-l">${rev.slice(0,6).map(x=>`<div class="rv">${starsHTML(x.score,1,{always:true,nc:true})}<p>“${esc(x.comment)}”</p></div>`).join('')}</div>`:'');
+}
+
 /* --- ficha pública del coach (catálogo) --- */
 async function openCoachProfile(){
   let doc={};try{const {data}=await SB.from('pt_coach_profiles').select('doc,public').eq('email',ME.email).maybeSingle();doc={...(data&&data.doc||{}),_pub:data?data.public:true}}catch(e){}
@@ -1694,20 +1822,25 @@ function renderCoachProfile(){
   const d=S.ui.cp;
   openModal(`<div class="modal"><div class="modal-h"><h3>${ic('coach',18)} Mi perfil de coach</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
   <div class="modal-b"><div class="muted" style="font-size:12.5px;margin-bottom:10px">Así te verán los clientes en el catálogo de coaches.</div>
-    <div class="row" style="flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:10px">${d.photo?`<img class="cc-ph" src="${d.photo}" alt="">`:`<div class="cc-ph cc-in" style="background:${colorFor(ME.email)}">${initials(d.name||ME.email)}</div>`}<label class="btn soft sm upl">📷 ${d.photo?'Cambiar foto':'Subir foto'}<input type="file" accept="image/*" onchange="cpPhoto(this.files[0])"></label>${d.photo?`<button class="btn ghost sm" onclick="cpCollect();S.ui.cp.photo='';renderCoachProfile()">Quitar</button>`:''}</div>
+    <div class="row" style="flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:10px">${d.photo?`<img class="cc-ph" src="${d.photo}" alt="">`:`<div class="cc-ph cc-in" style="background:${colorFor(ME.email)}">${initials(d.name||ME.email)}</div>`}<div class="muted" style="font-size:12.5px;flex-basis:100%;order:-1">📸 <b>Foto de perfil</b> · así te reconocerán los clientes en el catálogo.</div><label class="btn soft sm upl">📷 ${d.photo?'Cambiar foto':'Subir foto'}<input type="file" accept="image/*" onchange="cpPhoto(this.files[0])"></label>${d.photo?`<button class="btn ghost sm" onclick="cpCollect();S.ui.cp.photo='';renderCoachProfile()">Quitar</button>`:''}</div>
     <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:220px"><label>Nombre público</label><input id="cp_n" value="${esc(d.name)}"></div><div class="field" style="min-width:220px"><label>Título</label><input id="cp_t" value="${esc(d.title)}" placeholder="Ej. Entrenador de fuerza y nutrición"></div></div>
+    <div class="row" style="flex-wrap:wrap"><div class="field" style="max-width:200px"><label>🏅 Años de experiencia</label><input id="cp_y" type="number" min="0" max="60" step="1" value="${esc(d.years||'')}" placeholder="Ej. 8"></div>
+      <div class="field" style="flex:1;min-width:240px"><label>🎓 Certificaciones (una por línea)</label><textarea id="cp_ce" rows="3" placeholder="Ej. Licenciatura en Entrenamiento Deportivo&#10;Certificación NSCA-CPT&#10;Nutrición deportiva ISAK 1">${esc(certsOf(d).join('\n'))}</textarea></div></div>
     <div class="field"><label>Especialidades (separadas por coma)</label><input id="cp_s" value="${esc((d.specialties||[]).join(', '))}" placeholder="Hipertrofia, Running, Funcional…"></div>
     <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:180px"><label>Ciudad</label><input id="cp_c" value="${esc(d.city)}"></div><div class="field" style="min-width:180px"><label>Modalidad</label><select id="cp_m">${['En línea','Presencial','En línea y presencial'].map(m=>`<option ${m===d.modality?'selected':''}>${m}</option>`).join('')}</select></div></div>
     <div class="field"><label>Sobre mí</label><textarea id="cp_b" rows="4" placeholder="Tu experiencia, certificaciones y cómo trabajas">${esc(d.bio)}</textarea></div>
-    <div class="field"><label>Precios (MXN)</label>${(d.prices||[]).map((p,i)=>`<div class="row" style="gap:8px;margin-bottom:6px"><input class="inp cp_pl" value="${esc(p.label)}" placeholder="Servicio" style="flex:2"><input class="inp cp_pp" type="number" min="0" value="${esc(p.price)}" placeholder="$" style="flex:1"><button class="btn ghost sm" onclick="cpCollect();S.ui.cp.prices.splice(${i},1);renderCoachProfile()">${ic('trash',13)}</button></div>`).join('')}<button class="btn soft sm" onclick="cpCollect();S.ui.cp.prices.push({label:'',price:''});renderCoachProfile()">${ic('plus',13)} Agregar precio</button></div>
+    <div class="field"><label>💲 Cuotas por entrenamiento (MXN)</label><div class="muted" style="font-size:12px;margin:-2px 0 6px">Ej. «Sesión individual», «Mensualidad 12 sesiones», «Plan de nutrición».</div>${(d.prices||[]).map((p,i)=>`<div class="row" style="gap:8px;margin-bottom:6px"><input class="inp cp_pl" value="${esc(p.label)}" placeholder="Servicio" style="flex:2"><input class="inp cp_pp" type="number" min="0" value="${esc(p.price)}" placeholder="$" style="flex:1"><button class="btn ghost sm" onclick="cpCollect();S.ui.cp.prices.splice(${i},1);renderCoachProfile()">${ic('trash',13)}</button></div>`).join('')}<button class="btn soft sm" onclick="cpCollect();S.ui.cp.prices.push({label:'',price:''});renderCoachProfile()">${ic('plus',13)} Agregar precio</button></div>
     <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:220px"><label>Sitio web</label><input id="cp_w" value="${esc(d.web)}" placeholder="https://"></div><div class="field" style="min-width:180px"><label>Instagram</label><input id="cp_i" value="${esc(d.instagram)}" placeholder="@usuario"></div></div>
     <div class="field"><label>📞 Horario para llamadas iniciales de 15 min</label><div class="av-days">${[1,2,3,4,5,6,0].map(k=>`<label class="av-d"><input type="checkbox" class="cp_av" value="${k}" ${({...AVAIL_DEF,...(d.avail||{})}).days.includes(k)?'checked':''}><span>${DOW[k]}</span></label>`).join('')}</div>
       <div class="row" style="gap:8px;align-items:center;margin-top:6px"><span class="muted" style="font-size:12.5px">De</span><input type="time" id="cp_af" step="900" value="${esc(({...AVAIL_DEF,...(d.avail||{})}).from)}" style="max-width:130px"><span class="muted" style="font-size:12.5px">a</span><input type="time" id="cp_at" step="900" value="${esc(({...AVAIL_DEF,...(d.avail||{})}).to)}" style="max-width:130px"></div></div>
     <div class="field"><label>Enlace para la llamada (opcional)</label><input id="cp_cl" value="${esc(d.callLink||'')}" placeholder="Google Meet, Zoom o https://wa.me/52…"></div>
+    <label class="chk"><input type="checkbox" id="cp_sp" ${d.showPrices!==false?'checked':''}> Mostrar mis cuotas en el catálogo <span class="muted">(si no, aparece «Precio a consultar»)</span></label>
     <label class="chk"><input type="checkbox" id="cp_pub" ${d._pub!==false?'checked':''}> Mostrarme en el catálogo de coaches</label>
-  </div><div class="modal-f">${IS_ADMIN?'':`<button class="btn ghost sm cdel-b" onclick="openCoachDelete(1)">🗑️ Darme de baja</button><span style="flex:1"></span>`}<button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveCoachProfile()">${ic('check',15)} Guardar</button></div></div>`);
+    <div class="cp-rt"><div class="rq-sec" style="margin-top:4px">⭐ Mis calificaciones</div><div id="cpRatings" class="muted" style="font-size:13px">Cargando…</div></div>
+  </div><div class="modal-f">${IS_ADMIN?'':`<button class="btn ghost sm cdel-b" onclick="openCoachDelete(1)">🗑️ Darme de baja</button><span style="flex:1"></span>`}<button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveCoachProfile()">${ic('check',15)} Guardar</button></div></div>`);cpAfter();
 }
-function cpCollect(){const d=S.ui.cp;if(!document.getElementById('cp_n'))return;d.name=gv('cp_n');d.title=gv('cp_t');d.specialties=gv('cp_s').split(',').map(s=>s.trim()).filter(Boolean);d.city=gv('cp_c');d.modality=gv('cp_m');d.bio=gv('cp_b');d.web=gv('cp_w');d.instagram=gv('cp_i');d._pub=document.getElementById('cp_pub').checked;d.callLink=gv('cp_cl');d.avail={days:[...document.querySelectorAll('.cp_av:checked')].map(x=>+x.value),from:gv('cp_af')||'09:00',to:gv('cp_at')||'18:00'};
+function cpAfter(){setTimeout(()=>coachRatingsInto('cpRatings'),0)}
+function cpCollect(){const d=S.ui.cp;if(!document.getElementById('cp_n'))return;d.name=gv('cp_n');d.title=gv('cp_t');d.specialties=gv('cp_s').split(',').map(s=>s.trim()).filter(Boolean);d.city=gv('cp_c');d.modality=gv('cp_m');d.bio=gv('cp_b');d.web=gv('cp_w');d.instagram=gv('cp_i');d._pub=document.getElementById('cp_pub').checked;d.showPrices=document.getElementById('cp_sp').checked;d.years=gv('cp_y')?Math.max(0,Math.min(60,parseInt(gv('cp_y'))||0)):'';d.certs=(document.getElementById('cp_ce').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,12);d.callLink=gv('cp_cl');d.avail={days:[...document.querySelectorAll('.cp_av:checked')].map(x=>+x.value),from:gv('cp_af')||'09:00',to:gv('cp_at')||'18:00'};
   const ls=[...document.querySelectorAll('.cp_pl')],ps=[...document.querySelectorAll('.cp_pp')];d.prices=ls.map((l,i)=>({label:l.value.trim(),price:+ps[i].value||0}))}
 async function cpPhoto(f){if(!f||!/^image\//.test(f.type)){toast('Elige una imagen');return}cpCollect();try{S.ui.cp.photo=await shrinkToSquare(f,360);renderCoachProfile()}catch(e){toast('No se pudo leer la foto')}}
 async function saveCoachProfile(){

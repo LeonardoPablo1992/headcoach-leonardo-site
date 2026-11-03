@@ -78,3 +78,11 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 
 - Recuperar contraseña, crear nueva contraseña (enlace de recuperación) y enlaces vencidos se resuelven en la app nueva.
 - Ficha del cliente → «Plan de entrenamiento»: ver/editar/programar su plan, crear uno a mano, copiar una plantilla o cargar Excel. Al programar se pueden reemplazar las sesiones pendientes del plan anterior.
+
+## Administración, aprobación de coaches, baja del coach y llamada inicial (admin-coaches.sql)
+- Correr `v2/admin-coaches.sql` después de `multi-coach.sql` (ya aplicado en producción).
+- **Administración:** la cuenta del coach principal (tabla `coaches`) y los correos de `pt_admins` ven la sección 🛡️ Administración: todos los coaches, su estado (Principal / Prueba / Activo / En revisión / Rechazado) y los clientes de cada uno, más los clientes sin coach. Para sumar otro administrador: `insert into pt_admins(email) values ('correo@dominio.com');`.
+- **Aprobación:** quien se registra como coach queda `pending` (pantalla «Tu cuenta está en revisión», oculto del catálogo). El administrador ve un aviso arriba y en la sección acepta (empieza la prueba de 14 días y aparece en el catálogo) o rechaza. Los coaches que ya estaban en prueba o activos no cambian.
+- **Baja del coach:** «Mi perfil de coach» → 🗑️ Darme de baja (mismo flujo naranja de 2 pasos). Borra su cuenta, perfil y plantillas; sus clientes conservan su historial, reciben un aviso y vuelven a ver el catálogo. La cuenta administradora no se puede dar de baja.
+- **Llamada inicial de 15 min:** el coach define días, horario y enlace (Meet/Zoom/WhatsApp) en su perfil. El cliente, al pedir coach, elige día y hora (se evitan horarios ya apartados) y deja un mensaje. Coach y cliente ven la llamada con botones para agregarla a Google Calendar, Apple (.ics) u Outlook.
+- **Tema:** verde menta neón (#19e6a4 día / #3dffb9 noche), Red Hat Display y botón ☀️/🌙 en portal, landing, demo, «Conoce tu plan» y aviso de privacidad. La preferencia se guarda en `localStorage` (`ptp-theme`) y se comparte entre páginas del dominio; si no hay, sigue al sistema.

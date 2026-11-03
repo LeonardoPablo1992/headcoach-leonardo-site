@@ -86,3 +86,8 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - **Baja del coach:** «Mi perfil de coach» → 🗑️ Darme de baja (mismo flujo naranja de 2 pasos). Borra su cuenta, perfil y plantillas; sus clientes conservan su historial, reciben un aviso y vuelven a ver el catálogo. La cuenta administradora no se puede dar de baja.
 - **Llamada inicial de 15 min:** el coach define días, horario y enlace (Meet/Zoom/WhatsApp) en su perfil. El cliente, al pedir coach, elige día y hora (se evitan horarios ya apartados) y deja un mensaje. Coach y cliente ven la llamada con botones para agregarla a Google Calendar, Apple (.ics) u Outlook.
 - **Tema:** verde menta neón (#19e6a4 día / #3dffb9 noche), Red Hat Display y botón ☀️/🌙 en portal, landing, demo, «Conoce tu plan» y aviso de privacidad. La preferencia se guarda en `localStorage` (`ptp-theme`) y se comparte entre páginas del dominio; si no hay, sigue al sistema.
+
+## Registros no verificados (descartar-no-verificados.sql)
+- Si una cuenta nueva no confirma su correo en **24 horas**, se descarta sola (acceso, perfil y solicitudes pendientes). Corre cada hora con `pg_cron` (tarea `ptp-descartar-no-verificados`).
+- Nunca toca cuentas que ya entraron, con entrenamientos, con coach activo, coaches en prueba/activos ni al coach principal.
+- Para correrla a mano: `select public.pt_purge_unverified();` (devuelve cuántas cuentas descartó).

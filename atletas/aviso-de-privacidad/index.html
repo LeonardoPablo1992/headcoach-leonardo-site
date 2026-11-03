@@ -1,28 +1,32 @@
 <!doctype html>
 <html lang="es-MX">
 <head>
+<script>(function(){try{var t=localStorage.getItem('ptp-theme');if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','light')}})();
+function ptpTheme(){var d=document.documentElement,t=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',t);try{localStorage.setItem('ptp-theme',t)}catch(e){}document.querySelectorAll('.ptp-tg').forEach(function(b){b.innerHTML=t==='dark'?'☀️':'🌙';b.title=b.ariaLabel=t==='dark'?'Cambiar a modo día':'Cambiar a modo oscuro'})}
+document.addEventListener('DOMContentLoaded',function(){var t=document.documentElement.getAttribute('data-theme');document.querySelectorAll('.ptp-tg').forEach(function(b){b.innerHTML=t==='dark'?'☀️':'🌙';b.title=b.ariaLabel=t==='dark'?'Cambiar a modo día':'Cambiar a modo oscuro'})});</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Aviso de privacidad · Head Coach Leonardo Pablo · ProTrainerPlus</title>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,800;1,900&display=swap" rel="stylesheet">
 <meta name="description" content="Aviso de privacidad integral de Head Coach Leonardo Pablo y la plataforma ProTrainerPlus.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--green:#16a34a;--green-d:#15803d;--green-50:#f0fdf4;--green-200:#bbf7d0;--ink:#111827;--ink-2:#374151;--muted:#6b7280;--line:#e5e7eb;--bg:#f7f8f7}
+:root{--green:#12d99b;--green-d:#12d99b;--green-50:#f0fdf8;--green-200:#bbf7e1;--ink:#111827;--ink-2:#374151;--muted:#6b7280;--line:#e5e7eb;--bg:#f7f8f7}
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:15px}
-header{background:#fff;border-bottom:1px solid var(--line);padding:14px 16px}
+body{margin:0;font-family:'Red Hat Display',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;font-size:15px}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px}
 header .w{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:10px}
 .logo{font-weight:800;font-size:18px}.logo b{color:var(--green)}
 header a{margin-left:auto;color:var(--green-d);font-weight:600;text-decoration:none;font-size:14px}
 main{max-width:860px;margin:0 auto;padding:24px 16px 60px}
-.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px}
 h1{font-size:26px;margin:0 0 4px;line-height:1.25}
 .meta{color:var(--muted);font-size:13px;margin-bottom:18px}
 h2{font-size:17px;margin:28px 0 8px;color:var(--green-d);scroll-margin-top:12px}
 h3{font-size:15px;margin:16px 0 6px}
 ul{padding-left:20px;margin:6px 0}li{margin:3px 0}
 .box{background:var(--green-50);border:1px solid var(--green-200);border-radius:14px;padding:12px 14px;margin:12px 0}
-.sens{background:#fff1f5;border:1px solid #fbcfe8;border-radius:14px;padding:12px 14px;margin:12px 0}
+.sens{background:var(--tb-fff1f5);border:1px solid var(--tl-fbcfe8);border-radius:14px;padding:12px 14px;margin:12px 0}
 nav.toc{columns:2;column-gap:24px;font-size:13.5px;margin:10px 0 0;padding:12px 14px;background:var(--bg);border-radius:12px}
 nav.toc a{color:var(--ink-2);text-decoration:none;display:block;padding:2px 0}
 nav.toc a:hover{color:var(--green-d)}
@@ -32,11 +36,23 @@ td,th{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:to
 th{background:var(--bg)}
 footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
 @media(max-width:600px){nav.toc{columns:1}.card{padding:18px 14px}h1{font-size:22px}}
-@media print{header,nav.toc{display:none}body{background:#fff}.card{border:0}}
+@media print{header,nav.toc{display:none}body{background:var(--card)}.card{border:0}}
+
+/* ===== ProTrainerPlus · verde menta neón + modo día/oscuro ===== */
+:root{--on-mint:#03281c;--wrgb:255,255,255;--tb-fff1f5:#fff1f5;--tl-fbcfe8:#fbcfe8}
+html[data-theme=dark]{color-scheme:dark;--wrgb:12,19,16;--green:#3dffb9;--green-d:#3dffb9;--green-50:#13271f;--green-200:#19352b;--ink:#cbd5e8;--ink-2:#cbd1dc;--muted:#bcc0c7;--line:#27282b;--bg:#151b18;--tb-fff1f5:#2f121a;--tl-fbcfe8:#5d2e49}
+html[data-theme=dark] body{background-color:#070c0a}
+.ptp-tg{width:38px;height:38px;border-radius:999px;border:1px solid var(--ptp-tg-line,rgba(0,0,0,.12));background:var(--ptp-tg-bg,transparent);font-size:17px;line-height:1;display:inline-grid;place-items:center;cursor:pointer;flex:0 0 auto;transition:transform .2s}
+.ptp-tg:hover{transform:rotate(-15deg) scale(1.06)}
+.ptp-tg.float{position:fixed;right:16px;bottom:16px;z-index:9999;box-shadow:0 6px 20px -6px rgba(0,0,0,.35);background:var(--ptp-tg-bg,#fff)}
+html[data-theme=dark] .ptp-tg{--ptp-tg-line:rgba(255,255,255,.18)}
+html[data-theme=dark] .ptp-tg.float{--ptp-tg-bg:#111916}
+.ptp-tg.float{left:16px;right:auto}
+
 </style>
 </head>
 <body>
-<header><div class="w"><span class="logo"><b>P</b>ro<b>T</b>rainer<b>P</b>lus</span><a href="../">Ir a la plataforma</a></div></header>
+<header><div class="w"><span class="logo"><b>P</b>ro<b>T</b>rainer<b>P</b>lus</span><a href="../">Ir a la plataforma</a><button class="ptp-tg" type="button" onclick="ptpTheme()" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro" style="margin-left:10px">🌙</button></div></header>
 <main><div class="card">
 <article id="aviso" data-version="1.0">
 <h1>Aviso de privacidad integral</h1>

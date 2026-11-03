@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>(function(){try{var t=localStorage.getItem('ptp-theme');if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','light')}})();
+function ptpTheme(){var d=document.documentElement,t=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',t);try{localStorage.setItem('ptp-theme',t)}catch(e){}document.querySelectorAll('.ptp-tg').forEach(function(b){b.innerHTML=t==='dark'?'☀️':'🌙';b.title=b.ariaLabel=t==='dark'?'Cambiar a modo día':'Cambiar a modo oscuro'})}
+document.addEventListener('DOMContentLoaded',function(){var t=document.documentElement.getAttribute('data-theme');document.querySelectorAll('.ptp-tg').forEach(function(b){b.innerHTML=t==='dark'?'☀️':'🌙';b.title=b.ariaLabel=t==='dark'?'Cambiar a modo día':'Cambiar a modo oscuro'})});</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Leonardo Pablo | Head Coach</title>
@@ -9,21 +12,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Condensed:wght@400;500;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f1faf6;
-    --bg-alt: #e3f4ec;
+    --bg: #eefdf7;
+    --bg-alt: #ddfaf0;
     --card: #ffffff;
-    --border: #b9e0cf;
-    --dark: #0a4f39;
-    --dark-alt: #0b7a55;
-    --accent: #0b7a55;
-    --accent-soft: #8fd9b8;
-    --btn-green: #00a86b;
-    --btn-green-hover: #0b7a55;
-    --text: #173d31;
+    --border: #a7f2d7;
+    --dark: #0a4f36;
+    --dark-alt: #12d99b;
+    --accent: #12d99b;
+    --accent-soft: #9df1d3;
+    --btn-green: #12d99b;
+    --btn-green-hover: #12d99b;
+    --text: #0d4732;
     --text-muted: #4b6e62;
     --text-on-dark: #ffffff;
-    --text-on-dark-muted: #c9eedd;
-    --heading: #0a4f39;
+    --text-on-dark-muted: #c1f6e3;
+    --heading: #0a4f36;
     --radius: 4px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -255,7 +258,7 @@
   .month-stat .m-value { font-family: 'Black Ops One', sans-serif; font-size: 1.05rem; color: var(--text-on-dark); }
   .month-stats-caption { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
   .board-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .board-row .blur-bar { flex: 1; height: 14px; border-radius: 3px; background: repeating-linear-gradient(90deg, #c9eedd, #c9eedd 6px, #e3f4ec 6px, #e3f4ec 12px); }
+  .board-row .blur-bar { flex: 1; height: 14px; border-radius: 3px; background: repeating-linear-gradient(90deg, var(--tb-c1f6e3), var(--tb-c1f6e3) 6px, var(--tb-ddfaf0) 6px, var(--tb-ddfaf0) 12px); }
   .board-row .blur-label { width: 90px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Oswald', sans-serif; }
   .board-caption { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 22px; }
   .board-caption a { color: var(--accent); border-bottom: 1px dotted var(--accent); }
@@ -386,16 +389,16 @@
   }
 
 /* ===== ProTrainerPlus · capa de diseño del sitio: fondo blanco, líneas verdes, botones redondos verde claro ===== */
-:root{--bg:#ffffff;--bg-alt:#f6faf8;--bg-2:#f3fbf7;--card:#ffffff;--panel:#ffffff;--panel-2:#eef8f2;--border:#cfe9db;--border-soft:#e4f3ea;--dark:#e3f6ec;--dark-alt:#eef8f2;--text-on-dark:#10231a;--text-on-dark-muted:#55675e;--heading:#10231a;--text:#10231a;--text-muted:#55675e;--text-dim:#55675e;--radius:18px;
-  --ptp-green:#00a86b;--ptp-deep:#08804f;--ptp-ink:#0a4f39;--ptp-soft:#e3f6ec;--ptp-mint:#9fdcbd;--ptp-btn:#a8ecc8;--ptp-btn-h:#8be3b5;--ptp-shadow:0 1px 2px rgba(10,79,57,.05),0 10px 28px -14px rgba(10,79,57,.22)}
-html,body{background:#fff!important;background-image:none!important}
+:root{--bg:#ffffff;--bg-alt:#f3fdf9;--bg-2:#f1fdf9;--card:#ffffff;--panel:#ffffff;--panel-2:#eafcf6;--border:#c2f6e3;--border-soft:#ddfaf0;--dark:#dffaf0;--dark-alt:#eafcf6;--text-on-dark:#082b1e;--text-on-dark-muted:#55675e;--heading:#082b1e;--text:#082b1e;--text-muted:#55675e;--text-dim:#55675e;--radius:18px;
+  --ptp-green:#12d99b;--ptp-deep:#007f5b;--ptp-ink:#0a4f36;--ptp-soft:#dffaf0;--ptp-mint:#9df1d3;--ptp-btn:#a2f2d5;--ptp-btn-h:#9df1d3;--ptp-shadow:0 1px 2px rgba(10,79,57,.05),0 10px 28px -14px rgba(10,79,57,.22)}
+html,body{background:var(--card)!important;background-image:none!important}
 body,body *{font-family:"Red Hat Display",system-ui,sans-serif!important}
 h1,h2,h3,h4,.eyebrow,.logo,.section-head h2{text-transform:none!important;letter-spacing:-.5px!important;font-weight:600!important;color:var(--heading)}
 .hero h1,.hero-copy h1{font-weight:500!important;letter-spacing:-1.2px!important;line-height:1.08!important}
 .eyebrow{display:inline-flex!important;align-items:center;gap:8px;font-size:12.5px!important;letter-spacing:.2px!important;color:var(--ptp-ink)!important;background:var(--ptp-soft);border:1px solid var(--border);border-radius:999px;padding:5px 12px}
 .eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ptp-green);animation:ptpping 2s ease-out infinite}
 @keyframes ptpping{0%{box-shadow:0 0 0 0 rgba(0,168,107,.45)}80%,100%{box-shadow:0 0 0 8px rgba(0,168,107,0)}}
-header,.topbar{background:rgba(255,255,255,.94)!important;border-bottom:1px solid var(--border)!important}
+header,.topbar{background:rgba(var(--wrgb),.94)!important;border-bottom:1px solid var(--border)!important}
 .logo{font-weight:700!important;color:var(--heading)!important;letter-spacing:-.3px!important}
 .logo span{color:var(--ptp-green)!important}
 .logo-tag{letter-spacing:.3px!important;text-transform:none!important;color:var(--text-muted)!important}
@@ -403,18 +406,18 @@ header,.topbar{background:rgba(255,255,255,.94)!important;border-bottom:1px soli
 .nav-links a:hover{color:var(--ptp-deep)!important}
 
 /* botones: verde claro y redondos */
-.btn,button.btn,a.btn,.btn.primary,form .btn,.price .btn,.nav-cta .btn{background:var(--ptp-btn)!important;color:#06402b!important;border:1px solid var(--ptp-btn)!important;border-radius:999px!important;text-transform:none!important;letter-spacing:0!important;font-weight:600!important;box-shadow:0 8px 18px -12px rgba(0,168,107,.9)!important;transition:background .15s,transform .15s!important}
+.btn,button.btn,a.btn,.btn.primary,form .btn,.price .btn,.nav-cta .btn{background:var(--ptp-btn)!important;color:var(--on-mint)!important;border:1px solid var(--ptp-btn)!important;border-radius:999px!important;text-transform:none!important;letter-spacing:0!important;font-weight:600!important;box-shadow:0 8px 18px -12px rgba(0,168,107,.9)!important;transition:background .15s,transform .15s!important}
 .btn:hover,.btn.primary:hover{background:var(--ptp-btn-h)!important;border-color:var(--ptp-btn-h)!important;transform:translateY(-1px)}
-.btn-outline,.btn.ghost,.btn-outline.btn-atletas{background:#fff!important;color:var(--ptp-ink)!important;border:1px solid var(--ptp-mint)!important;box-shadow:none!important}
+.btn-outline,.btn.ghost,.btn-outline.btn-atletas{background:var(--card)!important;color:var(--ptp-ink)!important;border:1px solid var(--ptp-mint)!important;box-shadow:none!important}
 .btn-outline:hover,.btn.ghost:hover{background:var(--ptp-soft)!important;color:var(--ptp-ink)!important}
-.btn.wa{background:#a8ecc8!important}
+.btn.wa{background:var(--tb-a2f2d5)!important}
 button,input,select,textarea{border-radius:999px}
 textarea{border-radius:20px!important}
-.field input,.field select{border-radius:999px!important;border:1px solid var(--border)!important;background:#fff!important}
+.field input,.field select{border-radius:999px!important;border:1px solid var(--border)!important;background:var(--card)!important}
 .field input:focus,.field textarea:focus{border-color:var(--ptp-green)!important;box-shadow:0 0 0 4px var(--ptp-soft)!important;outline:none}
 
 /* héroe con líneas verdes animadas */
-.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#f3fbf7 0,#fff 100%)!important}
+.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--tb-f1fdf9) 0,var(--card) 100%)!important}
 .hero>*{position:relative;z-index:1}
 .hdr-lines{position:absolute!important;inset:0;width:100%;height:100%;pointer-events:none;z-index:0!important}
 .hdr-lines path{fill:none;stroke:var(--ptp-green);stroke-width:1.2;stroke-linecap:round;stroke-dasharray:6 10;animation:ptpflow 14s linear infinite}
@@ -426,7 +429,7 @@ section{border-top:1px solid var(--border-soft)}
 .hero,section.hero{border-top:none}
 
 /* tarjetas, precios y bloques */
-.card,.stat,.phase,.quote-card,.board-mock,.price,.lv,.f,.step,.browser,.closing .box,.contact-item,.month-stat,.kpi{background:#fff!important;border:1px solid var(--border)!important;border-radius:18px!important;box-shadow:var(--ptp-shadow)}
+.card,.stat,.phase,.quote-card,.board-mock,.price,.lv,.f,.step,.browser,.closing .box,.contact-item,.month-stat,.kpi{background:var(--card)!important;border:1px solid var(--border)!important;border-radius:18px!important;box-shadow:var(--ptp-shadow)}
 .card::before,.card::after{display:none!important}
 .card{transition:transform .2s ease,box-shadow .2s ease!important}
 .card:hover{transform:translateY(-3px);box-shadow:0 18px 34px -18px rgba(10,79,57,.35)}
@@ -436,39 +439,51 @@ section{border-top:1px solid var(--border-soft)}
 .card:hover .icon svg{animation:ptpwiggle .6s ease}
 @keyframes ptpdraw{to{stroke-dashoffset:0}}
 @keyframes ptpwiggle{0%,100%{transform:none}30%{transform:rotate(-10deg) scale(1.08)}60%{transform:rotate(6deg)}}
-.price.combo-card{background:linear-gradient(180deg,#e9f9f1,#fff)!important;border:2px solid var(--ptp-green)!important;color:var(--text)!important}
+.price.combo-card{background:linear-gradient(180deg,var(--tb-e6fcf4),var(--card))!important;border:2px solid var(--ptp-green)!important;color:var(--text)!important}
 .price.combo-card .kind,.price.combo-card h3,.price.combo-card .amount,.price.combo-card li,.price.combo-card .amount small,.price.combo-card .amount s{color:var(--text)!important}
 .save{border-radius:999px!important}
-.cta,.live-band,.training-bar,footer,.ribbon{background:#f3fbf7!important;color:var(--text)!important;border-top:1px solid var(--border)!important}
+.cta,.live-band,.training-bar,footer,.ribbon{background:var(--tb-f1fdf9)!important;color:var(--text)!important;border-top:1px solid var(--border)!important}
 .cta h2,.cta p,.training-bar,.training-bar *,footer,footer *{color:var(--text)!important}
 footer a{color:var(--ptp-deep)!important}
 .lv.hl{background:var(--ptp-soft)!important}
 .lv.hl .k,.lv.hl h3,.lv.hl p{color:var(--text)!important}
-.tag-strip span,.chip,.kp-tag,.kp-ref,.ref{border-radius:999px!important;background:#fff!important;border:1px solid var(--border)!important;color:var(--ptp-ink)!important}
+.tag-strip span,.chip,.kp-tag,.kp-ref,.ref{border-radius:999px!important;background:var(--card)!important;border:1px solid var(--border)!important;color:var(--ptp-ink)!important}
 .checklist li::before,.price li::before{color:var(--ptp-green)!important}
-.kp-tabs button{border-radius:999px!important;border:1px solid var(--border)!important;background:#fff!important}
-.kp-tabs button.on{background:var(--ptp-btn)!important;border-color:var(--ptp-btn)!important;color:#06402b!important}
+.kp-tabs button{border-radius:999px!important;border:1px solid var(--border)!important;background:var(--card)!important}
+.kp-tabs button.on{background:var(--ptp-btn)!important;border-color:var(--ptp-btn)!important;color:var(--on-mint)!important}
 .chk,.pip{border-radius:50%!important}
-.chat-toggle{border-radius:50%!important;background:var(--ptp-btn)!important;color:#06402b!important}
+.chat-toggle{border-radius:50%!important;background:var(--ptp-btn)!important;color:var(--on-mint)!important}
 .chat-window{border-radius:22px!important;border:1px solid var(--border)!important}
-.chat-header{background:#f3fbf7!important;color:var(--text)!important;border-bottom:1px solid var(--border)}
+.chat-header{background:var(--tb-f1fdf9)!important;color:var(--text)!important;border-bottom:1px solid var(--border)}
 .chat-msg{border-radius:18px!important}
-.chat-msg.user{background:var(--ptp-btn)!important;color:#06402b!important}
-.chat-input-row button{background:var(--ptp-btn)!important;color:#06402b!important;border-radius:999px!important}
-.ptp-foot{text-align:center;font-size:12.5px;color:#55675e;padding:12px 0 18px;background:#f3fbf7}
-.ptp{font-weight:600;color:#10231a}.ptp b{color:var(--ptp-green);font-weight:800}
+.chat-msg.user{background:var(--ptp-btn)!important;color:var(--on-mint)!important}
+.chat-input-row button{background:var(--ptp-btn)!important;color:var(--on-mint)!important;border-radius:999px!important}
+.ptp-foot{text-align:center;font-size:12.5px;color:var(--tt-55675e);padding:12px 0 18px;background:var(--tb-f1fdf9)}
+.ptp{font-weight:600;color:var(--tt-082b1e)}.ptp b{color:var(--ptp-green);font-weight:800}
 @media (prefers-reduced-motion:reduce){.hdr-lines path,.icon-white svg *,.card .icon svg *,.icon-sm svg *,.eyebrow:before{animation:none!important;stroke-dashoffset:0}}
 .f,.step{padding:18px 18px!important}
 .cta{border-radius:28px!important}
 .closing .box{color:var(--text)!important}
 .closing .box p,.closing .box .lbl,.closing .box .mail,.closing .box small{color:var(--text-muted)!important}
 .closing .box h2{color:var(--text)!important}
-.closing .box button:not(.btn){background:#fff!important;border:1px solid var(--ptp-mint)!important;color:var(--ptp-ink)!important;padding:8px 16px}
+.closing .box button:not(.btn){background:var(--card)!important;border:1px solid var(--ptp-mint)!important;color:var(--ptp-ink)!important;padding:8px 16px}
 .kp-tabs button,.kpi .l,.kp-tag,.kp-ref,.cat,th{text-transform:none!important;letter-spacing:0!important}
+
+/* ===== ProTrainerPlus · verde menta neón + modo día/oscuro ===== */
+:root{--on-mint:#03281c;--wrgb:255,255,255;--ptp-btn:#3dffb9;--ptp-btn-h:#19e6a4;--btn:#3dffb9;--btn-hover:#19e6a4;--tb-a2f2d5:#a2f2d5;--tb-c1f6e3:#c1f6e3;--tb-ddfaf0:#ddfaf0;--tb-e6fcf4:#e6fcf4;--tb-f1fdf9:#f1fdf9;--tt-082b1e:#082b1e;--tt-55675e:#55675e}
+html[data-theme=dark]{color-scheme:dark;--wrgb:12,19,16;--bg:#111513;--bg-alt:#13261e;--card:#111513;--border:#2b5043;--dark-alt:#142822;--accent:#3dffb9;--accent-soft:#1ab87f;--btn-green:#3dffb9;--btn-green-hover:#6cffcb;--text:#bef3df;--text-muted:#c3cec8;--heading:#bef3df;--bg-2:#132620;--panel:#111513;--panel-2:#142822;--border-soft:#284a3f;--dark:#162c24;--text-dim:#c3cec8;--ptp-green:#3dffb9;--ptp-deep:#3dffb9;--ptp-ink:#b1f4db;--ptp-soft:#162c24;--ptp-mint:#1e3c31;--ptp-btn:#3dffb9;--ptp-btn-h:#6cffcb;--tb-a2f2d5:#1d3b30;--tb-c1f6e3:#1a342a;--tb-ddfaf0:#162c25;--tb-e6fcf4:#142a22;--tb-f1fdf9:#132620;--tt-082b1e:#bef3df;--tt-55675e:#c3cec8}
+html[data-theme=dark] body{background-color:#070c0a}
+.ptp-tg{width:38px;height:38px;border-radius:999px;border:1px solid var(--ptp-tg-line,rgba(0,0,0,.12));background:var(--ptp-tg-bg,transparent);font-size:17px;line-height:1;display:inline-grid;place-items:center;cursor:pointer;flex:0 0 auto;transition:transform .2s}
+.ptp-tg:hover{transform:rotate(-15deg) scale(1.06)}
+.ptp-tg.float{position:fixed;right:16px;bottom:16px;z-index:9999;box-shadow:0 6px 20px -6px rgba(0,0,0,.35);background:var(--ptp-tg-bg,#fff)}
+html[data-theme=dark] .ptp-tg{--ptp-tg-line:rgba(255,255,255,.18)}
+html[data-theme=dark] .ptp-tg.float{--ptp-tg-bg:#111916}
+.ptp-tg.float{left:16px;right:auto}
+html[data-theme=dark] header,html[data-theme=dark] .topbar{background:rgba(10,16,14,.92)!important}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body><button class="ptp-tg float" type="button" onclick="ptpTheme()" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">🌙</button>
 
 <header>
   <div class="container">
@@ -770,7 +785,7 @@ footer a{color:var(--ptp-deep)!important}
         .then(function () {
           form.reset();
           status.style.display = 'block';
-          status.style.color = 'var(--accent, #0b7a55)';
+          status.style.color = 'var(--accent, #12d99b)';
           status.textContent = '¡Gracias! Tu mensaje fue enviado, te responderé en menos de 24 horas.';
         })
         .catch(function () {

@@ -971,6 +971,26 @@ details.lgrp[open] .chev{transform:rotate(180deg)}
 .cal-modal{max-width:760px}.cal-inline{min-width:280px;height:640px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
 @media(max-width:640px){.cal-inline{height:560px}}
 .cc-calb{font-size:12.5px;font-weight:700;color:var(--tt-1d4ed8);background:var(--tb-eff6ff);border-radius:10px;padding:6px 10px;align-self:flex-start}
+.cal-q{border:1px solid var(--green-200);background:var(--green-50);color:var(--green-d);border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:800;cursor:pointer}
+.cal-tip{display:none;position:relative;background:var(--card);border:1px solid var(--green-200);border-radius:16px;padding:12px 14px;margin:8px 0;box-shadow:0 12px 30px -12px rgba(0,80,55,.35)}
+.cal-tip.open{display:block;animation:tipIn .25s ease}
+.cal-tip::before{content:'';position:absolute;top:-8px;left:150px;width:14px;height:14px;background:var(--card);border-left:1px solid var(--green-200);border-top:1px solid var(--green-200);transform:rotate(45deg)}
+.cal-tip-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+@keyframes tipIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+.cal-steps{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:8px}
+.cal-steps li{display:flex;gap:10px;align-items:flex-start}
+.cs-n{flex:0 0 32px;height:32px;border-radius:50%;background:var(--green-50);border:1px solid var(--green-200);display:grid;place-items:center;font-size:15px}
+.cal-steps b{font-size:13.5px}.cal-steps p{margin:2px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.cal-steps a{color:var(--green-d);font-weight:700}.cal-steps code{background:var(--line-2);padding:1px 6px;border-radius:6px;font-size:11.5px}
+.cp-wrap{position:relative;display:inline-flex}
+.cal-nudge{position:absolute;top:calc(100% + 12px);right:0;z-index:30;width:320px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-start;background:var(--card);border:1px solid var(--green);border-radius:16px;padding:12px 34px 12px 12px;box-shadow:0 16px 36px -14px rgba(0,80,55,.45);animation:tipIn .35s ease}
+.cal-nudge::before{content:'';position:absolute;top:-8px;right:60px;width:14px;height:14px;background:var(--card);border-left:1px solid var(--green);border-top:1px solid var(--green);transform:rotate(45deg)}
+.cal-nudge>div{flex:1 1 calc(100% - 50px);min-width:0;display:flex;flex-direction:column}.cal-nudge b{font-size:13.5px}.cal-nudge small{font-size:12px;color:var(--muted)}
+.cal-nudge .btn{margin-left:42px}.cn-ic{font-size:24px;animation:cnBounce 2.4s ease-in-out infinite}
+@keyframes cnBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.cn-x{position:absolute;top:8px;right:8px;border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px}
+.cal-tip .cn-x{position:static}
+@media(max-width:640px){.cal-nudge{position:fixed;left:12px;right:12px;top:auto;bottom:16px;width:auto}.cal-nudge::before{display:none}}
 </style>
 </head>
 <body>
@@ -1882,6 +1902,26 @@ async function openCalendlyPopup(coachEm){
   try{await loadCalendly();Calendly.initPopupWidget({url:calendlyURL(url)})}catch(e){window.open(calendlyURL(url),'_blank','noopener')}
 }
 
+
+/* --- guía en globo: crear Calendly para la llamada inicial --- */
+let MYCP=null;
+async function loadMyCoachProfile(){if(!IS_COACH||!MT)return;try{const {data}=await SB.from('pt_coach_profiles').select('doc').eq('email',ME.email).maybeSingle();MYCP=(data&&data.doc)||{}}catch(e){MYCP=null}}
+const CAL_STEPS=[
+ ['🆓','Crea tu cuenta gratis','Entra a <a href="https://calendly.com/signup" target="_blank" rel="noopener">calendly.com/signup</a> y regístrate con tu correo de Google o Microsoft (el plan gratuito es suficiente).'],
+ ['📆','Conecta tu calendario','Calendly te pedirá conectar Google Calendar u Outlook: así no te agendan cuando ya estás ocupado.'],
+ ['🕒','Define tu disponibilidad','Elige los días y horarios en que aceptas llamadas (por ejemplo, lunes a viernes de 9:00 a 18:00).'],
+ ['➕','Crea el evento «Llamada inicial»','En <b>Eventos / Event types</b> toca <b>+ Crear / New</b> → <b>Uno a uno / One-on-One</b>. Nómbralo «Llamada inicial» y pon <b>15 minutos</b> de duración.'],
+ ['🎥','Agrega la ubicación de la videollamada','En <b>Ubicación / Location</b> elige <b>Google Meet</b> o <b>Zoom</b>. Así Calendly crea el enlace y lo manda en el correo de confirmación a tu cliente. <a href="https://calendly.com/help/how-to-set-the-location-for-your-event-type" target="_blank" rel="noopener">Ver guía</a>'],
+ ['🔗','Copia el enlace del evento','Guarda el evento y toca <b>Copiar enlace / Copy link</b>. Se ve como <code>calendly.com/tu-usuario/llamada-inicial</code>.'],
+ ['✅','Pégalo aquí y guarda','Abre <b>Mi perfil de coach</b>, pega el enlace en <b>📅 Mi enlace de Calendly</b> y toca <b>Guardar</b>. ¡Listo! Tus clientes ya pueden agendar contigo.']];
+function calStepsHTML(){return `<ol class="cal-steps">${CAL_STEPS.map(([e,t,d],i)=>`<li><span class="cs-n">${e}</span><div><b>${i+1}. ${t}</b><p>${d}</p></div></li>`).join('')}</ol>`}
+function calTipToggle(){const el=document.getElementById('calTip');if(el)el.classList.toggle('open')}
+function openCalGuide(){openModal(`<div class="modal" style="max-width:560px"><div class="modal-h"><h3>📅 Crea tu Calendly para la llamada inicial</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div><div class="modal-b"><p class="muted" style="margin:0 0 10px">Con Calendly tus clientes agendan solos su llamada de 15 minutos y reciben un correo con el enlace. Toma unos 5 minutos:</p>${calStepsHTML()}</div><div class="modal-f"><a class="btn soft" href="https://calendly.com/signup" target="_blank" rel="noopener">Ir a Calendly ↗</a><button class="btn primary" onclick="closeModal();openCoachProfile()">Ya tengo mi enlace · pegarlo</button></div></div>`)}
+function calNudgeHTML(){
+  if(!IS_COACH||!MT||!MYCP||calendlyOf(MYCP))return '';try{if(localStorage.getItem('ptp_cal_nudge_'+ME.email))return ''}catch(e){}
+  return `<div class="cal-nudge" role="note"><span class="cn-ic">📅</span><div><b>Conecta tu Calendly para la llamada inicial</b><small>Tus clientes agendarán solos y recibirán el enlace por correo.</small></div><button class="btn primary sm" onclick="openCalGuide()">Ver los pasos</button><button class="cn-x" aria-label="Ahora no" title="Ahora no" onclick="try{localStorage.setItem('ptp_cal_nudge_'+ME.email,'1')}catch(e){};this.closest('.cal-nudge').remove()">✕</button></div>`;
+}
+
 /* --- ficha pública del coach (catálogo) --- */
 async function openCoachProfile(){
   let doc={};try{const {data}=await SB.from('pt_coach_profiles').select('doc,public').eq('email',ME.email).maybeSingle();doc={...(data&&data.doc||{}),_pub:data?data.public:true}}catch(e){}
@@ -1902,7 +1942,8 @@ function renderCoachProfile(){
     <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:220px"><label>Sitio web</label><input id="cp_w" value="${esc(d.web)}" placeholder="https://"></div><div class="field" style="min-width:180px"><label>Instagram</label><input id="cp_i" value="${esc(d.instagram)}" placeholder="@usuario"></div></div>
     <div class="field"><label>📞 Horario para llamadas iniciales de 15 min</label><div class="av-days">${[1,2,3,4,5,6,0].map(k=>`<label class="av-d"><input type="checkbox" class="cp_av" value="${k}" ${({...AVAIL_DEF,...(d.avail||{})}).days.includes(k)?'checked':''}><span>${DOW[k]}</span></label>`).join('')}</div>
       <div class="row" style="gap:8px;align-items:center;margin-top:6px"><span class="muted" style="font-size:12.5px">De</span><input type="time" id="cp_af" step="900" value="${esc(({...AVAIL_DEF,...(d.avail||{})}).from)}" style="max-width:130px"><span class="muted" style="font-size:12.5px">a</span><input type="time" id="cp_at" step="900" value="${esc(({...AVAIL_DEF,...(d.avail||{})}).to)}" style="max-width:130px"></div></div>
-    <div class="field"><label>📅 Mi enlace de Calendly (opcional)</label><input id="cp_cal" value="${esc(d.calendly||'')}" placeholder="https://calendly.com/tu-usuario/llamada-inicial" inputmode="url">
+    <div class="field"><label style="display:flex;align-items:center;gap:6px">📅 Mi enlace de Calendly (opcional) <button type="button" class="cal-q" onclick="calTipToggle()">❓ ¿Cómo lo creo?</button></label>
+      <div id="calTip" class="cal-tip ${d.calendly?'':'open'}"><div class="cal-tip-h"><b>Pasos para crear tu Calendly</b><button type="button" class="cn-x" onclick="calTipToggle()" aria-label="Cerrar">✕</button></div>${calStepsHTML()}<a class="btn soft sm" href="https://calendly.com/signup" target="_blank" rel="noopener">Ir a Calendly ↗</a></div><input id="cp_cal" value="${esc(d.calendly||'')}" placeholder="https://calendly.com/tu-usuario/llamada-inicial" inputmode="url">
       <div class="muted" style="font-size:12px;margin-top:4px">Si lo agregas, tus clientes agendarán directo en tu Calendly y recibirán su correo de confirmación con el enlace. En Calendly pon como ubicación <b>Google Meet o Zoom</b> para que el enlace llegue en el correo.</div></div>
     <div class="field"><label>Enlace para la llamada (opcional)</label><input id="cp_cl" value="${esc(d.callLink||'')}" placeholder="Google Meet, Zoom o https://wa.me/52…"></div>
     <label class="chk"><input type="checkbox" id="cp_sp" ${d.showPrices!==false?'checked':''}> Mostrar mis cuotas en el catálogo <span class="muted">(si no, aparece «Precio a consultar»)</span></label>
@@ -1915,9 +1956,9 @@ function cpCollect(){const d=S.ui.cp;if(!document.getElementById('cp_n'))return;
   const ls=[...document.querySelectorAll('.cp_pl')],ps=[...document.querySelectorAll('.cp_pp')];d.prices=ls.map((l,i)=>({label:l.value.trim(),price:+ps[i].value||0}))}
 async function cpPhoto(f){if(!f||!/^image\//.test(f.type)){toast('Elige una imagen');return}cpCollect();try{S.ui.cp.photo=await shrinkToSquare(f,360);renderCoachProfile()}catch(e){toast('No se pudo leer la foto')}}
 async function saveCoachProfile(){
-  cpCollect();const d={...S.ui.cp},pub=d._pub!==false;delete d._pub;d.prices=(d.prices||[]).filter(p=>p.label);if(!d.name){toast('Escribe tu nombre público');return}if(d.calendly&&!CAL_RE.test(d.calendly)){toast('El enlace de Calendly debe verse como https://calendly.com/tu-usuario');return}
+  cpCollect();const d={...S.ui.cp},pub=d._pub!==false;delete d._pub;d.prices=(d.prices||[]).filter(p=>p.label);if(!d.name){toast('Escribe tu nombre público');return}if(d.calendly&&!CAL_RE.test(d.calendly)){toast('El enlace de Calendly debe verse como https://calendly.com/tu-usuario');return}MYCP={...(MYCP||{}),calendly:d.calendly};
   const {error}=await SB.from('pt_coach_profiles').upsert({email:ME.email,doc:d,public:pub,updated_at:new Date().toISOString()});
-  if(error){toast('No se pudo guardar: '+error.message);return}closeModal();toast(pub?'Perfil guardado · visible en el catálogo':'Perfil guardado · oculto del catálogo');
+  if(error){toast('No se pudo guardar: '+error.message);return}MYCP=d;closeModal();if(S)renderApp();toast(pub?'Perfil guardado · visible en el catálogo':'Perfil guardado · oculto del catálogo');
 }
 /* --- crear cuenta con rol --- */
 function renderSignup(msg){
@@ -2008,7 +2049,7 @@ async function start(u){
   document.getElementById('whoAmI').textContent=ME.email;document.getElementById('btnLogout').style.display='';
   document.getElementById('app').innerHTML='<div class="empty-state" style="padding:80px 20px">Cargando tu información…</div>';
   try{await loadRole(u);
-    await loadData();await loadCoachRequests();if(!IS_COACH)await loadCatalog();if(IS_ADMIN)loadAdmin();if(DEMO.on&&IS_COACH&&!DEMO.db.seeded)seedDemo();renderApp();setSync('ok')}
+    await loadData();await loadCoachRequests();await loadMyCoachProfile();if(!IS_COACH)await loadCatalog();if(IS_ADMIN)loadAdmin();if(DEMO.on&&IS_COACH&&!DEMO.db.seeded)seedDemo();renderApp();setSync('ok')}
   catch(e){console.error(e);if(String(e.message)==='COACH_REVIEW'){coachReviewScreen();return}if(String(e.message)==='COACH_PENDING'){document.getElementById('app').innerHTML=`<div class="card" style="max-width:500px;margin:60px auto;padding:26px;text-align:center"><div style="font-size:44px">🏋️</div><h2>Estamos activando tu cuenta de coach</h2><p class="muted">Tu registro quedó guardado. En cuanto esté lista podrás entrar a tu panel y empezar tus 14 días gratis. Si tienes dudas escríbenos a coach@headcoachleonardopablo.com.</p></div>`;return}document.getElementById('app').innerHTML=`<div class="card" style="max-width:540px;margin:60px auto;padding:22px"><h3 style="margin-top:0">No se pudo cargar</h3><p class="muted">${esc(e.message||String(e))}</p><p class="muted" style="font-size:12px">Si el mensaje menciona una tabla "pt_", falta correr el script de instalación (supabase-v2.sql) en Supabase.</p><button class="btn primary" onclick="location.reload()">Reintentar</button></div>`}
 }
 function renderLoginV2(msg){
@@ -3344,7 +3385,7 @@ function secnavHTML(){
     <button class="sn ${sec==='plantillas'?'on':''}" onclick="S.ui.section='plantillas';commit()">${ic('layers',15)} Plantillas de plan <small>${S.plans.length}</small></button>
     ${IS_ADMIN&&MT?`<button class="sn adm-sn ${sec==='admin'?'on':''}" onclick="S.ui.section='admin';commit();loadAdmin(true)">🛡️ Administración ${admPending().length?`<small class="hot">${admPending().length}</small>`:''}</button>`:''}
     <span class="sp"></span>
-    ${MT?`<button class="btn ghost" onclick="openCoachProfile()">${ic('coach',15)} Mi perfil de coach</button>`:''}
+    ${MT?`<span class="cp-wrap"><button class="btn ghost" onclick="openCoachProfile()">${ic('coach',15)} Mi perfil de coach</button>${calNudgeHTML()}</span>`:''}
     <button class="btn primary" onclick="openNewAthlete()">${ic('userplus',15)} Añadir cliente</button>
   </div>`;
 }

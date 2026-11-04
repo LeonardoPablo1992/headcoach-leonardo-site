@@ -103,3 +103,4 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - El cliente con coach ve «📅 Agendar una llamada con mi coach» (ventana de Calendly).
 - Sin Calendly sigue funcionando el selector de horario propio con botones de Google/Apple/Outlook.
 - No se requiere llave de API: el widget es público y el aviso de cita agendada se recibe del propio widget.
+- **Guía en globo:** si el coach no ha conectado Calendly, junto a «Mi perfil de coach» aparece un globo «📅 Conecta tu Calendly para la llamada inicial» → «Ver los pasos» (7 pasos con enlace a calendly.com/signup). Se puede cerrar («Ahora no») y desaparece solo al guardar el enlace. En el perfil, el botón «❓ ¿Cómo lo creo?» abre los mismos pasos junto al campo.

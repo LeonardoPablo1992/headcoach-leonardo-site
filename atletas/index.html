@@ -991,6 +991,23 @@ details.lgrp[open] .chev{transform:rotate(180deg)}
 .cn-x{position:absolute;top:8px;right:8px;border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px}
 .cal-tip .cn-x{position:static}
 @media(max-width:640px){.cal-nudge{position:fixed;left:12px;right:12px;top:auto;bottom:16px;width:auto}.cal-nudge::before{display:none}}
+.ph-in{display:flex;gap:6px}.ph-in select{flex:0 0 112px}.ph-in input{flex:1;min-width:0}
+.cp-wa{font-size:12.5px;margin-top:6px}.cp-wa a{color:var(--green-d);font-weight:800}
+.cc-wa{align-self:flex-start;display:inline-flex;gap:6px;align-items:center;background:#25d366;color:#05371b;font-weight:800;font-size:12.5px;border-radius:999px;padding:6px 12px;text-decoration:none}
+.tool-modal{max-width:560px}
+.tool-tabs{display:flex;gap:6px;padding:0 18px 4px;overflow-x:auto}
+.tool-tabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.tool-tabs button.on{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.ti-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}.ti-head h3{margin:0}
+.ti-ph{width:76px;height:76px;border-radius:50%;object-fit:cover;flex:0 0 76px;font-size:22px}
+.ti-facts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.ti-facts>div{display:flex;gap:6px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12.5px}
+.ti-sec{font-weight:800;font-size:12.5px;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+.ct-list{display:flex;flex-direction:column;gap:8px}
+.ct-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:12px 14px;text-decoration:none;cursor:pointer;font:inherit}
+.ct-row:hover{border-color:var(--green)}.ct-row>div{flex:1;min-width:0;display:flex;flex-direction:column}.ct-row b{font-size:14px}.ct-row span{font-size:12.5px;color:var(--muted)}
+.ct-row>div>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-ic{font-size:22px;width:40px;height:40px;border-radius:12px;background:var(--green-50);display:grid;place-items:center;flex:0 0 40px}
+.ct-row.wa .ct-ic{background:#dcfce7}.ct-go{font-weight:800;color:var(--green-d)!important;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1041,6 +1058,7 @@ const P={
   phone:'M17 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM12 18h.01',
   split:'M3 3h18v18H3zM12 3v18',
   flame:'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3.2.4 1.5 1.5 2.7 2.5 2.7z',
+  tool:'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z',
   link:'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7',
   book:'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
   gauge:'M12 14l4-4M3.34 19a10 10 0 1 1 17.32 0',
@@ -1520,7 +1538,7 @@ async function loadCatalog(){
   if(!MT){CATALOG=[];MYLINKS=[];return}
   try{const [c,l]=await Promise.all([SB.from('pt_coach_profiles').select('email,doc,public').eq('public',true),SB.from('pt_links').select('*').eq('athlete_email',ME.email)]);
     CATALOG=(c.data||[]).map(r=>({email:r.email,...(r.doc||{})})).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'es'));MYLINKS=l.data||[]}catch(e){CATALOG=[];MYLINKS=[]}
-  await loadRatings();
+  await loadRatings();await loadCoachContacts();
 }
 const needsCoach=()=>!!(MT&&S&&!IS_COACH&&!ROLE.linked);
 const coachCard=em=>CATALOG.find(c=>c.email===em)||null;
@@ -1536,6 +1554,7 @@ function coachCardHTML(c,mode){
     ${(c.specialties||[]).length?`<div class="cc-sp">${c.specialties.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
     ${c.bio?`<p class="cc-bio">${esc(c.bio)}</p>`:''}
     ${showsPrices(c)?`<div class="cc-pr"><div class="cc-pr-h">💲 Cuotas</div>${coachPrices(c).map(p=>`<div><span>${esc(p.label)}</span><b>${mxn(p.price)}</b></div>`).join('')}</div>`:`<div class="cc-pr cc-pr-q">💬 Precio a consultar con el coach</div>`}
+    ${(()=>{const k=COACH_CONTACTS[c.email];return k&&k.phone?`<a class="cc-wa" href="${waLink(k.phone,'Hola '+(c.name||'')+', vi tu perfil en ProTrainerPlus y me interesa entrenar contigo 💪')}" target="_blank" rel="noopener">💬 WhatsApp · ${phonePretty(k.phone)}</a>`:''})()}
     ${c.web||c.instagram?`<div class="cc-links">${c.web?`<a href="${esc(c.web)}" target="_blank" rel="noopener">🌐 Sitio</a>`:''}${c.instagram?`<a href="https://instagram.com/${esc(String(c.instagram).replace(/^@/,''))}" target="_blank" rel="noopener">📸 ${esc(c.instagram)}</a>`:''}</div>`:''}
     ${mode==='mine'?'<div class="cc-st ok">✅ Es tu coach</div>'+(calendlyOf(c)?`<button class="btn soft sm" style="align-self:flex-start" onclick="openCalendlyPopup('${c.email}')">📅 Agendar una llamada con mi coach</button>`:'')+myCoachRateHTML(c.email)+linkCallHTML(MYLINKS.find(l=>l.coach_email===c.email&&l.status==='active'),c.name||'tu coach'):
       inv?`<div class="cc-st">💌 ${esc(c.name||'')} te invitó a entrenar</div><div class="cc-f"><button class="btn ghost sm" onclick="respondInvite('${c.email}',false)">Rechazar</button><button class="btn primary sm" onclick="respondInvite('${c.email}',true)">Aceptar</button></div>`:
@@ -1922,9 +1941,89 @@ function calNudgeHTML(){
   return `<div class="cal-nudge" role="note"><span class="cn-ic">📅</span><div><b>Conecta tu Calendly para la llamada inicial</b><small>Tus clientes agendarán solos y recibirán el enlace por correo.</small></div><button class="btn primary sm" onclick="openCalGuide()">Ver los pasos</button><button class="cn-x" aria-label="Ahora no" title="Ahora no" onclick="try{localStorage.setItem('ptp_cal_nudge_'+ME.email,'1')}catch(e){};this.closest('.cal-nudge').remove()">✕</button></div>`;
 }
 
+/* =========================================================
+   CONTACTO DEL COACH (teléfono + WhatsApp) · «Herramientas» del cliente
+========================================================= */
+const PHONE_CC=[['52','🇲🇽 +52'],['1','🇺🇸 +1'],['34','🇪🇸 +34'],['57','🇨🇴 +57'],['54','🇦🇷 +54'],['56','🇨🇱 +56'],['51','🇵🇪 +51'],['593','🇪🇨 +593'],['502','🇬🇹 +502'],['506','🇨🇷 +506']];
+let COACH_CONTACTS={};
+const digits=s=>String(s||'').replace(/\D/g,'');
+function splitPhone(full){const d=digits(full);const cc=PHONE_CC.map(x=>x[0]).sort((a,b)=>b.length-a.length).find(c=>d.startsWith(c)&&d.length-c.length>=8);return cc?{cc,num:d.slice(cc.length)}:{cc:'52',num:d}}
+function phonePretty(full){const {cc,num}=splitPhone(full);const n=num.length===10?`${num.slice(0,2)} ${num.slice(2,6)} ${num.slice(6)}`:num;return `+${cc} ${n}`}
+function waLink(full,text){const d=digits(full);if(d.length<10)return '';return `https://wa.me/${d}${text?`?text=${encodeURIComponent(text)}`:''}`}
+async function loadCoachContacts(){try{const {data,error}=await SB.from('pt_coach_contacts').select('*');if(error)throw error;COACH_CONTACTS={};(data||[]).forEach(r=>COACH_CONTACTS[r.email]=r)}catch(e){COACH_CONTACTS={}}}
+function cpPhonePreview(){
+  const cc=gv('cp_pcc')||'52',num=digits(gv('cp_ph')),el=document.getElementById('cp_wa');if(!el)return;
+  if(num.length<8){el.innerHTML='<span class="muted">Escribe tu número a 10 dígitos para crear tu enlace de WhatsApp.</span>';return}
+  const l=waLink(cc+num,'Hola, te escribo desde ProTrainerPlus 💪');
+  el.innerHTML=`💬 Tu enlace de WhatsApp: <a href="${l}" target="_blank" rel="noopener">wa.me/${cc}${num}</a> <span class="muted">(tócalo para probarlo)</span>`;
+}
+function cpContactHTML(d){
+  const {cc,num}=splitPhone(d._phone||'');
+  return `<div class="field"><label>📞 Número de contacto</label>
+    <div class="ph-in"><select id="cp_pcc" onchange="cpPhonePreview()">${PHONE_CC.map(([v,t])=>`<option value="${v}" ${v===cc?'selected':''}>${t}</option>`).join('')}</select><input id="cp_ph" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="55 1234 5678" value="${esc(num)}" oninput="cpPhonePreview()"></div>
+    <div id="cp_wa" class="cp-wa"></div>
+    <label class="chk" style="margin-top:6px"><input type="checkbox" id="cp_wap" ${d._wapub?'checked':''}> Mostrar mi WhatsApp en el catálogo <span class="muted">(tus clientes siempre lo verán)</span></label></div>`;
+}
+async function loadMyContact(){try{const {data}=await SB.from('pt_coach_contacts').select('*').eq('email',ME.email).maybeSingle();return data||null}catch(e){return null}}
+async function saveMyContact(){
+  const cc=gv('cp_pcc')||'52',num=digits(gv('cp_ph')),pub=!!(document.getElementById('cp_wap')||{}).checked;
+  if(num&&num.length<8){toast('Revisa tu número de contacto (10 dígitos)');return false}
+  const {error}=await SB.from('pt_coach_contacts').upsert({email:ME.email,phone:num?cc+num:null,show_public:pub,updated_at:new Date().toISOString()});
+  if(error&&!/relation|does not exist|schema cache/i.test(error.message)){toast('No se pudo guardar tu número: '+error.message);return false}
+  return true;
+}
+
+/* --- vista del cliente: 🔧 Herramientas → información y contacto de su coach --- */
+function myCoachEmail(){if(typeof ROLE!=='undefined'&&ROLE&&ROLE.coach_email)return ROLE.coach_email;const l=(typeof MYLINKS!=='undefined'?MYLINKS:[]).find(x=>x.status==='active');return l?l.coach_email:(MT?'':CONFIG.COACH_EMAIL||'')}
+async function openCoachInfo(tab){
+  S.ui.tool=tab||S.ui.tool||'info';const em=myCoachEmail();
+  openModal(`<div class="modal tool-modal"><div class="modal-h"><h3>🔧 Herramientas</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div><div class="modal-b"><div class="muted" style="padding:20px;text-align:center">Cargando…</div></div></div>`);
+  let c=null,ct=null;
+  if(em){try{const [p,k]=await Promise.all([SB.from('pt_coach_profiles').select('doc').eq('email',em).maybeSingle(),SB.from('pt_coach_contacts').select('*').eq('email',em).maybeSingle()]);c=p.data?{email:em,...(p.data.doc||{})}:{email:em};ct=k.data||null}catch(e){c={email:em}}}
+  if(!document.querySelector('.tool-modal'))return;
+  if(!RATINGS[em])try{await loadRatings()}catch(e){}
+  renderCoachInfo(c,ct);
+}
+function renderCoachInfo(c,ct){
+  const t=S.ui.tool,me=curA(),tabs=[['info','👤','Información del entrenador'],['contact','📞','Contacto'],['app','🎨','Apariencia']];
+  let body='';
+  if(!c){body=`<div class="empty-state" style="padding:24px">Aún no tienes coach. <button class="btn primary sm" onclick="closeModal();S.ui.athTab='agenda';commit()">Elegir coach</button></div>`}
+  else if(t==='info'){
+    const r=RATINGS[c.email]||{},photo=c.photo?`<img class="ti-ph" src="${esc(c.photo)}" alt="">`:`<div class="ti-ph cc-in" style="background:${colorFor(c.email)}">${initials(c.name||c.email)}</div>`;
+    body=`<div class="ti-head">${photo}<div><h3>${esc(c.name||c.email)}</h3>${c.title?`<div class="cc-ti">${esc(c.title)}</div>`:''}${starsHTML(r.avg,r.n)}</div></div>
+      <div class="ti-facts">${+c.years>0?`<div><b>🏅 ${+c.years}</b><span>${+c.years===1?'año':'años'} de experiencia</span></div>`:''}${c.city?`<div><b>📍</b><span>${esc(c.city)}</span></div>`:''}${c.modality?`<div><b>💻</b><span>${esc(c.modality)}</span></div>`:''}</div>
+      ${c.bio?`<p class="cc-bio">${esc(c.bio)}</p>`:''}
+      ${(c.specialties||[]).length?`<div class="ti-sec">Especialidades</div><div class="cc-sp">${c.specialties.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
+      ${certsOf(c).length?`<div class="ti-sec">Certificaciones</div><div class="cc-cert">${certsOf(c).map(s=>`<span>🎓 ${esc(s)}</span>`).join('')}</div>`:''}
+      ${r.n?`<div class="ti-sec">Calificación de sus clientes</div>${ratingBarsHTML(r)}`:''}
+      <div style="margin-top:12px">${myCoachRateHTML(c.email)}</div>`;
+  }else if(t==='contact'){
+    const phone=ct&&ct.phone,hi=`Hola ${c.name||'coach'}, soy ${(me&&me.name)||'tu cliente'} de ProTrainerPlus 💪`;
+    const rows=[
+      phone?`<a class="ct-row wa" href="${waLink(phone,hi)}" target="_blank" rel="noopener"><span class="ct-ic">💬</span><div><b>WhatsApp</b><span>${phonePretty(phone)}</span></div><span class="ct-go">Escribir ›</span></a>`:'',
+      phone?`<a class="ct-row" href="tel:+${digits(phone)}"><span class="ct-ic">📞</span><div><b>Llamar</b><span>${phonePretty(phone)}</span></div><span class="ct-go">Llamar ›</span></a>`:'',
+      `<a class="ct-row" href="mailto:${esc(c.email)}"><span class="ct-ic">✉️</span><div><b>Correo</b><span>${esc(c.email)}</span></div><span class="ct-go">Escribir ›</span></a>`,
+      `<button class="ct-row" onclick="closeModal();openAthChat()"><span class="ct-ic">🗨️</span><div><b>Mensajes en la app</b><span>Chat con tu coach dentro de ProTrainerPlus</span></div><span class="ct-go">Abrir ›</span></button>`,
+      calendlyOf(c)?`<button class="ct-row" onclick="closeModal();openCalendlyPopup('${c.email}')"><span class="ct-ic">📅</span><div><b>Agendar llamada</b><span>Calendly · recibirás el enlace por correo</span></div><span class="ct-go">Agendar ›</span></button>`:'',
+      c.instagram?`<a class="ct-row" href="https://instagram.com/${esc(String(c.instagram).replace(/^@|https?:\/\/(www\.)?instagram\.com\//g,''))}" target="_blank" rel="noopener"><span class="ct-ic">📸</span><div><b>Instagram</b><span>${esc(c.instagram)}</span></div><span class="ct-go">Ver ›</span></a>`:'',
+      c.web?`<a class="ct-row" href="${esc(/^https?:/.test(c.web)?c.web:'https://'+c.web)}" target="_blank" rel="noopener"><span class="ct-ic">🌐</span><div><b>Sitio web</b><span>${esc(c.web)}</span></div><span class="ct-go">Ver ›</span></a>`:''].filter(Boolean).join('');
+    body=`<div class="ct-list">${rows}</div>${phone?'':'<div class="muted" style="font-size:12.5px;margin-top:8px">Tu coach aún no agrega su número de WhatsApp.</div>'}`;
+  }else{
+    const dk=document.documentElement.getAttribute('data-theme')==='dark';
+    body=`<div class="ct-list"><button class="ct-row" onclick="ptpTheme();renderCoachInfo(window.__ci[0],window.__ci[1])"><span class="ct-ic">${dk?'☀️':'🌙'}</span><div><b>${dk?'Cambiar a modo día':'Cambiar a modo oscuro'}</b><span>Se recuerda en este dispositivo</span></div><span class="ct-go">Cambiar ›</span></button>
+      <button class="ct-row" onclick="closeModal();S.ui.athTab='perfil';commit()"><span class="ct-ic">👤</span><div><b>Mi perfil</b><span>Foto, datos, medidas y privacidad</span></div><span class="ct-go">Abrir ›</span></button></div>`;
+  }
+  window.__ci=[c,ct];
+  const m=document.querySelector('.tool-modal');if(!m)return;
+  m.innerHTML=`<div class="modal-h"><h3>🔧 Herramientas</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
+    <div class="tool-tabs">${tabs.map(([k,e,l])=>`<button class="${t===k?'on':''}" onclick="S.ui.tool='${k}';renderCoachInfo(window.__ci[0],window.__ci[1])">${e} ${l}</button>`).join('')}</div>
+    <div class="modal-b">${body}</div>`;
+}
+
 /* --- ficha pública del coach (catálogo) --- */
 async function openCoachProfile(){
   let doc={};try{const {data}=await SB.from('pt_coach_profiles').select('doc,public').eq('email',ME.email).maybeSingle();doc={...(data&&data.doc||{}),_pub:data?data.public:true}}catch(e){}
+  const ct=await loadMyContact();doc._phone=(ct&&ct.phone)||'';doc._wapub=!!(ct&&ct.show_public);
   S.ui.cp={...{name:ME.name||'',title:'',bio:'',specialties:[],city:'',modality:'En línea',prices:[],web:'',instagram:'',photo:''},...doc};renderCoachProfile();
 }
 function renderCoachProfile(){
@@ -1942,6 +2041,7 @@ function renderCoachProfile(){
     <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:220px"><label>Sitio web</label><input id="cp_w" value="${esc(d.web)}" placeholder="https://"></div><div class="field" style="min-width:180px"><label>Instagram</label><input id="cp_i" value="${esc(d.instagram)}" placeholder="@usuario"></div></div>
     <div class="field"><label>📞 Horario para llamadas iniciales de 15 min</label><div class="av-days">${[1,2,3,4,5,6,0].map(k=>`<label class="av-d"><input type="checkbox" class="cp_av" value="${k}" ${({...AVAIL_DEF,...(d.avail||{})}).days.includes(k)?'checked':''}><span>${DOW[k]}</span></label>`).join('')}</div>
       <div class="row" style="gap:8px;align-items:center;margin-top:6px"><span class="muted" style="font-size:12.5px">De</span><input type="time" id="cp_af" step="900" value="${esc(({...AVAIL_DEF,...(d.avail||{})}).from)}" style="max-width:130px"><span class="muted" style="font-size:12.5px">a</span><input type="time" id="cp_at" step="900" value="${esc(({...AVAIL_DEF,...(d.avail||{})}).to)}" style="max-width:130px"></div></div>
+    ${cpContactHTML(d)}
     <div class="field"><label style="display:flex;align-items:center;gap:6px">📅 Mi enlace de Calendly (opcional) <button type="button" class="cal-q" onclick="calTipToggle()">❓ ¿Cómo lo creo?</button></label>
       <div id="calTip" class="cal-tip ${d.calendly?'':'open'}"><div class="cal-tip-h"><b>Pasos para crear tu Calendly</b><button type="button" class="cn-x" onclick="calTipToggle()" aria-label="Cerrar">✕</button></div>${calStepsHTML()}<a class="btn soft sm" href="https://calendly.com/signup" target="_blank" rel="noopener">Ir a Calendly ↗</a></div><input id="cp_cal" value="${esc(d.calendly||'')}" placeholder="https://calendly.com/tu-usuario/llamada-inicial" inputmode="url">
       <div class="muted" style="font-size:12px;margin-top:4px">Si lo agregas, tus clientes agendarán directo en tu Calendly y recibirán su correo de confirmación con el enlace. En Calendly pon como ubicación <b>Google Meet o Zoom</b> para que el enlace llegue en el correo.</div></div>
@@ -1951,12 +2051,12 @@ function renderCoachProfile(){
     <div class="cp-rt"><div class="rq-sec" style="margin-top:4px">⭐ Mis calificaciones</div><div id="cpRatings" class="muted" style="font-size:13px">Cargando…</div></div>
   </div><div class="modal-f">${IS_ADMIN?'':`<button class="btn ghost sm cdel-b" onclick="openCoachDelete(1)">🗑️ Darme de baja</button><span style="flex:1"></span>`}<button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveCoachProfile()">${ic('check',15)} Guardar</button></div></div>`);cpAfter();
 }
-function cpAfter(){setTimeout(()=>coachRatingsInto('cpRatings'),0)}
-function cpCollect(){const d=S.ui.cp;if(!document.getElementById('cp_n'))return;d.name=gv('cp_n');d.title=gv('cp_t');d.specialties=gv('cp_s').split(',').map(s=>s.trim()).filter(Boolean);d.city=gv('cp_c');d.modality=gv('cp_m');d.bio=gv('cp_b');d.web=gv('cp_w');d.instagram=gv('cp_i');d._pub=document.getElementById('cp_pub').checked;d.showPrices=document.getElementById('cp_sp').checked;d.years=gv('cp_y')?Math.max(0,Math.min(60,parseInt(gv('cp_y'))||0)):'';d.certs=(document.getElementById('cp_ce').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,12);d.callLink=gv('cp_cl');d.calendly=gv('cp_cal');d.avail={days:[...document.querySelectorAll('.cp_av:checked')].map(x=>+x.value),from:gv('cp_af')||'09:00',to:gv('cp_at')||'18:00'};
+function cpAfter(){setTimeout(()=>{cpPhonePreview();coachRatingsInto('cpRatings')},0)}
+function cpCollect(){const d=S.ui.cp;if(!document.getElementById('cp_n'))return;d.name=gv('cp_n');d.title=gv('cp_t');d.specialties=gv('cp_s').split(',').map(s=>s.trim()).filter(Boolean);d.city=gv('cp_c');d.modality=gv('cp_m');d.bio=gv('cp_b');d.web=gv('cp_w');d.instagram=gv('cp_i');d._pub=document.getElementById('cp_pub').checked;d.showPrices=document.getElementById('cp_sp').checked;d.years=gv('cp_y')?Math.max(0,Math.min(60,parseInt(gv('cp_y'))||0)):'';d.certs=(document.getElementById('cp_ce').value||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,12);d.callLink=gv('cp_cl');d.calendly=gv('cp_cal');if(document.getElementById('cp_ph')){const n=digits(gv('cp_ph'));d._phone=n?(gv('cp_pcc')||'52')+n:'';d._wapub=document.getElementById('cp_wap').checked}d.avail={days:[...document.querySelectorAll('.cp_av:checked')].map(x=>+x.value),from:gv('cp_af')||'09:00',to:gv('cp_at')||'18:00'};
   const ls=[...document.querySelectorAll('.cp_pl')],ps=[...document.querySelectorAll('.cp_pp')];d.prices=ls.map((l,i)=>({label:l.value.trim(),price:+ps[i].value||0}))}
 async function cpPhoto(f){if(!f||!/^image\//.test(f.type)){toast('Elige una imagen');return}cpCollect();try{S.ui.cp.photo=await shrinkToSquare(f,360);renderCoachProfile()}catch(e){toast('No se pudo leer la foto')}}
 async function saveCoachProfile(){
-  cpCollect();const d={...S.ui.cp},pub=d._pub!==false;delete d._pub;d.prices=(d.prices||[]).filter(p=>p.label);if(!d.name){toast('Escribe tu nombre público');return}if(d.calendly&&!CAL_RE.test(d.calendly)){toast('El enlace de Calendly debe verse como https://calendly.com/tu-usuario');return}MYCP={...(MYCP||{}),calendly:d.calendly};
+  cpCollect();const d={...S.ui.cp},pub=d._pub!==false;delete d._pub;delete d._phone;delete d._wapub;d.prices=(d.prices||[]).filter(p=>p.label);if(!d.name){toast('Escribe tu nombre público');return}if(d.calendly&&!CAL_RE.test(d.calendly)){toast('El enlace de Calendly debe verse como https://calendly.com/tu-usuario');return}MYCP={...(MYCP||{}),calendly:d.calendly};if(!(await saveMyContact()))return;
   const {error}=await SB.from('pt_coach_profiles').upsert({email:ME.email,doc:d,public:pub,updated_at:new Date().toISOString()});
   if(error){toast('No se pudo guardar: '+error.message);return}MYCP=d;closeModal();if(S)renderApp();toast(pub?'Perfil guardado · visible en el catálogo':'Perfil guardado · oculto del catálogo');
 }
@@ -2993,7 +3093,7 @@ function athleteHTML(){
   return `<div class="phone">
   <div class="ph-top">
     <div class="r1">${avatarOf(a)?avatarHTML(a,'',`title="Mi perfil" onclick="S.ui.athTab='perfil';commit()"`):`<div class="avatar" style="background:rgba(255,255,255,.2);cursor:pointer" title="Mi perfil" onclick="S.ui.athTab='perfil';commit()">${initials(a.name)}</div>`}<div><div class="hi">Hola,</div><h3>${esc(a.name.split(' ')[0])}</h3></div>
-    <button class="icon-btn" onclick="openAthNotifs()">${ic('bell',16)}${unread?`<span class="badge-dot">${unread}</span>`:''}</button></div>
+    <button class="icon-btn" title="Herramientas · info y contacto de tu coach" aria-label="Herramientas" onclick="openCoachInfo()">${ic('tool',16)}</button><button class="icon-btn" onclick="openAthNotifs()">${ic('bell',16)}${unread?`<span class="badge-dot">${unread}</span>`:''}</button></div>
     <div class="today-sum">
       <svg class="ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="22" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="6"/><circle cx="27" cy="27" r="22" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}" transform="rotate(-90 27 27)"/><text x="27" y="31" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">${dn}/${todayT.length}</text></svg>
       <div class="tx"><b>${todayT.length?`${todayT.length-dn} pendiente${todayT.length-dn===1?'':'s'} hoy`:'Hoy es día libre'}</b>${longDate(TODAY)}</div>

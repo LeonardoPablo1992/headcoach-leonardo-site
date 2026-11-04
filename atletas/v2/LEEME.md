@@ -104,3 +104,8 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Sin Calendly sigue funcionando el selector de horario propio con botones de Google/Apple/Outlook.
 - No se requiere llave de API: el widget es público y el aviso de cita agendada se recibe del propio widget.
 - **Guía en globo:** si el coach no ha conectado Calendly, junto a «Mi perfil de coach» aparece un globo «📅 Conecta tu Calendly para la llamada inicial» → «Ver los pasos» (7 pasos con enlace a calendly.com/signup). Se puede cerrar («Ahora no») y desaparece solo al guardar el enlace. En el perfil, el botón «❓ ¿Cómo lo creo?» abre los mismos pasos junto al campo.
+
+## Contacto del coach y «Herramientas» del cliente (contacto-coach.sql)
+- El coach agrega su **número de contacto** (lada de país + número) en «Mi perfil de coach»; se genera su enlace **wa.me** al momento. Casilla «Mostrar mi WhatsApp en el catálogo» (apagada por defecto). El número vive en `pt_coach_contacts` (no en el perfil público): lo ven sus clientes activos y el administrador; el catálogo solo si el coach lo permite.
+- El cliente tiene el icono 🔧 **Herramientas** en su encabezado: **Información del entrenador** (foto, título, estrellas, experiencia, ciudad, modalidad, especialidades, certificaciones y calificación) · **Contacto** (WhatsApp con mensaje listo, llamar, correo, mensajes en la app, Calendly, Instagram y sitio) · **Apariencia** (modo día/oscuro y acceso a Mi perfil).
+- El cliente activo ahora puede leer el perfil de su coach aunque el coach esté oculto del catálogo (política `pt_cp_read`).

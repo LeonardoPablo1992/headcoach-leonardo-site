@@ -121,3 +121,5 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - El coach ya no registra el periodo al crear una clienta nueva (es un dato de ella).
 
 **Repetir entrenamiento por días:** en «Añadir tarea → Entrenamiento», sección «🔁 Repetir este entrenamiento»: casillas L–D, atajos (L–V, L–S, L·X·V, M·J, Todos, Solo este día), duración de 1 a 12 semanas y vista previa de las fechas. Si un día ya tiene entrenamiento: agregarlo además u omitir ese día. Las sesiones creadas comparten `seriesId`; al editar una, «Aplicar también a las próximas» cambia solo las de esa serie.
+
+**Repetir un bloque (18/11/2026):** cada bloque del editor de entrenamiento tiene el botón «🔁 Repetir bloque» en su encabezado. Se eligen días (L–D, atajos) y semanas; la vista previa muestra las fechas. En los días que ya tienen entrenamiento pendiente, el bloque se suma al final de esa sesión; en los demás se crea una sesión solo con ese bloque (`blockRep`, mismo `seriesId`). Funciona al crear y al editar una sesión. Los días que ya llevan el entrenamiento completo no se duplican.

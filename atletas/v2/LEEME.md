@@ -109,3 +109,15 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - El coach agrega su **número de contacto** (lada de país + número) en «Mi perfil de coach»; se genera su enlace **wa.me** al momento. Casilla «Mostrar mi WhatsApp en el catálogo» (apagada por defecto). El número vive en `pt_coach_contacts` (no en el perfil público): lo ven sus clientes activos y el administrador; el catálogo solo si el coach lo permite.
 - El cliente tiene el icono 🔧 **Herramientas** en su encabezado: **Información del entrenador** (foto, título, estrellas, experiencia, ciudad, modalidad, especialidades, certificaciones y calificación) · **Contacto** (WhatsApp con mensaje listo, llamar, correo, mensajes en la app, Calendly, Instagram y sitio) · **Apariencia** (modo día/oscuro y acceso a Mi perfil).
 - El cliente activo ahora puede leer el perfil de su coach aunque el coach esté oculto del catálogo (política `pt_cp_read`).
+
+## Nuevo plan de nutrición, privacidad del ciclo y repetir entrenamientos (18/11/2026)
+
+**Nuevo plan de nutrición (coach):** Ficha del cliente → Nutrición → «+ Nuevo plan de nutrición». Se captura nombre, objetivo, fecha de inicio, macros (g) y kcal objetivo (se calculan solas: 4/4/9). Se parte en blanco o duplicando el plan vigente. El plan anterior pasa a «Planes anteriores» (máx. 12, en `pt_athletes.doc.nutHist`); el atleta los consulta en solo lectura y el coach puede «Volver a usarlo». Avisos si la proteína queda fuera de 1.2–2.5 g/kg o las kcal bajan de 1,200 (no bloquean).
+
+**Privacidad del ciclo menstrual (dos llaves):**
+- Coach: casilla «Mostrar el módulo de ciclo menstrual» en la ficha de la clienta (`pt_athletes.doc.cycleMod`, encendido por defecto). Apagado oculta la sección a ambos; no borra datos.
+- Atleta: «Compartir con mi coach» en su sección de fase menstrual, con casilla de consentimiento expreso (fila `pt_evo` id `cycpriv_<correo>`). Puede dejar de compartir cuando quiera: en ese momento el coach deja de recibir sus registros y se quitan las marcas de periodo de sus sesiones y actividad.
+- Requiere correr una vez `v2/privacidad-ciclo.sql` **antes** de publicar el código: crea `pt_cycle_shared()` y políticas RLS restrictivas en `pt_evo`, y deja «compartiendo» a quienes ya registraban su ciclo (así funcionaba antes).
+- El coach ya no registra el periodo al crear una clienta nueva (es un dato de ella).
+
+**Repetir entrenamiento por días:** en «Añadir tarea → Entrenamiento», sección «🔁 Repetir este entrenamiento»: casillas L–D, atajos (L–V, L–S, L·X·V, M·J, Todos, Solo este día), duración de 1 a 12 semanas y vista previa de las fechas. Si un día ya tiene entrenamiento: agregarlo además u omitir ese día. Las sesiones creadas comparten `seriesId`; al editar una, «Aplicar también a las próximas» cambia solo las de esa serie.

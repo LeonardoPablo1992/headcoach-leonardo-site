@@ -562,6 +562,11 @@ details.exv[open] summary .chev{transform:rotate(180deg)}
 .rep-quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .rep-prev{font-size:12px;color:var(--ink-2);margin-top:10px;line-height:1.6}
 .rep-prev .bz{color:var(--tt-b45309)}
+.blk-h button.brep.on{background:var(--green);color:var(--on-green)}
+.brep-p{border-top:1px dashed var(--line);background:var(--green-50);padding:10px 12px}
+.brep-p .rep-days{margin-bottom:6px}
+.brep-p .rday{width:34px;height:34px;font-size:12px}
+.brep-tag{font-size:11px;font-weight:700;background:rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .cyc-share{margin-top:10px;padding-top:10px;border-top:1px dashed var(--tl-fecdd3);font-size:13px;color:var(--ink-2)}
 .cyc-share .row{align-items:center}
 .cyc-lock{font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:flex-start}
@@ -2903,8 +2908,9 @@ function builderInner(){
   <datalist id="dl_ex">${S.library.map(e=>`<option value="${esc(e.name)}">`).join('')}</datalist>
   <datalist id="dl_blk">${BLOCK_NAMES.map(e=>`<option value="${esc(e)}">`).join('')}</datalist>
   ${d.blocks.map((b,bi)=>`<div class="blk">
-    <div class="blk-h ${isAeroBlock(b.name)?'aero':''}">${(b.exercises.forEach(e=>{if(isAeroBlock(b.name)){if(!e.cardio){e.cardio=true;e.machine=e.machine||'Caminadora';e.time=e.time||'20';e.zone=e.zone||'Z2'}}else delete e.cardio}),'')}${isAeroBlock(b.name)?'<span class="aero-ic">🏃</span>':''}<input data-bn="${bi}" list="dl_blk" value="${esc(b.name)}" placeholder="Nombre del bloque" onchange="collectDraft();exRerender('t')"><button onclick="delBlock(${bi})">Quitar</button></div>
+    <div class="blk-h ${isAeroBlock(b.name)?'aero':''}">${(b.exercises.forEach(e=>{if(isAeroBlock(b.name)){if(!e.cardio){e.cardio=true;e.machine=e.machine||'Caminadora';e.time=e.time||'20';e.zone=e.zone||'Z2'}}else delete e.cardio}),'')}${isAeroBlock(b.name)?'<span class="aero-ic">🏃</span>':''}<input data-bn="${bi}" list="dl_blk" value="${esc(b.name)}" placeholder="Nombre del bloque" onchange="collectDraft();exRerender('t')">${b.rep&&b.rep.days&&b.rep.days.length?`<span class="brep-tag">🔁 ${b.rep.days.map(k=>DOW_L[k]).join('·')}</span>`:''}<button type="button" class="brep ${b.rep?'on':''}" onclick="blkRep(${bi})" title="Repetir este bloque en otros días">🔁 Repetir bloque</button><button onclick="delBlock(${bi})">Quitar</button></div>
     <div class="blk-b">${exEditList('t',bi,b.exercises)}</div>
+    ${b.rep?blkRepHTML(b,bi):''}
     <div class="blk-f"><button onclick="addEx(${bi})">+ Ejercicio</button></div>
   </div>`).join('')}
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="addBlock()">${ic('plus',14)} Agregar bloque</button><button class="btn soft sm aero-add" onclick="addAeroBlock()">🏃 Agregar bloque aeróbico</button></div>
@@ -2936,6 +2942,29 @@ function repeatHTML(d){
     ${busy?`<div class="field" style="margin:0;max-width:280px"><label>${busy} de esos días ya tiene${busy>1?'n':''} entrenamiento</label><select id="f_onbusy" onchange="repChange()"><option value="add" ${skip?'':'selected'}>Agregarlo además</option><option value="skip" ${skip?'selected':''}>Omitir esos días</option></select></div>`:''}</div>
     <div class="rep-prev">${use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'}: ${use.slice(0,14).map(x=>`<span class="${x.busy?'bz':''}">${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')}${use.length>14?` · y ${use.length-14} más`:''}`:'<b>No quedan días por asignar</b>: elige otros días o más semanas.'}</div></div>`}
 function repChange(){collectDraft();rerenderBuilder()}
+/* Repetir UN bloque en otros días: se agrega al entrenamiento que ya tenga ese día o se crea una sesión con ese bloque */
+function mainDates(d){const ds=S.ui.addDate,aid=S.ui.athleteId;if(d.editId){const t=taskById(d.editId);return t?[S.ui.addDate||t.date,...(d.applyNext!==false?similarTasks(t).map(x=>x.date):[])]:[]}
+  return repDates(d,ds,aid).filter(x=>!(x.busy&&d.onBusy==='skip')).map(x=>x.date)}
+function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d));
+  return repDates({days:b.rep.days,repeat:b.rep.weeks},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const ex=S.tasks.find(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&x.status!=='done'&&!x.hist&&x.id!==(t&&t.id));return {date:dt,into:ex?ex.title:null}})}
+function blkRepHTML(b,bi){
+  const d=S.ui.draft,r=b.rep,sel=r.days||[],xs=blkRepPlan(b,d),into=xs.filter(x=>x.into).length;
+  return `<div class="brep-p"><div style="font-size:12px;font-weight:700;margin-bottom:6px">🔁 Repetir «${esc(b.name||'este bloque')}» también los días:</div>
+    <div class="rep-days">${DOW_L.map((l,k)=>`<label class="rday ${sel.includes(k)?'on':''}" title="${DOW_N[k]}"><input type="checkbox" data-brday="${bi}|${k}" ${sel.includes(k)?'checked':''} onchange="repChange()"><span>${l}</span></label>`).join('')}</div>
+    <div class="rep-quick"><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,1,2,3,4])">L–V</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,1,2,3,4,5])">L–S</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,2,4])">L·X·V</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[1,3])">M·J</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,1,2,3,4,5,6])">Todos</button></div>
+    <div class="row" style="flex-wrap:wrap;align-items:end;gap:10px"><div class="field" style="margin:0;max-width:200px"><label>Durante</label><select data-brw="${bi}" onchange="repChange()">${[0,1,2,3,4,5,7,11].map(n=>`<option value="${n}" ${(+r.weeks||0)===n?'selected':''}>${n+1} semana${n?'s':''}${n?'':' (solo esta)'}</option>`).join('')}</select></div>
+      <button type="button" class="btn ghost sm" onclick="blkRep(${bi})">Quitar repetición</button></div>
+    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':xs.length?`Se agregará en <b>${xs.length}</b> día${xs.length>1?'s':''}: ${xs.slice(0,12).map(x=>`<span class="${x.into?'bz':''}">${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}${x.into?` (a «${esc(x.into)}»)`:''}</span>`).join(' · ')}${xs.length>12?` · y ${xs.length-12} más`:''}${into?`<br>En ${into} día${into>1?'s':''} se suma al entrenamiento que ya tiene; en los demás se crea una sesión solo con este bloque.`:'<br>Se crea una sesión solo con este bloque en cada día.'}`:blkRepRaw(b,d)?'Esos días ya llevan este entrenamiento completo: no hay días extra.':'No quedan esos días en el periodo elegido: agrega más semanas u otros días.'}</div></div>`}
+function blkRepRaw(b,d){const t=d.editId?taskById(d.editId):null;return repDates({days:b.rep.days,repeat:b.rep.weeks},S.ui.addDate||(t&&t.date),t?t.athleteId:S.ui.athleteId).length}
+function blkRep(bi){collectDraft();const d=S.ui.draft,b=d.blocks[bi];b.rep=b.rep?null:{days:[],weeks:+d.repeat||0};rerenderBuilder()}
+function blkRepQuick(bi,arr){collectDraft();const b=S.ui.draft.blocks[bi];b.rep=b.rep||{days:[],weeks:0};b.rep.days=arr.slice();rerenderBuilder()}
+const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;return b});
+function applyBlockReps(d,aid,ds){let add=0,neu=0;
+  d.blocks.forEach(b=>{const xs=blkRepPlan(b,d);if(!xs.length)return;const copy=stripRep([b])[0],sid=uid();
+    xs.forEach(x=>{const ex=S.tasks.find(t=>t.athleteId===aid&&t.date===x.date&&t.type==='entrenamiento'&&t.status!=='done'&&!t.hist&&t.id!==d.editId);
+      if(ex){ex.data={...ex.data,blocks:[...(ex.data.blocks||[]),JSON.parse(JSON.stringify(copy))]};ex.edited=Date.now();add++}
+      else{S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:copy.name||'Bloque de ejercicios',data:{blocks:[JSON.parse(JSON.stringify(copy))],attach:[]}});neu++}})});
+  return {add,neu}}
 function repQuick(arr){collectDraft();S.ui.draft.days=arr?arr.slice():null;rerenderBuilder()}
 function rerenderBuilder(){const b=document.getElementById('builder');if(b)b.innerHTML=builderInner()}
 function collectDraft(){
@@ -2944,6 +2973,9 @@ function collectDraft(){
   const r=root.querySelector('#f_repeat');if(r)d.repeat=+r.value;
   const rd=root.querySelectorAll('[data-rday]');if(rd.length){const ch=[...rd].filter(x=>x.checked).map(x=>+x.dataset.rday);d.days=ch.length?ch:null}
   const ob=root.querySelector('#f_onbusy');if(ob)d.onBusy=ob.value;
+  const bd={};root.querySelectorAll('[data-brday]').forEach(el=>{const [bi,k]=el.dataset.brday.split('|');(bd[bi]=bd[bi]||[]);if(el.checked)bd[bi].push(+k)});
+  Object.entries(bd).forEach(([bi,ks])=>{const b=d.blocks[+bi];if(b&&b.rep)b.rep.days=ks});
+  root.querySelectorAll('[data-brw]').forEach(el=>{const b=d.blocks[+el.dataset.brw];if(b&&b.rep)b.rep.weeks=+el.value});
   root.querySelectorAll('[data-bn]').forEach(el=>d.blocks[+el.dataset.bn].name=el.value);
   root.querySelectorAll('[data-ef]').forEach(el=>{const [b,e,f]=el.dataset.ef.split('|');d.blocks[+b].exercises[+e][f]=el.value});
   root.querySelectorAll('[data-af]').forEach(el=>{const [i,f]=el.dataset.af.split('|');d.attach[+i][f]=el.value});
@@ -2976,7 +3008,8 @@ function saveTask(type){
     const xs=repDates(d,ds,aid).filter(x=>!(x.busy&&d.onBusy==='skip'));
     if(!xs.length){toast('No quedan días por asignar: elige otros días o más semanas');rerenderBuilder();return}
     const sid=xs.length>1?uid():null;
-    xs.forEach(x=>created.push({...base,id:uid(),date:x.date,...(sid?{seriesId:sid}:{}),title:d.title.trim(),data:JSON.parse(JSON.stringify({blocks:d.blocks,attach:d.attach.filter(x=>x.value||x.type==='formulario')}))}));
+    xs.forEach(x=>created.push({...base,id:uid(),date:x.date,...(sid?{seriesId:sid}:{}),title:d.title.trim(),data:JSON.parse(JSON.stringify({blocks:stripRep(d.blocks),attach:d.attach.filter(x=>x.value||x.type==='formulario')}))}));
+    var BR=applyBlockReps(d,aid,ds);
   }
   else if(type==='video'){
     const url=gv('f_vurl');if(!ytId(url)){toast('Pega un link de video válido');return}
@@ -2995,7 +3028,8 @@ function saveTask(type){
   closeModal();
   S.ui.month=first.date.slice(0,7);S.ui.coachTab='plan';S.ui.selDay=first.date;S.ui.athTab='agenda';
   commit();
-  toast(created.length>1?`${created.length} tareas asignadas a ${a.name}`:`Asignado a ${a.name} · ${dmy(first.date)}`);
+  const brTxt=typeof BR!=='undefined'&&BR&&(BR.add||BR.neu)?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''}`:'';
+  toast((created.length>1?`${created.length} tareas asignadas a ${a.name}`:`Asignado a ${a.name} · ${dmy(first.date)}`)+brTxt);
 }
 
 function openFormsLib(){
@@ -3830,11 +3864,12 @@ function saveEditTask(){
   if(!blocks.length){toast('Agrega al menos un ejercicio');return}
   if(blocks.some(b=>b.exercises.some(e=>e.video&&!vInfo(e.video)))){toast('Hay un link de video que no es válido');return}
   const sims=d.applyNext!==false?similarTasks(t):[],oldTitle=t.title;
-  [t,...sims].forEach(x=>{const old=x.data.blocks;x.data={...x.data,blocks:JSON.parse(JSON.stringify(blocks))};if(x===t)x.data.attach=d.attach.filter(a=>a.value||a.type==='formulario');x.title=d.title.trim();x.edited=Date.now();remapProgress(x,old)});
+  const BR=applyBlockReps({...d,blocks},t.athleteId,S.ui.addDate||t.date);
+  [t,...sims].forEach(x=>{const old=x.data.blocks;x.data={...x.data,blocks:stripRep(blocks)};if(x===t)x.data.attach=d.attach.filter(a=>a.value||a.type==='formulario');x.title=d.title.trim();x.edited=Date.now();remapProgress(x,old)});
   const nd=S.ui.addDate||t.date;if(nd!==t.date)t.date=nd;
   blocks.forEach(b=>b.exercises.forEach(e=>libAdd(e.name,t.title,e.video,!!e.cardio)));
   pushNotif(t.athleteId,`Tu coach actualizó «${oldTitle}»${sims.length?` y ${sims.length} sesiones más`:''}`);
-  S.ui.draft=null;closeModal();S.ui.selDay=t.date;commit();toast(sims.length?`Cambios guardados en ${sims.length+1} sesiones`:'Cambios guardados');
+  S.ui.draft=null;closeModal();S.ui.selDay=t.date;commit();toast((sims.length?`Cambios guardados en ${sims.length+1} sesiones`:'Cambios guardados')+(BR.add+BR.neu?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''}`:''));
 }
 
 /* ---- plan editado → sesiones pendientes del calendario ---- */
@@ -4241,7 +4276,7 @@ const HELP={
   peso:{t:'Peso corporal',b:'Pésate en ayunas, a la misma hora y en la misma báscula para que tus datos se puedan comparar.'},
   periodo_dia:{t:'Día de tu periodo',b:'Toca el día de tu periodo en el que vas (día 1 = el primer día de sangrado). Con eso calculamos tu fase y tu coach puede ajustar la intensidad, por ejemplo bajar un poco el peso los primeros días si lo necesitas. Cuando termine, toca «Ya terminó». Solo lo ven tú y tu coach.'},
   fce:{t:'¿Qué es la FCE?',b:'Es tu frecuencia cardiaca de entrenamiento: las pulsaciones por minuto en las que debes mantenerte durante el cardio. Se calcula con tu edad y tu frecuencia cardiaca en reposo (fórmula de Karvonen). Zona 1 = muy suave … Zona 5 = máxima. Si usas reloj o banda, procura quedarte en ese rango.'},
-  repetir:{t:'Repetir entrenamiento',b:'Marca los días de la semana en que se repite este entrenamiento y cuántas semanas. Se crea una sesión por día en el calendario; cada una se registra por separado. Para cambiarlas después, edita una sesión y marca «Aplicar también a las próximas sesiones».'},
+  repetir:{t:'Repetir entrenamiento',b:'Marca los días de la semana en que se repite este entrenamiento y cuántas semanas. Se crea una sesión por día en el calendario; cada una se registra por separado. Para cambiarlas después, edita una sesión y marca «Aplicar también a las próximas sesiones». Para repetir solo un bloque (por ejemplo Core o Cardio), usa «🔁 Repetir bloque» en el encabezado de ese bloque.'},
   irregular:{t:'Ciclo irregular',b:'Actívalo si tu periodo no llega cada mes en la misma fecha. Así la app no adivina cuándo te toca: solo cuenta tu periodo cuando tú lo marcas, el día que empiece.'},
   ciclo:{t:'Fase menstrual',b:'Es opcional. Si lo incluyes, con la fecha en que empezó tu última menstruación y cuántos días dura tu ciclo calculamos en qué fase estás. Tu energía y fuerza cambian según la fase, y tu coach lo usa para ajustar la intensidad. Solo lo ven tú y tu coach.'},
   comp:{t:'Tu composición',b:'Tu peso, cuánto de tu cuerpo es grasa y cuánta energía gastas al día. IMC compara tu peso con tu estatura. IMM muestra cuánto músculo tienes para tu estatura. GEB es lo que tu cuerpo gasta en reposo y GET es todo lo que gastas en un día normal, contando tu actividad.'},

@@ -616,6 +616,13 @@ details.exv[open] summary .chev{transform:rotate(180deg)}
 .daymeals .dm .t{font-weight:800;color:#9a3412}
 .daymeals .dm .k{font-size:12px;color:var(--muted);text-align:right}
 .mdot-food{font-size:9px;line-height:1}
+.rper{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:4px}
+.rper .field{margin:0;max-width:170px}
+.rper .q{display:flex;gap:6px;flex-wrap:wrap}
+.cyc-hide{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);background:var(--card);border:1px dashed var(--line);border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer}
+.nut-dates{display:flex;gap:8px;flex-wrap:wrap;align-items:end;background:var(--green-50);border:1px solid var(--line);border-radius:12px;padding:10px;margin:6px 0 10px}
+.nut-dates .field{margin:0;max-width:170px}
+.nut-end{border:1px solid #fecaca;background:#fff5f5;border-radius:12px;padding:12px;margin:6px 0 10px}
 .nut-hist .nh{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:var(--card)}
 .pchip.ph.on{background:var(--ink);border-color:var(--ink)}
 .pcat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px}
@@ -2461,7 +2468,7 @@ function coachHTML(compact){
     </div>
     <div class="card cl-head">
       ${avatarHTML(a)}
-      <div><h2 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${esc(a.name)} ${tlPill(trafficDay(tlCtx(a.id),TODAY))}</h2><div class="muted" style="font-size:12px">${esc(a.email)} · ${esc(a.goal)}</div>${profileChips(a)}<div class="priv-st ${privacyRec(a.id)?'ok':''}">🔒 Aviso de privacidad: ${privacyRec(a.id)?`aceptado el ${dmy(privacyRec(a.id).date)}${privacyRec(a.id).secondary?' · con secundarias':''}`:'pendiente (se le pedirá al entrar)'}</div>${!genderOf(a)?`<button type="button" class="gq" onclick="openNewAthlete('${a.id}')">${dropSVG(13)} Indica su género para activar la fase menstrual</button>`:''}${genderOf(a)==='Mujer'?`<div class="per-coach">${periodDayHTML(a,'coach')}</div>`:''}</div>
+      <div><h2 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${esc(a.name)} ${tlPill(trafficDay(tlCtx(a.id),TODAY))}</h2><div class="muted" style="font-size:12px">${esc(a.email)} · ${esc(a.goal)}</div>${profileChips(a)}${cycHideChip(a)}<div class="priv-st ${privacyRec(a.id)?'ok':''}">🔒 Aviso de privacidad: ${privacyRec(a.id)?`aceptado el ${dmy(privacyRec(a.id).date)}${privacyRec(a.id).secondary?' · con secundarias':''}`:'pendiente (se le pedirá al entrar)'}</div>${!genderOf(a)?`<button type="button" class="gq" onclick="openNewAthlete('${a.id}')">${dropSVG(13)} Indica su género para activar la fase menstrual</button>`:''}${genderOf(a)==='Mujer'?`<div class="per-coach">${periodDayHTML(a,'coach')}</div>`:''}</div>
       <div class="acts">
         <button class="icon-btn" title="Notificaciones" onclick="openCoachNotifs()">${ic('bell',16)}${unreadAll?`<span class="badge-dot">${unreadAll}</span>`:''}</button>
         <button class="btn soft" onclick="openClientPlan('${a.id}')">${ic('layers',15)} Plan de entrenamiento</button>
@@ -2606,9 +2613,11 @@ function cycShareHTML(a){
       <label class="chk" style="margin-top:8px"><input type="checkbox" id="cyc_ok"> Doy mi consentimiento expreso para compartir este dato de salud con mi coach</label>
       <div style="display:flex;gap:6px;margin-top:8px"><button type="button" class="btn ghost sm" onclick="S.ui.cycShareOpen=false;renderApp()">Cancelar</button><button type="button" class="btn primary sm" onclick="cycSetShare('${a.id}',true)">Compartir</button></div>`:''}</div>`}
 function cycModHTML(a){
-  if(!a||genderOf(a)!=='Mujer')return '';const on=a.cycleMod!==false;
-  return `<label class="chk" style="margin:4px 0 10px"><input type="checkbox" ${on?'checked':''} onchange="cycSetMod('${a.id}',this.checked)"> Mostrar el módulo de ciclo menstrual a ${esc((a.name||'esta clienta').split(' ')[0])}</label>`}
-function cycSetMod(aid,on){const a=S.athletes.find(x=>x.id===aid);if(!a)return;a.cycleMod=!!on;S.ui.cycA=aid;const el=document.getElementById('na_cyc');if(el)el.innerHTML=cycModHTML(a)+cycleHTML(a,'coach');save();renderApp();toast(on?'Módulo de ciclo visible para la clienta':'Módulo de ciclo oculto (los datos no se borran)')}
+  if(!a||genderOf(a)!=='Mujer')return '';const off=a.cycleMod===false;
+  return `<label class="chk" style="margin:4px 0 10px"><input type="checkbox" ${off?'checked':''} onchange="cycSetMod('${a.id}',!this.checked)"> Ocultar el recuadro de periodo menstrual a ${esc((a.name||'esta clienta').split(' ')[0])}</label>`}
+function cycHideChip(a){if(!a||genderOf(a)!=='Mujer')return '';const off=a.cycleMod===false;
+  return `<label class="cyc-hide" title="Oculta el recuadro de periodo menstrual en el portal de la clienta y en tu vista. No borra datos."><input type="checkbox" ${off?'checked':''} onchange="cycSetMod('${a.id}',!this.checked)"> Ocultar recuadro de periodo menstrual</label>`}
+function cycSetMod(aid,on){const a=S.athletes.find(x=>x.id===aid);if(!a)return;a.cycleMod=!!on;S.ui.cycA=aid;const el=document.getElementById('na_cyc');if(el)el.innerHTML=cycModHTML(a)+cycleHTML(a,'coach');save();renderApp();toast(on?'Recuadro de periodo visible otra vez':'Recuadro de periodo oculto (los datos no se borran)')}
 function cyclePhase(c,ds){
   if(!c||!c.tracking||!c.last)return null;const L=+c.len||28,diff=Math.round((parse(ds||TODAY)-parse(c.last))/864e5);if(diff<0)return null;const irr=!!c.irregular,P=(c.endFor===c.last&&c.endDay!=null&&(irr||diff<L))?+c.endDay:(+c.plen||5);
   if(irr){const day=diff+1,ov=L-14,ph=day<=P?'Menstrual':day<ov-1?'Folicular':day<=ov+1?'Ovulatoria':'Lútea';return {day,len:L,phase:ph,next:null,irregular:true,menstrual:ph==='Menstrual'}}
@@ -2980,39 +2989,45 @@ function builderInner(){
 /* Repetir un entrenamiento en los días de la semana elegidos (0 = lunes … 6 = domingo) */
 const DOW_L=['L','M','X','J','V','S','D'],DOW_N=['lun','mar','mié','jue','vie','sáb','dom'];
 function repDays(d,ds){return (d.days&&d.days.length?d.days:[(parse(ds).getDay()+6)%7]).slice().sort((x,y)=>x-y)}
-function repDates(d,ds,aid){const mon=mondayOf(ds),out=[];for(let w=0;w<=(+d.repeat||0);w++)repDays(d,ds).forEach(k=>{const dt=addDays(mon,w*7+k);if(dt>=ds)out.push(dt)});
+function repRange(d,ds){const from=d.from&&d.from>=ds?d.from:ds;let to=d.to||(d.repeat!=null&&!d.to&&+d.repeat?addDays(mondayOf(ds),(+d.repeat)*7+6):ds);if(to<from)to=from;const max=addDays(from,365);return [from,to>max?max:to]}
+function repDates(d,ds,aid){const [from,to]=repRange(d,ds),days=repDays(d,ds),out=[];for(let dt=from,n=0;dt<=to&&n<400;dt=addDays(dt,1),n++)if(days.includes((parse(dt).getDay()+6)%7))out.push(dt);
   return out.map(dt=>({date:dt,busy:S.tasks.some(t=>t.athleteId===aid&&t.date===dt&&t.type==='entrenamiento'&&!t.hist)}))}
+function perHTML(pre,from,to,minD,onq){return `<div class="rper"><div class="field"><label>Inicia</label><input type="date" ${pre}from" value="${from}" min="${minD}" onchange="repChange()"></div><div class="field"><label>Termina</label><input type="date" ${pre}to" value="${to}" min="${from}" onchange="repChange()"></div>
+  <div class="q">${[['1 semana',6],['4 semanas',27],['8 semanas',55],['12 semanas',83]].map(([l,n])=>`<button type="button" class="pchip" onclick="${onq}(${n})">${l}</button>`).join('')}</div></div>`}
 function repeatHTML(d){
   const ds=S.ui.addDate,aid=S.ui.athleteId,sel=repDays(d,ds),xs=repDates(d,ds,aid),busy=xs.filter(x=>x.busy).length,skip=d.onBusy==='skip',use=xs.filter(x=>!(skip&&x.busy));
-  return `<div class="rep"><div class="rep-t">🔁 Repetir este entrenamiento ${qm('repetir')}</div>
+  return `<div class="rep"><div class="rep-t">🔁 Repetir el entrenamiento completo ${qm('repetir')}</div><div class="muted" style="font-size:12px;margin:-4px 0 8px">Para repetir solo un bloque (por ejemplo Core), usa «🔁 Repetir bloque» en ese bloque.</div>
     <div class="rep-days">${DOW_L.map((l,k)=>`<label class="rday ${sel.includes(k)?'on':''}" title="${DOW_N[k]}"><input type="checkbox" data-rday="${k}" ${sel.includes(k)?'checked':''} onchange="repChange()"><span>${l}</span></label>`).join('')}</div>
     <div class="rep-quick"><button type="button" class="pchip" onclick="repQuick([0,1,2,3,4])">L–V</button><button type="button" class="pchip" onclick="repQuick([0,1,2,3,4,5])">L–S</button><button type="button" class="pchip" onclick="repQuick([0,2,4])">L·X·V</button><button type="button" class="pchip" onclick="repQuick([1,3])">M·J</button><button type="button" class="pchip" onclick="repQuick([0,1,2,3,4,5,6])">Todos</button><button type="button" class="pchip" onclick="repQuick(null)">Solo este día</button></div>
-    <div class="row" style="flex-wrap:wrap;align-items:end;gap:10px"><div class="field" style="margin:0;max-width:220px"><label>Durante</label><select id="f_repeat" onchange="repChange()">${[0,1,2,3,4,5,7,11].map(n=>`<option value="${n}" ${(+d.repeat||0)===n?'selected':''}>${n+1} semana${n?'s':''}${n?'':' (solo esta)'}</option>`).join('')}</select></div>
+    ${(()=>{const [f,t]=repRange(d,ds);return perHTML('data-rp="',f,t,ds,'repPer')})()}
+    <div class="row" style="flex-wrap:wrap;align-items:end;gap:10px;margin-top:8px">
     ${busy?`<div class="field" style="margin:0;max-width:280px"><label>${busy} de esos días ya tiene${busy>1?'n':''} entrenamiento</label><select id="f_onbusy" onchange="repChange()"><option value="add" ${skip?'':'selected'}>Agregarlo además</option><option value="skip" ${skip?'selected':''}>Omitir esos días</option></select></div>`:''}</div>
     <div class="rep-prev">${use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'}: ${use.slice(0,14).map(x=>`<span class="${x.busy?'bz':''}">${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')}${use.length>14?` · y ${use.length-14} más`:''}`:'<b>No quedan días por asignar</b>: elige otros días o más semanas.'}</div></div>`}
 function repChange(){collectDraft();rerenderBuilder()}
+function repPer(n){collectDraft();const d=S.ui.draft,ds=S.ui.addDate,f=d.from&&d.from>=ds?d.from:ds;d.from=f;d.to=addDays(f,n);if(!d.days||!d.days.length)d.days=[(parse(f).getDay()+6)%7];rerenderBuilder()}
+function blkPer(bi,n){collectDraft();const b=S.ui.draft.blocks[bi],t=S.ui.draft.editId?taskById(S.ui.draft.editId):null,ds=S.ui.addDate||(t&&t.date);if(!b||!b.rep)return;b.rep.from=b.rep.from&&b.rep.from>=ds?b.rep.from:ds;b.rep.to=addDays(b.rep.from,n);rerenderBuilder()}
 /* Repetir UN bloque en otros días: se agrega al entrenamiento que ya tenga ese día o se crea una sesión con ese bloque */
 function mainDates(d){const ds=S.ui.addDate,aid=S.ui.athleteId;if(d.editId){const t=taskById(d.editId);return t?[S.ui.addDate||t.date,...(d.applyNext!==false?similarTasks(t).map(x=>x.date):[])]:[]}
   return repDates(d,ds,aid).filter(x=>!(x.busy&&d.onBusy==='skip')).map(x=>x.date)}
-function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d));
-  return repDates({days:b.rep.days,repeat:b.rep.weeks},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const ex=S.tasks.find(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&x.status!=='done'&&!x.hist&&x.id!==(t&&t.id));return {date:dt,into:ex?ex.title:null}})}
+function blkRange(b,ds){const r=b.rep||{};return repRange({from:r.from,to:r.to||(r.weeks!=null?addDays(mondayOf(ds),(+r.weeks||0)*7+6):addDays(ds,27))},ds)}
+function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d)),[f,to]=blkRange(b,ds),nm=(b.name||'').trim().toLowerCase();
+  return repDates({days:b.rep.days,from:f,to},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const dup=S.tasks.some(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==(t&&t.id)&&String(x.title||'').trim().toLowerCase()===nm);return {date:dt,dup}})}
 function blkRepHTML(b,bi){
-  const d=S.ui.draft,r=b.rep,sel=r.days||[],xs=blkRepPlan(b,d),into=xs.filter(x=>x.into).length;
-  return `<div class="brep-p"><div style="font-size:12px;font-weight:700;margin-bottom:6px">🔁 Repetir «${esc(b.name||'este bloque')}» también los días:</div>
+  const d=S.ui.draft,r=b.rep,sel=r.days||[],xs=blkRepPlan(b,d),use=xs.filter(x=>!x.dup),dups=xs.length-use.length,t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds),nm=esc(b.name||'Bloque de ejercicios');
+  return `<div class="brep-p"><div style="font-size:12px;font-weight:700;margin-bottom:6px">🔁 Repetir solo el bloque «${nm}» en otros días</div>
     <div class="rep-days">${DOW_L.map((l,k)=>`<label class="rday ${sel.includes(k)?'on':''}" title="${DOW_N[k]}"><input type="checkbox" data-brday="${bi}|${k}" ${sel.includes(k)?'checked':''} onchange="repChange()"><span>${l}</span></label>`).join('')}</div>
     <div class="rep-quick"><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,1,2,3,4])">L–V</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,1,2,3,4,5])">L–S</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,2,4])">L·X·V</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[1,3])">M·J</button><button type="button" class="pchip" onclick="blkRepQuick(${bi},[0,1,2,3,4,5,6])">Todos</button></div>
-    <div class="row" style="flex-wrap:wrap;align-items:end;gap:10px"><div class="field" style="margin:0;max-width:200px"><label>Durante</label><select data-brw="${bi}" onchange="repChange()">${[0,1,2,3,4,5,7,11].map(n=>`<option value="${n}" ${(+r.weeks||0)===n?'selected':''}>${n+1} semana${n?'s':''}${n?'':' (solo esta)'}</option>`).join('')}</select></div>
-      <button type="button" class="btn ghost sm" onclick="blkRep(${bi})">Quitar repetición</button></div>
-    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':xs.length?`Se agregará en <b>${xs.length}</b> día${xs.length>1?'s':''}: ${xs.slice(0,12).map(x=>`<span class="${x.into?'bz':''}">${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}${x.into?` (a «${esc(x.into)}»)`:''}</span>`).join(' · ')}${xs.length>12?` · y ${xs.length-12} más`:''}${into?`<br>En ${into} día${into>1?'s':''} se suma al entrenamiento que ya tiene; en los demás se crea una sesión solo con este bloque.`:'<br>Se crea una sesión solo con este bloque en cada día.'}`:blkRepRaw(b,d)?'Esos días ya llevan este entrenamiento completo: no hay días extra.':'No quedan esos días en el periodo elegido: agrega más semanas u otros días.'}</div></div>`}
-function blkRepRaw(b,d){const t=d.editId?taskById(d.editId):null;return repDates({days:b.rep.days,repeat:b.rep.weeks},S.ui.addDate||(t&&t.date),t?t.athleteId:S.ui.athleteId).length}
-function blkRep(bi){collectDraft();const d=S.ui.draft,b=d.blocks[bi];b.rep=b.rep?null:{days:[],weeks:+d.repeat||0};rerenderBuilder()}
-function blkRepQuick(bi,arr){collectDraft();const b=S.ui.draft.blocks[bi];b.rep=b.rep||{days:[],weeks:0};b.rep.days=arr.slice();rerenderBuilder()}
+    <div class="muted" style="font-size:11px;font-weight:700;margin-top:4px">Periodo del bloque</div>
+    ${perHTML(`data-bp="${bi}|`,f,to,ds,`blkPer.bind(null,${bi})`).replace(/blkPer\.bind\(null,(\d+)\)\((\d+)\)/g,'blkPer($1,$2)')}
+    <div style="margin-top:8px"><button type="button" class="btn ghost sm" onclick="blkRep(${bi})">Quitar repetición</button></div>
+    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'} llamada${use.length>1?'s':''} «${nm}» (solo este bloque): ${use.slice(0,12).map(x=>`<span>${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')}${use.length>12?` · y ${use.length-12} más`:''}${dups?`<br>${dups} día${dups>1?'s':''} ya tiene${dups>1?'n':''} «${nm}»: no se duplica.`:''}`:blkRepRaw(b,d)?(dups?`Esos días ya tienen «${nm}»: no se duplica.`:'Esos días ya llevan el entrenamiento completo: no hay días extra.'):'No hay días dentro del periodo: cambia las fechas o los días.'}</div></div>`}
+function blkRepRaw(b,d){const t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds);return repDates({days:b.rep.days,from:f,to},ds,t?t.athleteId:S.ui.athleteId).length}
+function blkRep(bi){collectDraft();const d=S.ui.draft,b=d.blocks[bi],t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date);b.rep=b.rep?null:{days:[],from:ds,to:d.to&&d.to>ds?d.to:addDays(ds,27)};rerenderBuilder()}
+function blkRepQuick(bi,arr){collectDraft();const b=S.ui.draft.blocks[bi],ds=S.ui.addDate;b.rep=b.rep||{days:[],from:ds,to:addDays(ds,27)};b.rep.days=arr.slice();rerenderBuilder()}
 const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;return b});
 function applyBlockReps(d,aid,ds){let add=0,neu=0;
-  d.blocks.forEach(b=>{const xs=blkRepPlan(b,d);if(!xs.length)return;const copy=stripRep([b])[0],sid=uid();
-    xs.forEach(x=>{const ex=S.tasks.find(t=>t.athleteId===aid&&t.date===x.date&&t.type==='entrenamiento'&&t.status!=='done'&&!t.hist&&t.id!==d.editId);
-      if(ex){ex.data={...ex.data,blocks:[...(ex.data.blocks||[]),JSON.parse(JSON.stringify(copy))]};ex.edited=Date.now();add++}
-      else{S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:copy.name||'Bloque de ejercicios',data:{blocks:[JSON.parse(JSON.stringify(copy))],attach:[]}});neu++}})});
+  d.blocks.forEach(b=>{const xs=blkRepPlan(b,d).filter(x=>!x.dup);if(!xs.length)return;const copy=stripRep([b])[0],sid=uid(),nm=(copy.name||'').trim()||'Bloque de ejercicios';copy.name=nm;
+    xs.forEach(x=>{S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:nm,data:{blocks:[JSON.parse(JSON.stringify(copy))],attach:[]}});neu++})});
   return {add,neu}}
 function repQuick(arr){collectDraft();S.ui.draft.days=arr?arr.slice():null;rerenderBuilder()}
 function rerenderBuilder(){const b=document.getElementById('builder');if(b)b.innerHTML=builderInner()}
@@ -3022,6 +3037,8 @@ function collectDraft(){
   const r=root.querySelector('#f_repeat');if(r)d.repeat=+r.value;
   const rd=root.querySelectorAll('[data-rday]');if(rd.length){const ch=[...rd].filter(x=>x.checked).map(x=>+x.dataset.rday);d.days=ch.length?ch:null}
   const ob=root.querySelector('#f_onbusy');if(ob)d.onBusy=ob.value;
+  const pf=root.querySelector('[data-rp="from"]'),pt=root.querySelector('[data-rp="to"]');if(pf&&pf.value)d.from=pf.value;if(pt&&pt.value)d.to=pt.value;
+  root.querySelectorAll('[data-bp]').forEach(el=>{const [bi,k]=el.dataset.bp.split('|'),b=d.blocks[+bi];if(b&&b.rep&&el.value)b.rep[k]=el.value});
   const bd={};root.querySelectorAll('[data-brday]').forEach(el=>{const [bi,k]=el.dataset.brday.split('|');(bd[bi]=bd[bi]||[]);if(el.checked)bd[bi].push(+k)});
   Object.entries(bd).forEach(([bi,ks])=>{const b=d.blocks[+bi];if(b&&b.rep)b.rep.days=ks});
   root.querySelectorAll('[data-brw]').forEach(el=>{const b=d.blocks[+el.dataset.brw];if(b&&b.rep)b.rep.weeks=+el.value});
@@ -3033,7 +3050,7 @@ function addBlock(){collectDraft();S.ui.draft.blocks.push({name:'',exercises:[{n
 function delBlock(i){collectDraft();S.ui.draft.blocks.splice(i,1);rerenderBuilder()}
 function addEx(b){collectDraft();const B=S.ui.draft.blocks[b];B.exercises.push(isAeroBlock(B.name)?aeroMk():exMk('t'));exRerender('t')}
 function delEx(b,e){collectDraft();exRemove(S.ui.draft.blocks[b].exercises,e);if(!S.ui.draft.blocks[b].exercises.length)S.ui.draft.blocks.splice(b,1);rerenderBuilder()}
-function loadTpl(k){collectDraft();const att=S.ui.draft.attach,o=S.ui.draft;S.ui.draft=tplToDraft(k);S.ui.draft.attach=att;S.ui.draft.repeat=o.repeat||0;S.ui.draft.days=o.days||null;S.ui.draft.onBusy=o.onBusy;rerenderBuilder();toast('Plantilla cargada — edítala a tu gusto')}
+function loadTpl(k){collectDraft();const att=S.ui.draft.attach,o=S.ui.draft;S.ui.draft=tplToDraft(k);S.ui.draft.attach=att;S.ui.draft.repeat=o.repeat||0;S.ui.draft.days=o.days||null;S.ui.draft.onBusy=o.onBusy;S.ui.draft.from=o.from;S.ui.draft.to=o.to;rerenderBuilder();toast('Plantilla cargada — edítala a tu gusto')}
 function addAttach(type){collectDraft();S.ui.draft.attach.push({type,title:type==='video'?'Video de apoyo':TYPES[type].label,value:type==='formulario'?'feedback':''});rerenderBuilder()}
 function delAttach(i){collectDraft();S.ui.draft.attach.splice(i,1);rerenderBuilder()}
 
@@ -3041,7 +3058,7 @@ function libVideoSelect(){const xs=S.library.filter(x=>x.video);return xs.length
 function pickLibVideo(id){const x=S.library.find(e=>e.id===id);if(!x)return;document.getElementById('f_vtitle').value=x.name;document.getElementById('f_vurl').value=x.video;ytPreview()}
 const libFind=n=>S.library.find(x=>x.name.toLowerCase()===String(n||'').trim().toLowerCase());
 function libFill(el){const ex=libFind(el.value);if(!ex||!ex.video)return;const key=el.dataset.ef!=null?'ef':'pf';const p=el.dataset[key].split('|');const v=document.querySelector(`[data-${key}="${p[0]}|${p[1]}|video"]`);if(v&&!v.value){v.value=ex.video;v.classList.add('flash');v.dispatchEvent(new Event('input'))}}
-function loadPlanDay(v){collectDraft();const [pid,i]=v.split('|');const p=S.plans.find(x=>x.id===pid),d=p.days[+i];const att=S.ui.draft.attach;S.ui.draft={title:d.name,blocks:dayToBlocks(d,0),attach:att,repeat:S.ui.draft.repeat||0,days:S.ui.draft.days||null,onBusy:S.ui.draft.onBusy};rerenderBuilder();toast(`Rutina «${d.name}» cargada (fase 1) — edítala a tu gusto`)}
+function loadPlanDay(v){collectDraft();const [pid,i]=v.split('|');const p=S.plans.find(x=>x.id===pid),d=p.days[+i];const att=S.ui.draft.attach;S.ui.draft={title:d.name,blocks:dayToBlocks(d,0),attach:att,repeat:S.ui.draft.repeat||0,days:S.ui.draft.days||null,onBusy:S.ui.draft.onBusy,from:S.ui.draft.from,to:S.ui.draft.to};rerenderBuilder();toast(`Rutina «${d.name}» cargada (fase 1) — edítala a tu gusto`)}
 function saveTask(type){
   const aid=S.ui.athleteId, a=curA(), ds=S.ui.addDate;
   const base={athleteId:aid,date:ds,type,status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now()};
@@ -3077,7 +3094,7 @@ function saveTask(type){
   closeModal();
   S.ui.month=first.date.slice(0,7);S.ui.coachTab='plan';S.ui.selDay=first.date;S.ui.athTab='agenda';
   commit();
-  const brTxt=typeof BR!=='undefined'&&BR&&(BR.add||BR.neu)?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''}`:'';
+  const brTxt=typeof BR!=='undefined'&&BR&&(BR.add||BR.neu)?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''} con su propio nombre`:'';
   toast((created.length>1?`${created.length} tareas asignadas a ${a.name}`:`Asignado a ${a.name} · ${dmy(first.date)}`)+brTxt);
 }
 
@@ -4325,7 +4342,7 @@ const HELP={
   peso:{t:'Peso corporal',b:'Pésate en ayunas, a la misma hora y en la misma báscula para que tus datos se puedan comparar.'},
   periodo_dia:{t:'Día de tu periodo',b:'Toca el día de tu periodo en el que vas (día 1 = el primer día de sangrado). Con eso calculamos tu fase y tu coach puede ajustar la intensidad, por ejemplo bajar un poco el peso los primeros días si lo necesitas. Cuando termine, toca «Ya terminó». Solo lo ven tú y tu coach.'},
   fce:{t:'¿Qué es la FCE?',b:'Es tu frecuencia cardiaca de entrenamiento: las pulsaciones por minuto en las que debes mantenerte durante el cardio. Se calcula con tu edad y tu frecuencia cardiaca en reposo (fórmula de Karvonen). Zona 1 = muy suave … Zona 5 = máxima. Si usas reloj o banda, procura quedarte en ese rango.'},
-  repetir:{t:'Repetir entrenamiento',b:'Marca los días de la semana en que se repite este entrenamiento y cuántas semanas. Se crea una sesión por día en el calendario; cada una se registra por separado. Para cambiarlas después, edita una sesión y marca «Aplicar también a las próximas sesiones». Para repetir solo un bloque (por ejemplo Core o Cardio), usa «🔁 Repetir bloque» en el encabezado de ese bloque.'},
+  repetir:{t:'Repetir entrenamiento',b:'Marca los días de la semana en que se repite este entrenamiento y el periodo (fecha de inicio y de término). Se crea una sesión por día en el calendario; cada una se registra por separado. Para cambiarlas después, edita una sesión y marca «Aplicar también a las próximas sesiones». Para repetir solo un bloque (por ejemplo Core o Cardio), usa «🔁 Repetir bloque» en el encabezado de ese bloque.'},
   irregular:{t:'Ciclo irregular',b:'Actívalo si tu periodo no llega cada mes en la misma fecha. Así la app no adivina cuándo te toca: solo cuenta tu periodo cuando tú lo marcas, el día que empiece.'},
   ciclo:{t:'Fase menstrual',b:'Es opcional. Si lo incluyes, con la fecha en que empezó tu última menstruación y cuántos días dura tu ciclo calculamos en qué fase estás. Tu energía y fuerza cambian según la fase, y tu coach lo usa para ajustar la intensidad. Solo lo ven tú y tu coach.'},
   comp:{t:'Tu composición',b:'Tu peso, cuánto de tu cuerpo es grasa y cuánta energía gastas al día. IMC compara tu peso con tu estatura. IMM muestra cuánto músculo tienes para tu estatura. GEB es lo que tu cuerpo gasta en reposo y GET es todo lo que gastas en un día normal, contando tu actividad.'},
@@ -4537,7 +4554,7 @@ const daysTxt=d=>!d||!d.length||d.length===7?'Todos los días':JSON.stringify(d.
 function mealsOf(a,raw){const n=a.nutrition;if(!n)return [];if(n.menus&&n.menus.length){const i=Math.min(S.ui.menu||0,n.menus.length-1);return n.menus[i].meals}
   const base=n.meals||[];if(raw)return base;const adj=nutAdjOf(a.id);if(!adj||adj.plan!==nutKey(n))return base;const ov=adj.meals||{};
   return base.map(m=>ov[m.id]?{...m,...ov[m.id],_adj:true}:m).filter(m=>!m.hidden).concat((adj.added||[]).map(m=>({...m,_own:true})))}
-function mealsForDay(a,ds){const n=a&&a.nutrition;if(!n||(n.start&&ds<n.start))return [];return mealsOf(a).filter(m=>mealOnDay(m,ds)).slice().sort((x,y)=>String(x.time||'99').localeCompare(String(y.time||'99')))}
+function mealsForDay(a,ds){const n=a&&a.nutrition;if(!n||(n.start&&ds<n.start)||(n.end&&ds>n.end))return [];return mealsOf(a).filter(m=>mealOnDay(m,ds)).slice().sort((x,y)=>String(x.time||'99').localeCompare(String(y.time||'99')))}
 function mealCard(a,m,editable){
   const lg=mealLogs(a.id,TODAY).find(x=>x.mealId===m.id),st=lg?lg.status:'';
   const kk=mealK(m),isTod=mealOnDay(m,TODAY),canEd=editable&&!(a.nutrition&&a.nutrition.menus&&a.nutrition.menus.length);
@@ -4562,7 +4579,8 @@ function logMeal(mid,st){
 function saveMealVar(mid){const a=curA(),lg=mealLogs(a.id,TODAY).find(x=>x.mealId===mid);if(!lg)return;lg.note=gv('mv_'+mid);lg.kcal=+gv('mk_'+mid)||null;S.ui.varOpen=null;
   const m=mealsOf(a).find(x=>x.id===mid);pushActivity(a.id,'meal',`cambió «${m?m.name||m.time:'una comida'}»${lg.note?': '+lg.note.slice(0,80):''}`);commit();toast('Cambio registrado, tu coach lo verá')}
 function athNutHTML(a){
-  const n=a.nutrition;if(!n)return `<div class="card empty-state">${ic('food',26)}<br>Tu coach aún no carga tu plan de alimentación.</div>`;
+  const n=a.nutrition;if(!n){const lh=(a.nutHist||[]).slice(-1)[0];return `<div class="card empty-state">${ic('food',26)}<br>${lh?`Tu plan «${esc(lh.label||'de alimentación')}» terminó el ${dmy(lh.end)}.${lh.endNote?`<br><span style="font-size:12px">💬 ${esc(lh.endNote)}</span>`:''}<br>Tu coach te asignará el siguiente.`:'Tu coach aún no carga tu plan de alimentación.'}</div>${nutHistHTML(a,false)}`}
+  if(n.end&&n.end<TODAY)return `<div class="card empty-state">${ic('food',26)}<br>Tu plan «${esc(n.label||'de alimentación')}» terminó el ${dmy(n.end)}. Pregúntale a tu coach por el siguiente.</div>${nutHistHTML(a,false)}`;
   const ms=mealsOf(a),logs=mealLogs(a.id,TODAY),ok=logs.filter(x=>x.status==='ok').length,c=bodyComp(a),kc=ms.reduce((s,m)=>s+(m.kcal||0),0);
   return `<div class="card" style="padding:14px;margin-bottom:12px"><div style="display:flex;align-items:center;gap:4px;margin-bottom:10px"><b>Mi plan de alimentación</b>${qm('nut')}</div>${nutHeadHTML(n)}
     <div class="nut-sum"><div class="s"><div class="l">Kcal del día</div><div class="v">${fmtN(c.kcalT||kc)}</div></div><div class="s"><div class="l">Comidas</div><div class="v">${ms.length}</div></div><div class="s"><div class="l">Hoy según el plan</div><div class="v">${ok}/${ms.length}</div></div></div>
@@ -4576,18 +4594,33 @@ function athNutHTML(a){
   ${nutHistHTML(a,false)}`;
 }
 const NUT_GOALS=['Definición','Mantenimiento','Volumen','Recomposición','Rendimiento'];
-function nutHeadHTML(n){if(!n)return '';const it=[n.label&&!/^Cargado desde/.test(n.label)?`<b>${esc(n.label)}</b>`:'',n.goal&&esc(n.goal),n.start&&`desde ${dmy(n.start)}`,n.calc&&n.calc.get&&`GET ${fmtN(n.calc.get)} kcal (Harris-Benedict)`].filter(Boolean);return it.length?`<div class="muted" style="font-size:12px;margin:-4px 0 10px">${it.join(' · ')}</div>`:''}
+function nutHeadHTML(n){if(!n)return '';const it=[n.label&&!/^Cargado desde/.test(n.label)?`<b>${esc(n.label)}</b>`:'',n.goal&&esc(n.goal),n.start&&(n.end?`del ${dmy(n.start)} al ${dmy(n.end)}`:`desde ${dmy(n.start)}`),n.calc&&n.calc.get&&`GET ${fmtN(n.calc.get)} kcal (Harris-Benedict)`].filter(Boolean);return it.length?`<div class="muted" style="font-size:12px;margin:-4px 0 10px">${it.join(' · ')}</div>`:''}
 function nutHistHTML(a,coach){const H=(a.nutHist||[]).slice().reverse();if(!H.length)return '';
   return `<details class="nut-hist" style="margin-top:12px"><summary>${ic('clock',13)} Planes anteriores (${H.length})</summary>${H.map((h,i)=>{const ms=h.menus&&h.menus.length?h.menus.flatMap(x=>x.meals):(h.meals||[]),kc=h.kcalTarget||ms.reduce((t,m)=>t+(m.kcal||0),0);
     return `<div class="nh"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:13px">${esc(h.label||'Plan de alimentación')}</b><span class="muted" style="font-size:12px">${[h.goal,h.start&&`${dmy(h.start)} – ${h.end?dmy(h.end):''}`,kc&&`${fmtN(kc)} kcal`,`${ms.length} comidas`].filter(Boolean).map(esc).join(' · ')}</span>${coach?`<span style="flex:1"></span><button class="btn ghost sm" onclick="nutRestore(${H.length-1-i})">Volver a usarlo</button>`:''}</div>
+      ${h.endNote?`<div style="font-size:12px;margin-top:4px">💬 ${esc(h.endNote)}</div>`:''}
       <details style="margin-top:6px"><summary class="muted" style="font-size:12px">Ver comidas</summary>${ms.map(m=>mealCard(a,m,false)).join('')}</details></div>`}).join('')}</details>`}
-function nutArchive(a){if(!a.nutrition)return;const h=JSON.parse(JSON.stringify(a.nutrition));h.end=TODAY;a.nutHist=(a.nutHist||[]).concat([h]).slice(-12)}
+function nutArchive(a,end,note){if(!a.nutrition)return;const h=JSON.parse(JSON.stringify(a.nutrition));h.plannedEnd=h.end||null;h.end=end||(h.end&&h.end<TODAY?h.end:TODAY);if(note)h.endNote=note;h.endedAt=Date.now();a.nutHist=(a.nutHist||[]).concat([h]).slice(-12)}
+function nutDatesHTML(a){const n=a.nutrition;if(!n)return '';const ed=S.ui.nutDates,en=S.ui.nutEnding;
+  return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"><button class="btn soft sm" onclick="S.ui.nutDates=!S.ui.nutDates;S.ui.nutEnding=false;openNutrition('${a.id}')">📅 Fechas del plan${n.start||n.end?`: ${n.start?dmy(n.start):'—'} → ${n.end?dmy(n.end):'sin término'}`:''}</button><button class="btn ghost sm" style="color:#b91c1c" onclick="S.ui.nutEnding=!S.ui.nutEnding;S.ui.nutDates=false;openNutrition('${a.id}')">⏹ Terminar este plan</button></div>
+  ${ed?`<div class="nut-dates"><div class="field"><label>Inicia</label><input type="date" id="nd_start" value="${n.start||TODAY}"></div><div class="field"><label>Termina</label><input type="date" id="nd_end" value="${n.end||''}"></div>
+    <div class="rep-quick" style="margin:0">${[['4 semanas',27],['8 semanas',55],['12 semanas',83]].map(([l,k])=>`<button type="button" class="pchip" onclick="document.getElementById('nd_end').value=addDays(gv('nd_start')||TODAY,${k})">${l}</button>`).join('')}<button type="button" class="pchip" onclick="document.getElementById('nd_end').value=''">Sin término</button></div>
+    <button class="btn primary sm" onclick="nutSetDates('${a.id}')">${ic('check',13)} Guardar fechas</button></div>`:''}
+  ${en?`<div class="nut-end"><b style="font-size:13px">Terminar «${esc(n.label||'Plan de alimentación')}»</b><div class="muted" style="font-size:12px;margin:2px 0 8px">Pasa a «Planes anteriores» y ${esc((a.name||'').split(' ')[0])} se queda sin plan vigente hasta que le asignes uno nuevo.</div>
+    <div class="row" style="flex-wrap:wrap"><div class="field" style="max-width:180px"><label>Fecha de término</label><input type="date" id="ne_date" value="${TODAY}"></div></div>
+    <div class="field"><label>Comentarios: ¿por qué termina o cambia?</label><textarea class="inp" id="ne_note" rows="3" placeholder="Ej. Terminó la fase de definición; descansa de plan una semana"></textarea></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="S.ui.nutEnding=false;openNutrition('${a.id}')">Cancelar</button><button class="btn primary sm" style="background:#dc2626;border-color:#dc2626;color:#fff" onclick="nutEnd('${a.id}',false)">Terminar plan</button><button class="btn soft sm" onclick="nutEnd('${a.id}',true)">Terminar y crear uno nuevo</button></div></div>`:''}`}
+function nutSetDates(aid){const a=nutCollect(),st=gv('nd_start')||TODAY,en=gv('nd_end')||null;if(en&&en<st){toast('La fecha de término debe ser después del inicio');return}
+  a.nutrition.start=st;a.nutrition.end=en;S.ui.nutDates=false;pushNotif(aid,`Tu plan de alimentación va del ${dmy(st)}${en?` al ${dmy(en)}`:' en adelante'}`);commit();openNutrition(aid);toast('Fechas del plan guardadas')}
+function nutEnd(aid,andNew){const a=nutCollect(),d=gv('ne_date')||TODAY,note=gv('ne_note').trim();if(!a.nutrition)return;const lbl=a.nutrition.label||'tu plan de alimentación';
+  nutArchive(a,d,note);a.nutrition=null;S.ui.nutEnding=false;pushNotif(aid,`Tu coach terminó «${lbl}» el ${dmy(d)}${note?`: ${note}`:''}`);commit();toast('Plan terminado');if(andNew)openNewNutPlan(aid);else openNutrition(aid)}
 function openNewNutPlan(aid){
   const a=S.athletes.find(x=>x.id===aid),has=!!(a.nutrition&&((a.nutrition.meals||[]).length||(a.nutrition.menus||[]).length)),w=lastWeight(aid);
   S.ui.hb=null;S.ui.hbAdj={mode:null,kc:0,man:false};S.ui.hbShown=false;const g0=genderOf(a),lv=a.trainLevel||'intermedio';
   openModal(`<div class="modal"><div class="modal-h"><h3>${ic('food',18)} Nuevo plan de nutrición · ${esc(a.name.split(' ')[0])}</h3><button class="x" onclick="openNutrition('${aid}')">${ic('x',20)}</button></div><div class="modal-b">
     <div class="field"><label>Nombre del plan</label><input id="np_name" placeholder="Ej. Definición · Diciembre"></div>
-    <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:150px"><label>Objetivo</label><select id="np_goal" onchange="hbGoal()">${NUT_GOALS.map(g=>`<option>${g}</option>`).join('')}</select></div><div class="field" style="min-width:150px"><label>Inicia</label><input type="date" id="np_start" value="${TODAY}"></div></div>
+    <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:150px"><label>Objetivo</label><select id="np_goal" onchange="hbGoal()">${NUT_GOALS.map(g=>`<option>${g}</option>`).join('')}</select></div><div class="field" style="min-width:150px"><label>Inicia</label><input type="date" id="np_start" value="${TODAY}"></div><div class="field" style="min-width:150px"><label>Termina</label><input type="date" id="np_end" value="${addDays(TODAY,27)}"></div></div>
+    <div class="rep-quick" style="margin:-4px 0 8px">${[['4 semanas',27],['8 semanas',55],['12 semanas',83]].map(([l,n])=>`<button type="button" class="pchip" onclick="document.getElementById('np_end').value=addDays(gv('np_start')||TODAY,${n})">${l}</button>`).join('')}<button type="button" class="pchip" onclick="document.getElementById('np_end').value=''">Sin fecha de término</button></div>
     <details class="hb" open><summary>🧮 Gasto energético total y macros (Harris-Benedict)</summary>
       <div class="hb-formula"><b>Fórmula Harris-Benedict revisada</b><br>
         Hombre: <code>GEB = 88.362 + (13.397 × peso kg) + (4.799 × estatura cm) − (5.677 × edad)</code><br>
@@ -4618,7 +4651,8 @@ function openNewNutPlan(aid){
     <div class="field"><label>Punto de partida</label>
       <label class="chk"><input type="radio" name="np_from" value="blank" ${has?'':'checked'}> En blanco</label>
       ${has?`<label class="chk" style="margin-top:6px"><input type="radio" name="np_from" value="copy" checked> Duplicar el plan actual (comidas y horarios) para editarlo</label>`:''}</div>
-    ${has?`<div class="note">El plan actual pasa a «Planes anteriores»: ${esc(a.name.split(' ')[0])} lo podrá consultar, pero ya no será su plan vigente.</div>`:''}
+    ${has?`<div class="note">El plan actual pasa a «Planes anteriores»: ${esc(a.name.split(' ')[0])} lo podrá consultar, pero ya no será su plan vigente.</div>
+    <div class="field" style="margin-top:8px"><label>Comentarios del cambio (opcional)</label><textarea class="inp" id="np_note" rows="2" placeholder="Ej. Bajó 3 kg y entra a fase de mantenimiento"></textarea></div>`:''}
   </div><div class="modal-f"><button class="btn ghost" onclick="openNutrition('${aid}')">Cancelar</button><button class="btn primary" onclick="saveNewNutPlan('${aid}')">${ic('check',14)} Crear plan</button></div></div>`);
   hbGoal();
 }
@@ -4693,10 +4727,11 @@ function saveNewNutPlan(aid){
   if(base.meals)base.meals.forEach(m=>{m.id=uid()});if(base.menus)base.menus.forEach(x=>(x.meals||[]).forEach(m=>{m.id=uid()}));
   delete base.end;
   const macros=[p&&{name:'Proteína',grams:p+' g'},c&&{name:'Carbohidratos',grams:c+' g'},g&&{name:'Grasa',grams:g+' g'}].filter(Boolean);
-  const np={...base,label:name,goal:gv('np_goal'),start:gv('np_start')||TODAY,kcalTarget:kc||base.kcalTarget||null,macros:macros.length?macros:(base.macros||[]),created:Date.now()};
+  const npEnd=gv('np_end')||null;if(npEnd&&npEnd<(gv('np_start')||TODAY)){toast('La fecha de término debe ser después del inicio');return}
+  const np={...base,label:name,goal:gv('np_goal'),start:gv('np_start')||TODAY,end:npEnd,kcalTarget:kc||base.kcalTarget||null,macros:macros.length?macros:(base.macros||[]),created:Date.now()};
   const hb=S.ui.hb;if(hb&&hb.kcal===kc&&hb.P===p){np.calc={formula:hb.formula,sex:hb.sex,age:hb.age,weight:hb.w,height:hb.h,activity:hb.act,level:hb.lvl,mode:hb.mode,adjKcal:hb.dk,adj:hb.adj,geb:hb.geb,get:hb.get,date:TODAY}}
   if(hb&&document.getElementById('hb_save')&&document.getElementById('hb_save').checked){a.age=String(hb.age);a.height=hb.h;a.activity=hb.act;a.trainLevel=hb.lvl;if(!genderOf(a)){a.gender=hb.sex;a.genderTs=Date.now()}}
-  nutArchive(a);a.nutrition=np;if(kc)a.kcalTarget=kc;S.ui.hb=null;
+  nutArchive(a,null,(document.getElementById('np_note')||{}).value&&document.getElementById('np_note').value.trim());a.nutrition=np;if(kc)a.kcalTarget=kc;S.ui.hb=null;
   pushNotif(aid,`Tu coach te asignó un nuevo plan de alimentación: «${name}»`);
   commit();openNutrition(aid);toast(from==='copy'?'Plan creado a partir del anterior: edítalo y guarda':'Plan creado: agrega las comidas y guarda')}
 function nutRestore(i){const a=S.athletes.find(x=>x.id===S.ui.nutA),h=(a.nutHist||[])[i];if(!h)return;
@@ -4713,7 +4748,7 @@ function openNutrition(aid){
     <div class="nut-sum"><div class="s"><div class="l">Kcal del plan</div><div class="v">${fmtN(c.kcalT||allMeals.reduce((s,m)=>s+(m.kcal||0),0))}</div></div><div class="s"><div class="l">GET</div><div class="v">${c.get?fmtN(c.get):n.calc&&n.calc.get?fmtN(n.calc.get):'—'}</div></div><div class="s"><div class="l">Apego 14 días</div><div class="v">${tot?Math.round(okN/tot*100)+'%':'—'}</div></div><div class="s"><div class="l">Cambios / omitidas</div><div class="v">${var14.length}</div></div></div>
     <div class="muted" style="font-size:12px;margin:4px 0 6px">Registro de los últimos 14 días · verde: según el plan · ámbar: con cambios · rojo: no la hizo</div>${grid||'<div class="muted">Sin comidas cargadas.</div>'}
     ${var14.length?`<div style="margin-top:12px"><b style="font-size:13px">Variaciones reportadas</b>${var14.slice(0,10).map(x=>`<div class="feed-item" style="padding:8px 2px"><span class="pill ${x.status==='skip'?'missed':'pending'}">${MEAL_ST[x.status][0]}</span><div><div class="ft">${dmy(x.date).slice(0,5)} · <b>${esc(x.mealName||'')}</b>${x.note?` — ${esc(x.note)}`:''}${x.kcal?` (${x.kcal} kcal)`:''}</div></div></div>`).join('')}</div>`:''}
-    <div class="sec-h" style="font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">${ic('edit',16)} Plan de alimentación vigente<span style="flex:1"></span><button class="btn soft sm" onclick="openNewNutPlan('${aid}')">${ic('plus',13)} Nuevo plan de nutrición</button></div>${nutHeadHTML(a.nutrition)}
+    <div class="sec-h" style="font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">${ic('edit',16)} Plan de alimentación vigente<span style="flex:1"></span><button class="btn soft sm" onclick="openNewNutPlan('${aid}')">${ic('plus',13)} Nuevo plan de nutrición</button></div>${nutHeadHTML(a.nutrition)}${nutDatesHTML(a)}
     ${ms?`${nutAdjNoteHTML(a)}<div id="nutEd">${ms.map((m,i)=>nutBlockHTML(a,m,i)).join('')}</div>
       <div class="nut-tot" id="nutTot">${nutTotHTML(a)}</div>
       <button class="btn ghost sm" onclick="nutAdd()">${ic('plus',13)} Bloque de alimentación</button>`:`<div class="note">Este plan tiene ${n.menus.length} menús diarios (de su nutrióloga); se muestran tal cual al atleta.</div>${n.menus.map(x=>`<details style="margin-top:6px"><summary style="cursor:pointer;font-weight:600">${esc(x.name)}</summary>${x.meals.map(m=>mealCard(a,m,false)).join('')}</details>`).join('')}`}

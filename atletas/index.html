@@ -571,6 +571,15 @@ details.exv[open] summary .chev{transform:rotate(180deg)}
 .cyc-share .row{align-items:center}
 .cyc-lock{font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:flex-start}
 .nut-hist summary{cursor:pointer;font-weight:600;font-size:13px}
+.hb{border:1px solid var(--green-200);border-radius:14px;padding:12px;margin:4px 0 14px;background:var(--green-50)}
+.hb>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--ink)}
+.hb .row{flex-wrap:wrap;gap:10px}.hb .field{min-width:110px;flex:1;margin:8px 0 0}
+.hb-out{margin-top:10px;font-size:13px}
+.hb-out table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden}
+.hb-out td,.hb-out th{padding:7px 10px;border-bottom:1px solid var(--line-2);text-align:left}
+.hb-out th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.hb-out td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.hb-f{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
 .nut-hist .nh{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:var(--card)}
 .pchip.ph.on{background:var(--ink);border-color:var(--ink)}
 .pcat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px}
@@ -1257,7 +1266,7 @@ const TABLES={tasks:'pt_tasks',library:'pt_library',plans:'pt_templates',acts:'p
 const PERSON=['tasks','acts','evo','messages','activity','notifs'];
 const PALETTE=['#a855f7','#14b8a6','#f59e0b','#3b82f6','#ef4444','#ec4899','#12d99b','#f97316','#0ea5e9','#8b5cf6'];
 const colorFor=s=>{let x=0;for(const c of String(s))x=(x*31+c.charCodeAt(0))>>>0;return PALETTE[x%PALETTE.length]};
-const META_KEYS=['name','goal','age','gender','genderTs','occupation','sport','hrRest','plan','nutrition','nutImp','height','bodyFat','muscleMass','geb','activity','kcalTarget','goalWeight','nutHist','cycleMod'];
+const META_KEYS=['name','goal','age','gender','genderTs','occupation','sport','hrRest','plan','nutrition','nutImp','height','bodyFat','muscleMass','geb','activity','kcalTarget','goalWeight','nutHist','cycleMod','trainLevel'];
 const metaOf=a=>{const o={};META_KEYS.forEach(k=>{if(a[k]!=null&&a[k]!=='')o[k]=a[k]});return o};
 let SNAP={},flushT=null,flushing=false,dirty=false;
 const keyStr=(c,x)=>JSON.stringify(c==='athletes'?metaOf(x):x);
@@ -4512,7 +4521,7 @@ function athNutHTML(a){
   ${nutHistHTML(a,false)}`;
 }
 const NUT_GOALS=['Definición','Mantenimiento','Volumen','Recomposición','Rendimiento'];
-function nutHeadHTML(n){if(!n)return '';const it=[n.label&&!/^Cargado desde/.test(n.label)?`<b>${esc(n.label)}</b>`:'',n.goal&&esc(n.goal),n.start&&`desde ${dmy(n.start)}`].filter(Boolean);return it.length?`<div class="muted" style="font-size:12px;margin:-4px 0 10px">${it.join(' · ')}</div>`:''}
+function nutHeadHTML(n){if(!n)return '';const it=[n.label&&!/^Cargado desde/.test(n.label)?`<b>${esc(n.label)}</b>`:'',n.goal&&esc(n.goal),n.start&&`desde ${dmy(n.start)}`,n.calc&&n.calc.get&&`GET ${fmtN(n.calc.get)} kcal (Harris-Benedict)`].filter(Boolean);return it.length?`<div class="muted" style="font-size:12px;margin:-4px 0 10px">${it.join(' · ')}</div>`:''}
 function nutHistHTML(a,coach){const H=(a.nutHist||[]).slice().reverse();if(!H.length)return '';
   return `<details class="nut-hist" style="margin-top:12px"><summary>${ic('clock',13)} Planes anteriores (${H.length})</summary>${H.map((h,i)=>{const ms=h.menus&&h.menus.length?h.menus.flatMap(x=>x.meals):(h.meals||[]),kc=h.kcalTarget||ms.reduce((t,m)=>t+(m.kcal||0),0);
     return `<div class="nh"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-size:13px">${esc(h.label||'Plan de alimentación')}</b><span class="muted" style="font-size:12px">${[h.goal,h.start&&`${dmy(h.start)} – ${h.end?dmy(h.end):''}`,kc&&`${fmtN(kc)} kcal`,`${ms.length} comidas`].filter(Boolean).map(esc).join(' · ')}</span>${coach?`<span style="flex:1"></span><button class="btn ghost sm" onclick="nutRestore(${H.length-1-i})">Volver a usarlo</button>`:''}</div>
@@ -4520,9 +4529,21 @@ function nutHistHTML(a,coach){const H=(a.nutHist||[]).slice().reverse();if(!H.le
 function nutArchive(a){if(!a.nutrition)return;const h=JSON.parse(JSON.stringify(a.nutrition));h.end=TODAY;a.nutHist=(a.nutHist||[]).concat([h]).slice(-12)}
 function openNewNutPlan(aid){
   const a=S.athletes.find(x=>x.id===aid),has=!!(a.nutrition&&((a.nutrition.meals||[]).length||(a.nutrition.menus||[]).length)),w=lastWeight(aid);
-  openModal(`<div class="modal sm"><div class="modal-h"><h3>${ic('food',18)} Nuevo plan de nutrición · ${esc(a.name.split(' ')[0])}</h3><button class="x" onclick="openNutrition('${aid}')">${ic('x',20)}</button></div><div class="modal-b">
+  S.ui.hb=null;const g0=genderOf(a),lv=a.trainLevel||'intermedio';
+  openModal(`<div class="modal"><div class="modal-h"><h3>${ic('food',18)} Nuevo plan de nutrición · ${esc(a.name.split(' ')[0])}</h3><button class="x" onclick="openNutrition('${aid}')">${ic('x',20)}</button></div><div class="modal-b">
     <div class="field"><label>Nombre del plan</label><input id="np_name" placeholder="Ej. Definición · Diciembre"></div>
-    <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:150px"><label>Objetivo</label><select id="np_goal">${NUT_GOALS.map(g=>`<option>${g}</option>`).join('')}</select></div><div class="field" style="min-width:150px"><label>Inicia</label><input type="date" id="np_start" value="${TODAY}"></div></div>
+    <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:150px"><label>Objetivo</label><select id="np_goal" onchange="hbGoal()">${NUT_GOALS.map(g=>`<option>${g}</option>`).join('')}</select></div><div class="field" style="min-width:150px"><label>Inicia</label><input type="date" id="np_start" value="${TODAY}"></div></div>
+    <details class="hb" open><summary>🧮 Calcular gasto energético y macros (Harris-Benedict)</summary>
+      <div class="row"><div class="field"><label>Sexo</label><select id="hb_sex" onchange="hbCalc()"><option value="" ${g0?'':'selected'}>Elegir…</option><option ${g0==='Hombre'?'selected':''}>Hombre</option><option ${g0==='Mujer'?'selected':''}>Mujer</option></select></div>
+        <div class="field"><label>Edad (años)</label><input id="hb_age" type="number" min="12" max="90" value="${esc(a.age||'')}" oninput="hbCalc()"></div>
+        <div class="field"><label>Peso (kg)</label><input id="hb_w" type="number" step="0.1" min="30" max="250" value="${esc(w||'')}" oninput="hbCalc()"></div>
+        <div class="field"><label>Estatura (cm)</label><input id="hb_h" type="number" min="120" max="230" value="${esc(a.height||'')}" oninput="hbCalc()"></div></div>
+      <div class="row"><div class="field" style="min-width:200px"><label>Nivel de actividad</label><select id="hb_act" onchange="hbCalc()">${ACT.map(([f,l])=>`<option value="${f}" ${(+a.activity||1.55)===f?'selected':''}>${l} · ×${f}</option>`).join('')}</select></div>
+        <div class="field" style="min-width:200px"><label>Grado de entrenamiento</label><select id="hb_lvl" onchange="hbCalc()">${HB_LVL.map(([k,l])=>`<option value="${k}" ${lv===k?'selected':''}>${l}</option>`).join('')}</select></div>
+        <div class="field" style="max-width:150px"><label>Ajuste por objetivo (%)</label><input id="hb_adj" type="number" step="1" min="-30" max="30" value="${HB_ADJ['Definición']}" oninput="this.dataset.man=1;hbCalc()"></div></div>
+      <div id="hb_out" class="hb-out"></div>
+      <div class="row" style="align-items:center;margin-top:10px"><label class="chk" style="flex:1;min-width:220px"><input type="checkbox" id="hb_save" checked> Guardar edad, estatura, actividad y grado de entrenamiento en la ficha</label><button type="button" class="btn primary sm" onclick="hbApply()">${ic('check',13)} Usar estos valores</button></div>
+    </details>
     <div class="field"><label>Macros por día (g)${w?` · peso actual ${w} kg`:''}</label><div class="row" style="flex-wrap:wrap"><input class="inp" id="np_p" type="number" min="0" placeholder="Proteína" oninput="npCalc()"><input class="inp" id="np_c" type="number" min="0" placeholder="Carbohidratos" oninput="npCalc()"><input class="inp" id="np_g" type="number" min="0" placeholder="Grasa" oninput="npCalc()"></div></div>
     <div class="field"><label>Calorías objetivo (kcal)</label><input id="np_kcal" type="number" min="0" placeholder="Se calcula con los macros" oninput="this.dataset.man=1;npCalc()"></div>
     <div id="np_msg" class="muted" style="font-size:12px;margin:-4px 0 8px"></div>
@@ -4531,7 +4552,48 @@ function openNewNutPlan(aid){
       ${has?`<label class="chk" style="margin-top:6px"><input type="radio" name="np_from" value="copy" checked> Duplicar el plan actual (comidas y horarios) para editarlo</label>`:''}</div>
     ${has?`<div class="note">El plan actual pasa a «Planes anteriores»: ${esc(a.name.split(' ')[0])} lo podrá consultar, pero ya no será su plan vigente.</div>`:''}
   </div><div class="modal-f"><button class="btn ghost" onclick="openNutrition('${aid}')">Cancelar</button><button class="btn primary" onclick="saveNewNutPlan('${aid}')">${ic('check',14)} Crear plan</button></div></div>`);
+  hbGoal();
 }
+/* Harris-Benedict revisada (Roza y Shizgal, 1984)
+   Hombre: GEB = 88.362 + 13.397·peso + 4.799·estatura − 5.677·edad
+   Mujer:  GEB = 447.593 + 9.247·peso + 3.098·estatura − 4.330·edad
+   GET = GEB × factor de actividad · kcal objetivo = GET × (1 + ajuste%)
+   Macros: proteína y grasa en g/kg según grado de entrenamiento y objetivo; carbohidratos = kcal restantes ÷ 4 */
+const HB_LVL=[['principiante','Principiante (menos de 1 año)'],['intermedio','Intermedio (1–3 años)'],['avanzado','Avanzado (más de 3 años)'],['competidor','Competidor / alto rendimiento']];
+const HB_PROT={principiante:1.6,intermedio:1.8,avanzado:2.0,competidor:2.2};
+const HB_ADJ={'Definición':-15,'Mantenimiento':0,'Volumen':10,'Recomposición':-5,'Rendimiento':5};
+const HB_PROT_ADJ={'Definición':0.3,'Recomposición':0.2};
+const HB_FAT={'Definición':0.8,'Recomposición':0.9};
+function hbGEB(sex,w,h,age){return sex==='Hombre'?88.362+13.397*w+4.799*h-5.677*age:447.593+9.247*w+3.098*h-4.330*age}
+function hbCompute(){
+  const sex=gv('hb_sex'),age=+gv('hb_age'),w=+gv('hb_w'),h=+gv('hb_h'),act=+gv('hb_act')||1.55,lvl=gv('hb_lvl')||'intermedio',goal=gv('np_goal')||'Mantenimiento',adj=+gv('hb_adj')||0;
+  const miss=[!sex&&'sexo',!age&&'edad',!w&&'peso',!h&&'estatura'].filter(Boolean);if(miss.length)return {miss};
+  const geb=hbGEB(sex,w,h,age),get=geb*act,kcal=Math.round(get*(1+adj/100)/10)*10;
+  const pK=Math.min(2.6,HB_PROT[lvl]+(HB_PROT_ADJ[goal]||0));let fK=HB_FAT[goal]||1.0;
+  const P=Math.round(pK*w);let F=Math.round(fK*w),C=Math.round((kcal-P*4-F*9)/4);
+  if(C<w*1.5&&fK>0.6){fK=0.6;F=Math.round(fK*w);C=Math.round((kcal-P*4-F*9)/4)}
+  return {sex,age,w,h,act,lvl,goal,adj,geb:Math.round(geb),get:Math.round(get),kcal,P,F,C:Math.max(0,C),pK,fK,cK:Math.max(0,C)/w,formula:'Harris-Benedict revisada'}}
+function hbCalc(){const el=document.getElementById('hb_out');if(!el)return;const r=hbCompute();S.ui.hb=null;
+  if(r.miss){el.innerHTML=`<div class="muted">Falta ${r.miss.join(', ')} para calcular.</div>`;return}
+  const pc=x=>Math.round(x/r.kcal*100),warn=[];
+  if(r.C<r.w*2)warn.push('Carbohidratos bajos (menos de 2 g/kg): revisa el déficit si entrena con volumen alto.');
+  if(r.kcal<1200)warn.push('Menos de 1,200 kcal: un déficit así requiere supervisión.');
+  if(r.adj<-25)warn.push('Déficit mayor a 25%: riesgo de perder masa muscular.');
+  el.innerHTML=`<table><tr><th>Concepto</th><th style="text-align:right">kcal / día</th><th>Detalle</th></tr>
+    <tr><td>Gasto energético basal (GEB)</td><td class="n">${fmtN(r.geb)}</td><td class="muted">Harris-Benedict · ${r.sex.toLowerCase()}, ${r.age} años, ${r.w} kg, ${r.h} cm</td></tr>
+    <tr><td>Gasto energético total (GET)</td><td class="n">${fmtN(r.get)}</td><td class="muted">GEB × ${r.act} de actividad</td></tr>
+    <tr><td><b>Calorías del plan</b></td><td class="n">${fmtN(r.kcal)}</td><td class="muted">${r.goal} · ${r.adj>0?'+':''}${r.adj}% sobre el GET</td></tr></table>
+  <table style="margin-top:8px"><tr><th>Macronutriente</th><th style="text-align:right">g / día</th><th style="text-align:right">g / kg</th><th style="text-align:right">% kcal</th></tr>
+    <tr><td>Proteína</td><td class="n">${r.P}</td><td class="n">${r.pK.toFixed(1)}</td><td class="n">${pc(r.P*4)}%</td></tr>
+    <tr><td>Grasa</td><td class="n">${r.F}</td><td class="n">${r.fK.toFixed(1)}</td><td class="n">${pc(r.F*9)}%</td></tr>
+    <tr><td>Carbohidratos</td><td class="n">${r.C}</td><td class="n">${r.cK.toFixed(1)}</td><td class="n">${pc(r.C*4)}%</td></tr></table>
+  ${warn.length?`<div class="note" style="margin-top:8px">⚠️ ${warn.map(esc).join('<br>⚠️ ')}</div>`:''}
+  <div class="hb-f">Proteína según grado de entrenamiento${HB_PROT_ADJ[r.goal]?` (+${HB_PROT_ADJ[r.goal]} g/kg en ${r.goal.toLowerCase()} para cuidar masa muscular)`:''}; grasa ${r.fK.toFixed(1)} g/kg; carbohidratos con las calorías restantes. Es una estimación: ajústala con la evolución de peso de 2–3 semanas.</div>`;
+  S.ui.hbLast=r}
+function hbGoal(){const a=document.getElementById('hb_adj');if(a&&!a.dataset.man)a.value=HB_ADJ[gv('np_goal')]??0;hbCalc()}
+function hbApply(){const r=hbCompute();if(r.miss){toast('Completa '+r.miss.join(', '));return}
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('np_p',r.P);set('np_c',r.C);set('np_g',r.F);set('np_kcal',r.kcal);
+  const k=document.getElementById('np_kcal');if(k)k.dataset.man=1;S.ui.hb=r;npCalc();toast('Calorías y macros cargados en el plan')}
 function npCalc(){const p=+gv('np_p')||0,c=+gv('np_c')||0,g=+gv('np_g')||0,k=document.getElementById('np_kcal'),m=document.getElementById('np_msg');if(!k||!m)return;const calc=p*4+c*4+g*9;
   if(!k.dataset.man&&calc)k.value=calc;const w=lastWeight(S.ui.nutA),kc=+k.value||0,msg=[];
   if(calc&&kc&&Math.abs(kc-calc)>50)msg.push(`Los macros suman ${fmtN(calc)} kcal (${kc>calc?'+':''}${fmtN(kc-calc)} vs. objetivo)`);
@@ -4547,7 +4609,9 @@ function saveNewNutPlan(aid){
   delete base.end;
   const macros=[p&&{name:'Proteína',grams:p+' g'},c&&{name:'Carbohidratos',grams:c+' g'},g&&{name:'Grasa',grams:g+' g'}].filter(Boolean);
   const np={...base,label:name,goal:gv('np_goal'),start:gv('np_start')||TODAY,kcalTarget:kc||base.kcalTarget||null,macros:macros.length?macros:(base.macros||[]),created:Date.now()};
-  nutArchive(a);a.nutrition=np;if(kc)a.kcalTarget=kc;
+  const hb=S.ui.hb;if(hb&&hb.kcal===kc&&hb.P===p){np.calc={formula:hb.formula,sex:hb.sex,age:hb.age,weight:hb.w,height:hb.h,activity:hb.act,level:hb.lvl,adj:hb.adj,geb:hb.geb,get:hb.get,date:TODAY}}
+  if(hb&&document.getElementById('hb_save')&&document.getElementById('hb_save').checked){a.age=String(hb.age);a.height=hb.h;a.activity=hb.act;a.trainLevel=hb.lvl;if(!genderOf(a)){a.gender=hb.sex;a.genderTs=Date.now()}}
+  nutArchive(a);a.nutrition=np;if(kc)a.kcalTarget=kc;S.ui.hb=null;
   pushNotif(aid,`Tu coach te asignó un nuevo plan de alimentación: «${name}»`);
   commit();openNutrition(aid);toast(from==='copy'?'Plan creado a partir del anterior: edítalo y guarda':'Plan creado: agrega las comidas y guarda')}
 function nutRestore(i){const a=S.athletes.find(x=>x.id===S.ui.nutA),h=(a.nutHist||[])[i];if(!h)return;

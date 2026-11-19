@@ -131,3 +131,8 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Cada comida es un bloque editable: horario, nombre, kcal (si se deja vacío se calcula con los macros), proteína, carbohidratos, grasa, alimentos, suplementos y días en que se repite (L–D; «Todos los días», «L–V», «Fin de semana»). Se puede duplicar o borrar. Abajo se ve el total contra la meta del plan.
 - El atleta puede ajustar un bloque o agregar uno propio («Ajustar bloque» / «Agregar un bloque de comida»); se guarda en `pt_evo` (`nutadj_<correo>`, kind `nutAdj`) porque el atleta no escribe en `pt_athletes`. El coach ve el aviso y decide «Integrar al plan» o «Descartar sus ajustes».
 - Calendario: el coach ve en cada día un recuadro naranja «🍽 n · kcal» (clic abre Nutrición); el atleta ve 🍽 en su calendario y en su agenda el recuadro «Hoy te toca comer» con horario, comida, kcal y macros.
+
+**Cambios 19/11/2026:**
+- Nutrición: el plan tiene fecha de inicio y de término (al crearlo y con «📅 Fechas del plan»). Los bloques de comida solo salen en el calendario dentro de ese periodo. «⏹ Terminar este plan» pide fecha y comentarios del porqué; el plan pasa a «Planes anteriores» con su comentario (también se puede escribir un comentario al reemplazarlo por uno nuevo).
+- Ciclo: casilla visible «Ocultar recuadro de periodo menstrual» bajo el nombre de la clienta (además de la ficha). Es la misma llave `cycleMod`.
+- Repetir: el entrenamiento completo y cada bloque usan periodo con fecha de inicio y término (atajos 1/4/8/12 semanas) en lugar de número de semanas. El bloque repetido siempre se guarda como sesión aparte con el nombre del bloque (ya no se suma a otro entrenamiento) y no se duplica si ese día ya tiene una sesión con ese nombre.

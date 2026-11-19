@@ -616,6 +616,17 @@ details.exv[open] summary .chev{transform:rotate(180deg)}
 .daymeals .dm .t{font-weight:800;color:#9a3412}
 .daymeals .dm .k{font-size:12px;color:var(--muted);text-align:right}
 .mdot-food{font-size:9px;line-height:1}
+.daymeals .dm{grid-template-columns:30px 54px 1fr auto}
+.mchk{width:26px;height:26px;border-radius:8px;border:2px solid #f59e0b;background:var(--card);display:grid;place-items:center;cursor:pointer;color:#fff;font-weight:900;font-size:14px;padding:0}
+.mchk.on{background:#16a34a;border-color:#16a34a}.mchk.var{background:#f59e0b}.mchk.skip{background:#dc2626;border-color:#dc2626}
+.mchk[disabled]{cursor:default;opacity:.85}
+.meal .mh .mchk{margin-left:6px}
+.wk-card{border-left:4px solid #6366f1;padding:12px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wkq{margin-bottom:12px}.wkq .q{font-weight:700;font-size:14px;margin-bottom:6px}
+.wkq .sc{display:flex;gap:6px;flex-wrap:wrap}.wkq .sc button{flex:1;min-width:56px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:8px 4px;font-size:12px;font-weight:700;color:var(--ink-2)}
+.wkq .sc button b{display:block;font-size:16px}
+.wkq .sc button.on{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.wk-sum{font-size:12px;background:var(--green-50);border-radius:10px;padding:8px 10px;margin-bottom:12px}
 .rper{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:4px}
 .rper .field{margin:0;max-width:170px}
 .rper .q{display:flex;gap:6px;flex-wrap:wrap}
@@ -2528,9 +2539,17 @@ function calHTML(role){
   return h+'</div>';
 }
 function shiftMonth(key,n){const [y,m]=S.ui[key].split('-').map(Number);const d=new Date(y,m-1+n,1);S.ui[key]=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;commit()}
-function dayMealsHTML(a,ds){const md=mealsForDay(a,ds);if(!md.length)return '';const tk=md.reduce((s,x)=>s+mealK(x),0);
-  return `<div class="card daymeals"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b>🍽 ${ds===TODAY?'Hoy te toca comer':'Ese día te toca comer'}</b><span class="muted" style="font-size:12px;margin-left:auto">${fmtN(tk)} kcal · ${md.length} comidas</span></div>
-    ${md.map(m=>`<div class="dm"><span class="t">${esc(m.time||'—')}</span><span><b>${esc(m.name||'Comida')}</b>${m.foods&&m.foods.length?`<span class="muted" style="font-size:12px"> · ${esc(m.foods.slice(0,3).join(', '))}${m.foods.length>3?'…':''}</span>`:''}</span><span class="k">${mealK(m)?fmtN(mealK(m))+' kcal':''}${m.p?`<br>P${m.p} C${+m.c||0} G${+m.g||0}`:''}</span></div>`).join('')}</div>`}
+function mealLogOf(aid,mid,ds){return S.evo.find(e=>e.kind==='meal'&&e.athleteId===aid&&e.date===ds&&e.mealId===mid)||null}
+function mealChkHTML(a,m,ds){const lg=mealLogOf(a.id,m.id,ds),st=lg?lg.status:null,can=isMe(a.id)&&ds<=TODAY&&ds>=addDays(TODAY,-2);
+  return `<button type="button" class="mchk ${st==='ok'?'on':st||''}" ${can?`onclick="event.stopPropagation();mealCheck('${m.id}','${ds}')"`:'disabled'} title="${st==='ok'?'Cumplida':st==='var'?'Con cambios':st==='skip'?'No la hizo':can?'Marca cuando la cumplas':'Sin marcar'}">${st==='ok'?'✓':st==='var'?'~':st==='skip'?'✕':''}</button>`}
+function mealCheck(mid,ds){const a=curA();if(!a||!isMe(a.id))return;const m=mealsOf(a).find(x=>x.id===mid);let lg=mealLogOf(a.id,mid,ds);
+  if(lg){S.evo=S.evo.filter(x=>x!==lg)}else{S.evo.push({id:uid(),athleteId:a.id,date:ds,kind:'meal',mealId:mid,mealName:m?m.name:'',status:'ok',ts:Date.now()});
+    const done=mealsForDay(a,ds).filter(x=>{const l=mealLogOf(a.id,x.id,ds);return l&&l.status!=='skip'}).length,tot=mealsForDay(a,ds).length;if(done===tot&&tot>1)pushActivity(a.id,'meal',`cumplió sus ${tot} comidas del ${dmy(ds)}`)}
+  commit()}
+function dayMealsHTML(a,ds){const md=mealsForDay(a,ds);if(!md.length)return '';const tk=md.reduce((s,x)=>s+mealK(x),0),dn=md.filter(m=>{const l=mealLogOf(a.id,m.id,ds);return l&&l.status!=='skip'}).length;
+  return `<div class="card daymeals"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b>🍽 ${ds===TODAY?'Hoy te toca comer':'Ese día te toca comer'}</b><span class="muted" style="font-size:12px;margin-left:auto">${dn}/${md.length} cumplidas · ${fmtN(tk)} kcal</span></div>
+    ${isMe(a.id)&&ds<=TODAY?`<div class="muted" style="font-size:11px;margin-bottom:4px">Marca el recuadro de cada comida al cumplirla.</div>`:''}
+    ${md.map(m=>`<div class="dm">${mealChkHTML(a,m,ds)}<span class="t">${esc(m.time||'—')}</span><span><b>${esc(m.name||'Comida')}</b>${m.foods&&m.foods.length?`<span class="muted" style="font-size:12px"> · ${esc(m.foods.slice(0,3).join(', '))}${m.foods.length>3?'…':''}</span>`:''}</span><span class="k">${mealK(m)?fmtN(mealK(m))+' kcal':''}${m.p?`<br>P${m.p} C${+m.c||0} G${+m.g||0}`:''}</span></div>`).join('')}</div>`}
 function openDayList(ds){
   const ts=tasksOn(S.ui.athleteId,ds);
   openModal(`<div class="modal sm"><div class="modal-h"><h3>${longDate(ds)}</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
@@ -3253,7 +3272,7 @@ function athleteHTML(){
   if(tab==='agenda') body=oldPlanCard(a)+agendaHTML(a);
   else if(tab==='plan') body=myPlanHTML(a);
   else if(tab==='cal') body=`<div class="card" style="overflow:hidden">${calHTML('athlete')}</div><div style="height:12px"></div>${dayListHTML(a,S.ui.selDay)}`;
-  else if(tab==='evo') body=measCardHTML(a,'athlete')+tlAthHTML(a.id)+periodHTML(a.id,'athlete')+athleteLoadHTML(a.id)+evoHTML(a.id,'athlete');
+  else if(tab==='evo') body=measCardHTML(a,'athlete')+periodHTML(a.id,'athlete')+athleteLoadHTML(a.id)+evoHTML(a.id,'athlete');
   else if(tab==='nut') body=athNutHTML(a);
   else if(tab==='perfil') body=profilePageHTML(a);
   else body=`<div class="card">${chatHTML(a.id,'athlete')}</div>`;
@@ -3291,7 +3310,7 @@ function agendaHTML(a){
 }
 function dayListHTML(a,ds){
   const ts=tasksOn(a.id,ds).sort((x,y)=>ORDER.indexOf(x.type)-ORDER.indexOf(y.type));
-  let h=`<div class="day-title"><span>${ds===TODAY?'Hoy · ':''}${longDate(ds)}</span>${ds!==TODAY?`<button class="btn soft sm" onclick="S.ui.selDay=TODAY;S.ui.athTab='agenda';commit()">Ir a hoy</button>`:''}</div>`+dayMealsHTML(a,ds);
+  let h=`<div class="day-title"><span>${ds===TODAY?'Hoy · ':''}${longDate(ds)}</span>${ds!==TODAY?`<button class="btn soft sm" onclick="S.ui.selDay=TODAY;S.ui.athTab='agenda';commit()">Ir a hoy</button>`:''}</div>`+(ds===TODAY?wkCardHTML(a):'')+dayMealsHTML(a,ds);
   if(!ts.length) return h+`<div class="empty-state card">🌿 Día de descanso.<br><span style="font-size:12px">Tu coach no agendó nada para este día.</span></div>`;
   ts.forEach(t=>{
     const T=TYPES[t.type],st=status(t);
@@ -3355,6 +3374,28 @@ function startTimer(tid){S.ui.timer={taskId:tid,start:Date.now()};save();renderA
 function elapsed(start){const s=Math.floor((Date.now()-start)/1000);return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`}
 function tick(){document.querySelectorAll('.live-timer').forEach(el=>el.textContent=elapsed(+el.dataset.start))}
 setInterval(tick,1000);
+/* Check-in semanal: al terminar el último entrenamiento de la semana (o si quedó pendiente) */
+const WK_Q=[['fatigue','¿Cómo sientes tu nivel de fatiga esta semana?',['Agotado(a)','Muy cansado(a)','Normal','Bien','Fresco(a)']],
+ ['sleep','¿Cómo has dormido?',['Muy mal','Mal','Regular','Bien','Muy bien']],
+ ['food','¿Cómo has comido?',['Muy mal','Mal','Regular','Bien','Según el plan']],
+ ['rest','¿Cómo has descansado y recuperado?',['Nada','Poco','Regular','Bien','Muy bien']]];
+const wkOf=(aid,mon)=>S.evo.find(e=>e.kind==='weekly'&&e.athleteId===aid&&e.week===mon)||null;
+function lastTrainDay(aid,mon){const ds=S.tasks.filter(t=>t.athleteId===aid&&t.type==='entrenamiento'&&!t.hist&&t.date>=mon&&t.date<=addDays(mon,6)).map(t=>t.date).sort();return ds.length?ds[ds.length-1]:null}
+function wkPending(aid){for(const mon of [mondayOf(TODAY),addDays(mondayOf(TODAY),-7)]){if(wkOf(aid,mon))continue;const ld=lastTrainDay(aid,mon);if(!ld)continue;
+  const lastDone=S.tasks.some(t=>t.athleteId===aid&&t.type==='entrenamiento'&&!t.hist&&t.date===ld&&t.status==='done');const weekOver=addDays(mon,6)<TODAY;if(lastDone||(weekOver&&mon===addDays(mondayOf(TODAY),-7)))return mon}return null}
+function mealAdh(a,from,to){if(!a||!a.nutrition)return null;let plan=0,ok=0;for(let d=from;d<=to;d=addDays(d,1)){if(d>TODAY)break;mealsForDay(a,d).forEach(m=>{const l=mealLogOf(a.id,m.id,d);if(d===TODAY&&!l)return;plan++;if(l)ok+=l.status==='ok'?1:l.status==='var'?0.5:0})}return plan?{plan,ok,pct:Math.round(ok/plan*100)}:null}
+function wkCardHTML(a){const mon=wkPending(a.id);if(!mon)return '';return `<div class="card wk-card"><div style="flex:1;min-width:200px"><b>📝 Check-in semanal pendiente</b><div class="muted" style="font-size:12px">Semana del ${dmy(mon)} · 4 preguntas rápidas sobre fatiga, sueño, comida y descanso.</div></div><button class="btn primary sm" onclick="openWeekly('${mon}')">Responder</button></div>`}
+function openWeekly(mon){const a=curA();if(!a)return;S.ui.wk=S.ui.wk&&S.ui.wk.mon===mon?S.ui.wk:{mon};const w=S.ui.wk,ad=mealAdh(a,mon,addDays(mon,6));
+  openModal(`<div class="modal sm"><div class="modal-h"><h3>📝 Check-in semanal</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div><div class="modal-b">
+    <div class="muted" style="font-size:12px;margin-bottom:10px">Semana del ${dmy(mon)} al ${dmy(addDays(mon,6))}. Solo lo ve tu coach.</div>
+    ${ad?`<div class="wk-sum">🍽 Esta semana marcaste <b>${Math.round(ad.ok)}</b> de <b>${ad.plan}</b> comidas como cumplidas (${ad.pct}%).${ad.pct<80?' Si cumpliste más, márcalas en tu agenda (puedes marcar hasta 2 días atrás).':''}</div>`:''}
+    ${WK_Q.map(([k,q,ops])=>`<div class="wkq"><div class="q">${q}</div><div class="sc">${ops.map((o,i)=>`<button type="button" class="${w[k]===i+1?'on':''}" onclick="S.ui.wk.${k}=${i+1};openWeekly('${mon}')"><b>${i+1}</b>${o}</button>`).join('')}</div></div>`).join('')}
+    <div class="field"><label>¿Algo que tu coach deba saber? (opcional)</label><textarea class="inp" id="wk_note" rows="2" oninput="S.ui.wk.note=this.value">${esc(w.note||'')}</textarea></div>
+  </div><div class="modal-f"><button class="btn ghost" onclick="closeModal()">Después</button><button class="btn primary" onclick="saveWeekly('${mon}')">${ic('check',14)} Enviar</button></div></div>`)}
+function saveWeekly(mon){const a=curA(),w=S.ui.wk||{};if(WK_Q.some(([k])=>!w[k])){toast('Responde las 4 preguntas');return}const ad=mealAdh(a,mon,addDays(mon,6));
+  S.evo.push({id:'wk_'+mon+'_'+uid(),athleteId:a.id,kind:'weekly',week:mon,date:TODAY,fatigue:w.fatigue,sleep:w.sleep,food:w.food,rest:w.rest,note:(w.note||'').trim(),mealPct:ad?ad.pct:null,ts:Date.now()});
+  pushActivity(a.id,'ready',`envió su check-in semanal: fatiga ${w.fatigue}/5 · sueño ${w.sleep}/5 · comida ${w.food}/5 · descanso ${w.rest}/5${ad?` · comidas marcadas ${ad.pct}%`:''}`);
+  S.ui.wk=null;closeModal();commit();toast('¡Gracias! Tu coach ya tiene tu check-in')}
 function finishTraining(tid){
   const t=taskById(tid),p=pct(t),min=+gv('fin_min');
   if(!min){toast('Escribe cuántos minutos duró la sesión');return}
@@ -3366,6 +3407,7 @@ function finishTraining(tid){
   S.ui.timer=null;S.ui.rate=0;S.ui.effort=7;S.ui.finMin=null;S.ui.finZ=null;S.ui.finC='';S.ui.finHr='';
   pushActivity(t.athleteId,'done',`completó «${t.title}» (${p}%) · carga ${fmtN(min*rpe)} UA${cpF&&cpF.menstrual?` · día ${cpF.day} de periodo`:''}`);
   closeModal();commit();toast(`¡Entrenamiento completado! Carga de la sesión: ${fmtN(min*rpe)} UA`);
+  const mon=mondayOf(t.date);if(t.date===lastTrainDay(t.athleteId,mon)&&!wkOf(t.athleteId,mon))setTimeout(()=>openWeekly(mon),600);
 }
 function markDone(tid,txt){const t=taskById(tid);t.status='done';pushActivity(t.athleteId,'done',txt);closeModal();commit();toast('Listo, tu coach fue notificado')}
 function confirmSession(tid){const t=taskById(tid);t.confirmed=true;t.status='done';pushActivity(t.athleteId,'done',`confirmó asistencia a «${t.title}» (${t.data.time})`);closeModal();commit();toast('Asistencia confirmada')}
@@ -4299,11 +4341,14 @@ function calcHTML(key,aid){
   case 'c_mono':{const l=d.lw,mean=l.load/7,sd=l.mono?mean/l.mono:0;return {t:'Monotonía y tensión · semana pasada',b:`Monotonía = promedio diario ÷ desviación estándar de los 7 días (más de 2 = días muy parecidos). Tensión = carga semanal × monotonía.<div class="f">Días L→D: ${d.lwDays.map(n).join(' · ')}\nPromedio = ${n(l.load)} ÷ 7 = ${mean.toFixed(1)}\nDesv. estándar = ${sd.toFixed(1)}\nMonotonía = ${mean.toFixed(1)} ÷ ${sd.toFixed(1)} = ${l.mono?l.mono.toFixed(2):'—'}\nTensión = ${n(l.load)} × ${l.mono?l.mono.toFixed(2):'—'} = ${l.strain?n(l.strain):'—'}</div>`}}
   case 'c_vol':{const t=S.tasks.filter(x=>x.athleteId===aid&&x.type==='entrenamiento'&&x.status==='done'&&volOf(x)).sort((x,y)=>y.date.localeCompare(x.date))[0];if(!t)return {t:'Volumen levantado',b:'Series completadas × repeticiones × kg (lo que se anota en lb se convierte a kg). Aún no hay pesos registrados.'};const rows=volRows(t);return {t:'Volumen levantado',b:`Series completadas × repeticiones × kg, sumado por sesión y por semana. Última sesión con pesos (${dmy(t.date).slice(0,5)} · ${esc(t.title)}):<div class="f">${rows.slice(0,6).map(r=>`${esc(r.name.slice(0,26))}: ${r.d} × ${r.reps} × ${r.wt} = ${n(r.v)}`).join('\n')}${rows.length>6?`\n… ${rows.length-6} ejercicios más`:''}\nTotal de la sesión = ${n(volOf(t))} kg</div>`}}
   case 'c_karv':{const k=d.k,a=d.a;if(!k)return {t:'Zonas de FC · Karvonen',b:'Faltan la edad o la FC en reposo del atleta. Agrégalas en su perfil.'};return {t:'Zonas de FC · Karvonen',b:`FC máx = 220 − edad. FC de reserva = FC máx − FC en reposo. Cada zona = FC reposo + FC reserva × % de intensidad.<div class="f">FC máx = 220 − ${a.age} = ${k.max} lpm\nFC reserva = ${k.max} − ${k.rest} = ${k.res} lpm\n${k.z.map((z,i)=>`Z${i+1} ${Math.round(z.plo*100)}–${Math.round(z.phi*100)}%: ${k.rest} + ${k.res}×${z.plo.toFixed(1)} = ${z.lo} → ${z.hi} lpm`).join('\n')}</div>`}}
-  case 'c_semaforo':{const t=trafficDay(tlCtx(aid),TODAY);return {t:'Semáforo diario · algoritmo',b:`Cada día se revisan los últimos 7 días con 5 factores. Cada uno suma 0 (bien), 1 (vigilar) o 2 (alerta):<div class="f">ACWR: 0.8–1.3 → 0 · 0.6–0.8 o 1.3–1.5 → 1 · &lt;0.6 o &gt;1.5 → 2
+  case 'c_semaforo':{const t=trafficDay(tlCtx(aid),TODAY);return {t:'Semáforo diario · algoritmo',b:`Cada día se revisan los últimos 7 días con hasta 8 factores (solo cuentan los que tienen datos). Cada uno suma 0 (bien), 1 (vigilar) o 2 (alerta):<div class="f">ACWR: 0.8–1.3 → 0 · 0.6–0.8 o 1.3–1.5 → 1 · &lt;0.6 o &gt;1.5 → 2
 Cumplimiento del plan: ≥80 % → 0 · 50–79 % → 1 · &lt;50 % → 2
 Disposición promedio: ≥6.5 → 0 · 5–6.4 → 1 · &lt;5 → 2  (+1 si cae ≥1.5 vs. su promedio de 28 días)
 Monotonía: ≤1.5 → 0 · 1.5–2 → 1 · &gt;2 → 2 (solo si además ACWR &gt;1.3)
-Pulso al iniciar vs. FC reposo: &lt;+5 → 0 · +5 a +9 → 1 · ≥+10 → 2</div><b>Rojo</b> si algún factor vale 2 o la suma es ≥ 4 · <b>Amarillo</b> si suma 2–3 · <b>Verde</b> si suma 0–1. Si pesan más ACWR bajo y cumplimiento = <b>bajo entrenamiento</b>; si pesan más ACWR alto, disposición, monotonía o pulso = <b>fatiga</b>.<div class="f">Hoy:\n${t.factors.map(f=>`${f.label.split(' (')[0]}: ${f.val} → ${f.pts}`).join('\n')||'sin datos'}\nSuma = ${t.pts} → ${t.label}</div>`}}
+Pulso al iniciar vs. FC reposo: &lt;+5 → 0 · +5 a +9 → 1 · ≥+10 → 2
+Formulario final («¿cómo te sentiste?», 1–5): ≥3.5 → 0 · 2.5–3.4 → 1 · &lt;2.5 → 2
+Check-in semanal (fatiga, sueño, comida, descanso, 1–5): ≥3.5 → 0 · 2.5–3.4 → 1 · &lt;2.5 → 2 (1 si alguna respuesta es 1)
+Apego a comidas (recuadros marcados): ≥80 % → 0 · 50–79 % → 1 · &lt;50 % → 2</div><b>Rojo</b> si algún factor vale 2 o la suma es ≥ 4 · <b>Amarillo</b> si suma 2–3 · <b>Verde</b> si suma 0–1. Si pesan más ACWR bajo y cumplimiento = <b>bajo entrenamiento</b>; si pesan más ACWR alto, disposición, monotonía, pulso, formulario final, check-in semanal o comidas = <b>fatiga</b>.<div class="f">Hoy:\n${t.factors.map(f=>`${f.label.split(' (')[0]}: ${f.val} → ${f.pts}`).join('\n')||'sin datos'}\nSuma = ${t.pts} → ${t.label}</div>`}}
   case 'c_comp':{const a=d.a,c=bodyComp(a);return {t:'Composición corporal y energía',b:`<div class="f">IMC = peso ÷ estatura² ${c.imc?`= ${c.w} ÷ ${(c.h/100).toFixed(2)}² = ${c.imc.toFixed(1)}`:''}
 Masa libre de grasa = peso × (1 − %grasa) ${c.lean?`= ${c.lean.toFixed(1)} kg`:''}
 IMM = ${c.mm?'masa muscular':'masa libre de grasa'} ÷ estatura² ${c.imm?`= ${c.imm.toFixed(1)} kg/m²`:''}
@@ -4375,6 +4420,15 @@ function trafficDay(ctx,ds){
   if(tot>0){const m=tot/7,sd=Math.sqrt(days.reduce((x,v)=>x+(v-m)**2,0)/7),mono=sd>0?m/sd:3;let p=mono>2?2:mono>1.5?1:0;if(p===2&&!(r>1.3))p=1;F.push({k:'mono',side:p?'high':null,pts:p,label:'Monotonía (variación entre días)',val:mono.toFixed(2),txt:p===0?'Buena alternancia entre días duros y suaves':'Días muy parecidos entre sí, poco descanso real'})}
   const hs=st.ss.filter(s=>s.rd&&s.rd.hrNow&&inW(s.date));
   if(hs.length&&+a.hrRest){const d=hs.reduce((x,s)=>x+s.rd.hrNow,0)/hs.length-(+a.hrRest),p=d>=10?2:d>=5?1:0;F.push({k:'hr',side:p?'high':null,pts:p,label:'Pulso al iniciar vs. reposo',val:`${d>=0?'+':''}${Math.round(d)} lpm`,txt:p===0?'Normal respecto a su reposo habitual':'Más alto que su reposo habitual: posible fatiga o estrés'})}
+  // Formulario final de cada sesión: «¿Cómo te sentiste?» (1–5 estrellas)
+  const fr=plan.filter(t=>!t.hist&&t.status==='done'&&inW(t.date)&&t.feedback&&+t.feedback.rating>0);
+  if(fr.length){const avg=fr.reduce((x,t)=>x+(+t.feedback.rating),0)/fr.length,p=avg<2.5?2:avg<3.5?1:0;F.push({k:'final',side:p?'high':null,pts:p,label:'Formulario final (cómo se sintió)',val:`${avg.toFixed(1)}/5`,txt:p===0?'Termina sus sesiones sintiéndose bien':'Termina sus sesiones sintiéndose mal o muy cansado(a)'})}
+  // Check-in semanal (fatiga, sueño, comida, descanso), el más reciente de los últimos 10 días
+  const wk=S.evo.filter(e=>e.kind==='weekly'&&e.athleteId===a.id&&e.date<=ds&&e.date>=addDays(ds,-9)).sort((x,y)=>y.ts-x.ts)[0];
+  if(wk){const it=[wk.fatigue,wk.sleep,wk.food,wk.rest].map(Number),avg=it.reduce((x,y)=>x+y,0)/4;let p=avg<2.5?2:avg<3.5?1:0;if(p===0&&it.some(v=>v<=1))p=1;F.push({k:'semanal',side:p?'high':null,pts:p,label:'Check-in semanal',val:`${avg.toFixed(1)}/5`,txt:p===0?'Reporta buena energía, sueño, comida y descanso':`Bajo en: ${['fatiga','sueño','comida','descanso'].filter((_,i)=>it[i]<=2).join(', ')||'varios aspectos'}`})}
+  // Apego a comidas: recuadros marcados contra las comidas programadas
+  const ad=mealAdh(a,addDays(ds,-6),ds);
+  if(ad&&ad.plan>=3){const p=ad.pct<50?2:ad.pct<80?1:0;F.push({k:'comidas',side:p?'high':null,pts:p,label:'Apego a comidas (recuadros marcados)',val:`${ad.pct}%`,txt:p===0?'Marca y cumple sus comidas':'Marcó pocas comidas como cumplidas: puede faltar energía para recuperarse'})}
   const pts=F.reduce((x,f)=>x+f.pts,0),color=(F.some(f=>f.pts===2)||pts>=4)?'red':pts>=2?'yellow':'green';
   const hi=F.filter(f=>f.side==='high').reduce((x,f)=>x+f.pts,0),lo=F.filter(f=>f.side==='low').reduce((x,f)=>x+f.pts,0),kind=color==='green'?null:(lo>hi?'low':'high');
   const label=color==='green'?'Listo para entrenar':color==='yellow'?(kind==='low'?'Atención: baja de entrenamiento':'Atención: fatiga acumulándose'):(kind==='low'?'Bajo entrenamiento':'Fatiga / sobrecarga');
@@ -4397,6 +4451,9 @@ const TLC={green:'#12d99b',yellow:'#f59e0b',red:'#dc2626',none:'#d1d5db'};
 function tlDot(t,size,ds){const bad=t.factors.filter(f=>f.pts);return `<span class="tl-dot" style="width:${size}px;height:${size}px;background:${TLC[t.color]}" data-tip="${esc((ds?dmy(ds).slice(0,5)+' · ':'')+t.label+(bad.length?' — '+bad.map(f=>f.label.split(' (')[0]+': '+f.val).join(' · '):''))}"></span>`}
 function tlLight(t){return `<div class="tl-light" aria-label="${esc(t.label)}">${['red','yellow','green'].map(c=>`<i class="${c} ${t.color===c?'on':''}"></i>`).join('')}</div>`}
 function tlPill(t){return `<span class="status ${{green:'ok',yellow:'warn',red:'risk',none:'none'}[t.color]}">${ic(t.color==='green'?'checkc':t.color==='none'?'info':'alert',12)} ${t.label}</span>`}
+function wkCoachHTML(aid){const w=S.evo.filter(e=>e.kind==='weekly'&&e.athleteId===aid).sort((x,y)=>y.ts-x.ts)[0],pend=!w||w.week<addDays(mondayOf(TODAY),-7);
+  if(!w)return `<div class="muted" style="font-size:12px;margin-top:8px">📝 Check-in semanal: aún no envía ninguno.</div>`;
+  return `<div style="font-size:12px;margin-top:8px;background:var(--green-50);border-radius:10px;padding:8px 10px">📝 <b>Check-in semanal</b> · semana del ${dmy(w.week)}: fatiga <b>${w.fatigue}/5</b> · sueño <b>${w.sleep}/5</b> · comida <b>${w.food}/5</b> · descanso <b>${w.rest}/5</b>${w.mealPct!=null?` · comidas marcadas <b>${w.mealPct}%</b>`:''}${w.note?`<br>💬 ${esc(w.note)}`:''}${pend?'<br><span class="muted">El de la semana pasada sigue pendiente.</span>':''}</div>`}
 function tlCoachHTML(aid){
   const ctx=tlCtx(aid),t=trafficDay(ctx,TODAY),mon=mondayOf(TODAY);
   let grid='<div class="tl-grid"><span></span>'+DIAS.map(d=>`<span class="tl-h">${d[0]}</span>`).join('');
@@ -4404,7 +4461,7 @@ function tlCoachHTML(aid){
   grid+='</div>';
   return `<div class="card tl-card"><div class="tl-top">${tlLight(t)}
     <div style="flex:1;min-width:220px"><div class="muted" style="font-size:12px;display:flex;align-items:center">Semáforo de hoy · calculado con los últimos 7 días ${qm('c_semaforo')}</div><div class="tl-title ${t.color}">${t.label}</div><div style="font-size:13px;color:var(--ink-2);margin-top:4px">${TL_REC[tlKey(t)]}</div>
-    <div class="tl-factors">${t.factors.map(f=>`<span class="tlf p${f.pts}" data-tip="${esc(f.txt)}">${f.label.split(' (')[0]}: <b>${f.val}</b></span>`).join('')}</div></div>
+    <div class="tl-factors">${t.factors.map(f=>`<span class="tlf p${f.pts}" data-tip="${esc(f.txt)}">${f.label.split(' (')[0]}: <b>${f.val}</b></span>`).join('')}</div>${wkCoachHTML(aid)}</div>
     <div><div class="muted" style="font-size:11px;margin-bottom:6px">Día por día · últimas 4 semanas</div>${grid}</div></div></div>`;
 }
 function tlAthHTML(aid){
@@ -4558,7 +4615,7 @@ function mealsForDay(a,ds){const n=a&&a.nutrition;if(!n||(n.start&&ds<n.start)||
 function mealCard(a,m,editable){
   const lg=mealLogs(a.id,TODAY).find(x=>x.mealId===m.id),st=lg?lg.status:'';
   const kk=mealK(m),isTod=mealOnDay(m,TODAY),canEd=editable&&!(a.nutrition&&a.nutrition.menus&&a.nutrition.menus.length);
-  return `<div class="meal"><div class="mh">${m.time?`<span class="mt">${esc(m.time)}</span>`:''}<span class="mn">${esc(m.name||'Comida')}</span>${m.days&&m.days.length&&m.days.length<7?`<span class="mdays">🔁 ${daysTxt(m.days)}</span>`:''}${m._adj||m._own?`<span class="madj">${m._own?'Agregado por el atleta':'Ajustado por el atleta'}</span>`:''}${kk?`<span class="mk">${fmtN(kk)} kcal</span>`:''}</div>
+  return `<div class="meal"><div class="mh">${editable&&isTod&&isMe(a.id)?mealChkHTML(a,m,TODAY):''}${m.time?`<span class="mt">${esc(m.time)}</span>`:''}<span class="mn">${esc(m.name||'Comida')}</span>${m.days&&m.days.length&&m.days.length<7?`<span class="mdays">🔁 ${daysTxt(m.days)}</span>`:''}${m._adj||m._own?`<span class="madj">${m._own?'Agregado por el atleta':'Ajustado por el atleta'}</span>`:''}${kk?`<span class="mk">${fmtN(kk)} kcal</span>`:''}</div>
     ${m.p||m.c||m.g?`<div class="mmac">Proteína <b>${+m.p||0} g</b> · Carbohidratos <b>${+m.c||0} g</b> · Grasa <b>${+m.g||0} g</b></div>`:''}
     ${m.foods&&m.foods.length?`<ul>${m.foods.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}
     ${m.supl?`<div class="ms">💊 ${esc(m.supl)}</div>`:''}${m.water?`<div class="ms">💧 ${esc(m.water)}</div>`:''}

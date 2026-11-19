@@ -12,3 +12,13 @@
   to = "https://sdswyjkwupxwxgzjqpct.supabase.co/:splat"
   status = 200
   force = true
+
+# El portal siempre debe cargar la última versión publicada (sin copia vieja en el navegador o celular)
+[[headers]]
+  for = "/atletas/*"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+[[headers]]
+  for = "/atletas/"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"

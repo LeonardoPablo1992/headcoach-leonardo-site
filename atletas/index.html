@@ -580,6 +580,42 @@ details.exv[open] summary .chev{transform:rotate(180deg)}
 .hb-out th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase}
 .hb-out td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
 .hb-f{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+.hb-formula{background:var(--card);border:1px dashed var(--green-200);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.6;color:var(--ink-2);margin-top:8px}
+.hb-formula code{font-family:inherit;font-weight:700;color:var(--ink)}
+.hb-step{font-size:12px;font-weight:800;color:var(--green-d);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 4px}
+.hb-big{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.hb-big .c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.hb-big .c .l{font-size:11px;color:var(--muted);font-weight:600}
+.hb-big .c .v{font-size:22px;font-weight:800}
+.hb-big .c .x{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.hb-big .c.main{border-color:var(--green);box-shadow:0 0 0 2px var(--green-200) inset}
+.hb-seg{display:inline-flex;background:var(--card);border:1px solid var(--green-200);border-radius:999px;padding:3px;gap:2px;flex-wrap:wrap}
+.hb-seg button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--ink-2)}
+.hb-seg button.on.def{background:#f59e0b;color:#fff}.hb-seg button.on.man{background:var(--green);color:var(--on-green)}.hb-seg button.on.sup{background:#3b82f6;color:#fff}
+.hb-adj{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.hb-adj .stp{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--card);overflow:hidden}
+.hb-adj .stp button{border:0;background:var(--green-50);width:34px;height:34px;font-size:18px;font-weight:700;color:var(--green-d)}
+.hb-adj .stp input{width:80px;border:0;text-align:center;font-weight:700;font-size:14px;outline:none;background:transparent;color:var(--ink)}
+.mblk{border-left:4px solid var(--green)}
+.mblk .grid{display:grid;grid-template-columns:110px 1fr auto;gap:6px;align-items:center}
+.mblk .mac{display:grid;grid-template-columns:repeat(4,minmax(70px,1fr));gap:6px;margin-top:6px}
+.mblk .mac label{font-size:10px;color:var(--muted);font-weight:700;display:block;margin-bottom:2px}
+.mblk .mac input{width:100%}
+.mblk .dline{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--ink-2)}
+.mblk .rday{width:30px;height:30px;font-size:11px}
+.mblk .adjn{font-size:11px;background:#fff7ed;color:#9a3412;border-radius:8px;padding:6px 8px;margin-top:6px}
+.nut-tot{position:sticky;bottom:-1px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0;font-size:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;z-index:2}
+.nut-tot b{font-size:14px}
+.meal .mmac{font-size:11px;color:var(--ink-2);margin-top:4px}
+.meal .mdays{font-size:10px;font-weight:700;color:var(--green-d);background:var(--green-50);border-radius:999px;padding:2px 7px}
+.meal .madj{font-size:10px;font-weight:700;color:#9a3412;background:#fff7ed;border-radius:999px;padding:2px 7px}
+.cmeal{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:7px;background:#fff7ed;color:#9a3412;border-left:3px solid #f59e0b;margin-top:2px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.daymeals{border-left:4px solid #f59e0b;padding:12px 14px;margin-bottom:10px}
+.daymeals .dm{display:grid;grid-template-columns:54px 1fr auto;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-2);font-size:13px;align-items:baseline}
+.daymeals .dm:last-child{border-bottom:0}
+.daymeals .dm .t{font-weight:800;color:#9a3412}
+.daymeals .dm .k{font-size:12px;color:var(--muted);text-align:right}
+.mdot-food{font-size:9px;line-height:1}
 .nut-hist .nh{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:var(--card)}
 .pchip.ph.on{background:var(--ink);border-color:var(--ink)}
 .pcat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 2px}
@@ -2458,7 +2494,7 @@ function calHTML(role){
   const key=role==='coach'?'month':'athMonth', aid=S.ui.athleteId;
   const [y,m]=S.ui[key].split('-').map(Number);
   const first=new Date(y,m-1,1), off=(first.getDay()+6)%7, days=new Date(y,m,0).getDate();
-  const cells=Math.ceil((off+days)/7)*7, tctx=role==='coach'?tlCtx(aid):null;
+  const cells=Math.ceil((off+days)/7)*7, tctx=role==='coach'?tlCtx(aid):null, calA=S.athletes.find(x=>x.id===aid);
   let h=`<div class="cal-h">
     <button class="icon-btn" onclick="shiftMonth('${key}',-1)">‹</button>
     <button class="icon-btn" onclick="shiftMonth('${key}',1)">›</button>
@@ -2476,18 +2512,22 @@ function calHTML(role){
       h+=`<div class="${cls}" onclick="openAddTask('${ds}')"><div class="dn">${dn}</div>${tctx&&ds<=TODAY?`<span class="tl-cal">${tlDot(trafficDay(tctx,ds),9,ds)}</span>`:''}<button class="add" onclick="event.stopPropagation();openAddTask('${ds}')">+</button>`;
       ts.slice(0,3).forEach(t=>{const st=status(t);h+=`<div class="chip ${st}" style="--c:${TYPES[t.type].color}" onclick="event.stopPropagation();openCoachTask('${t.id}')" title="${esc(t.title)}"><span>${esc(t.title)}</span><b class="st">${st==='done'?ic('check',12):st==='missed'?ic('x',12):''}</b></div>`});
       if(ts.length>3) h+=`<div class="more" onclick="event.stopPropagation();openDayList('${ds}')">+${ts.length-3} más</div>`;
+      const md=calA?mealsForDay(calA,ds):[];if(md.length)h+=`<div class="cmeal" title="${esc(md.map(x=>`${x.time||''} ${x.name||'Comida'}`).join(' · '))}" onclick="event.stopPropagation();openNutrition('${aid}')">🍽 ${md.length} · ${fmtN(md.reduce((s,x)=>s+mealK(x),0))} kcal</div>`;
       h+='</div>';
     } else {
-      h+=`<div class="${cls}" onclick="pickDay('${ds}')"><div class="dn">${dn}</div><div class="mdots">${ts.slice(0,4).map(t=>`<i style="--c:${t.status==='done'?'#9ca3af':TYPES[t.type].color}"></i>`).join('')}</div></div>`;
+      h+=`<div class="${cls}" onclick="pickDay('${ds}')"><div class="dn">${dn}</div><div class="mdots">${ts.slice(0,4).map(t=>`<i style="--c:${t.status==='done'?'#9ca3af':TYPES[t.type].color}"></i>`).join('')}${calA&&mealsForDay(calA,ds).length?'<span class="mdot-food">🍽</span>':''}</div></div>`;
     }
   }
   return h+'</div>';
 }
 function shiftMonth(key,n){const [y,m]=S.ui[key].split('-').map(Number);const d=new Date(y,m-1+n,1);S.ui[key]=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;commit()}
+function dayMealsHTML(a,ds){const md=mealsForDay(a,ds);if(!md.length)return '';const tk=md.reduce((s,x)=>s+mealK(x),0);
+  return `<div class="card daymeals"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b>🍽 ${ds===TODAY?'Hoy te toca comer':'Ese día te toca comer'}</b><span class="muted" style="font-size:12px;margin-left:auto">${fmtN(tk)} kcal · ${md.length} comidas</span></div>
+    ${md.map(m=>`<div class="dm"><span class="t">${esc(m.time||'—')}</span><span><b>${esc(m.name||'Comida')}</b>${m.foods&&m.foods.length?`<span class="muted" style="font-size:12px"> · ${esc(m.foods.slice(0,3).join(', '))}${m.foods.length>3?'…':''}</span>`:''}</span><span class="k">${mealK(m)?fmtN(mealK(m))+' kcal':''}${m.p?`<br>P${m.p} C${+m.c||0} G${+m.g||0}`:''}</span></div>`).join('')}</div>`}
 function openDayList(ds){
   const ts=tasksOn(S.ui.athleteId,ds);
   openModal(`<div class="modal sm"><div class="modal-h"><h3>${longDate(ds)}</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
-  <div class="modal-b">${ts.map(t=>`<div class="chip ${status(t)}" style="--c:${TYPES[t.type].color};font-size:13px;padding:8px 10px;cursor:pointer" onclick="openCoachTask('${t.id}')"><span>${esc(t.title)}</span></div>`).join('')}</div>
+  <div class="modal-b">${(()=>{const ca=S.athletes.find(x=>x.id===S.ui.athleteId);return ca?dayMealsHTML(ca,ds):''})()}${ts.map(t=>`<div class="chip ${status(t)}" style="--c:${TYPES[t.type].color};font-size:13px;padding:8px 10px;cursor:pointer" onclick="openCoachTask('${t.id}')"><span>${esc(t.title)}</span></div>`).join('')}</div>
   <div class="modal-f"><button class="btn primary" onclick="openAddTask('${ds}')">${ic('plus',15)} Agregar tarea</button></div></div>`);
 }
 
@@ -3234,7 +3274,7 @@ function agendaHTML(a){
 }
 function dayListHTML(a,ds){
   const ts=tasksOn(a.id,ds).sort((x,y)=>ORDER.indexOf(x.type)-ORDER.indexOf(y.type));
-  let h=`<div class="day-title"><span>${ds===TODAY?'Hoy · ':''}${longDate(ds)}</span>${ds!==TODAY?`<button class="btn soft sm" onclick="S.ui.selDay=TODAY;S.ui.athTab='agenda';commit()">Ir a hoy</button>`:''}</div>`;
+  let h=`<div class="day-title"><span>${ds===TODAY?'Hoy · ':''}${longDate(ds)}</span>${ds!==TODAY?`<button class="btn soft sm" onclick="S.ui.selDay=TODAY;S.ui.athTab='agenda';commit()">Ir a hoy</button>`:''}</div>`+dayMealsHTML(a,ds);
   if(!ts.length) return h+`<div class="empty-state card">🌿 Día de descanso.<br><span style="font-size:12px">Tu coach no agendó nada para este día.</span></div>`;
   ts.forEach(t=>{
     const T=TYPES[t.type],st=status(t);
@@ -4487,13 +4527,26 @@ function saveActivity(){
 ========================================================= */
 const MEAL_ST={ok:['Según el plan','check'],var:['Con cambios','edit'],skip:['No la hice','x']};
 const mealLogs=(aid,ds)=>S.evo.filter(e=>e.kind==='meal'&&e.athleteId===aid&&(!ds||e.date===ds));
-function mealsOf(a){const n=a.nutrition;if(!n)return [];if(n.menus&&n.menus.length){const i=Math.min(S.ui.menu||0,n.menus.length-1);return n.menus[i].meals}return n.meals||[]}
+/* Bloques de alimentación: {id,time,name,foods[],kcal,p,c,g,supl,days:[0..6] (0=lunes; vacío = todos los días)}
+   Ajustes del atleta: fila pt_evo id nutadj_<correo>, kind 'nutAdj' {plan, meals:{[id]:cambios}, added:[bloques propios]} */
+const nutKey=n=>String(n&&(n.created||n.start||n.label)||'base');
+const nutAdjOf=aid=>S.evo.find(e=>e.kind==='nutAdj'&&e.athleteId===aid)||null;
+const mealK=m=>+m.kcal||((+m.p||0)*4+(+m.c||0)*4+(+m.g||0)*9)||0;
+const mealOnDay=(m,ds)=>!m.days||!m.days.length||m.days.includes((parse(ds).getDay()+6)%7);
+const daysTxt=d=>!d||!d.length||d.length===7?'Todos los días':JSON.stringify(d.slice().sort())==='[0,1,2,3,4]'?'L–V':JSON.stringify(d.slice().sort())==='[5,6]'?'Fin de semana':d.slice().sort().map(k=>DOW_L[k]).join('·');
+function mealsOf(a,raw){const n=a.nutrition;if(!n)return [];if(n.menus&&n.menus.length){const i=Math.min(S.ui.menu||0,n.menus.length-1);return n.menus[i].meals}
+  const base=n.meals||[];if(raw)return base;const adj=nutAdjOf(a.id);if(!adj||adj.plan!==nutKey(n))return base;const ov=adj.meals||{};
+  return base.map(m=>ov[m.id]?{...m,...ov[m.id],_adj:true}:m).filter(m=>!m.hidden).concat((adj.added||[]).map(m=>({...m,_own:true})))}
+function mealsForDay(a,ds){const n=a&&a.nutrition;if(!n||(n.start&&ds<n.start))return [];return mealsOf(a).filter(m=>mealOnDay(m,ds)).slice().sort((x,y)=>String(x.time||'99').localeCompare(String(y.time||'99')))}
 function mealCard(a,m,editable){
   const lg=mealLogs(a.id,TODAY).find(x=>x.mealId===m.id),st=lg?lg.status:'';
-  return `<div class="meal"><div class="mh">${m.time?`<span class="mt">${esc(m.time)}</span>`:''}<span class="mn">${esc(m.name||'Comida')}</span>${m.kcal?`<span class="mk">${fmtN(m.kcal)} kcal</span>`:''}</div>
+  const kk=mealK(m),isTod=mealOnDay(m,TODAY),canEd=editable&&!(a.nutrition&&a.nutrition.menus&&a.nutrition.menus.length);
+  return `<div class="meal"><div class="mh">${m.time?`<span class="mt">${esc(m.time)}</span>`:''}<span class="mn">${esc(m.name||'Comida')}</span>${m.days&&m.days.length&&m.days.length<7?`<span class="mdays">🔁 ${daysTxt(m.days)}</span>`:''}${m._adj||m._own?`<span class="madj">${m._own?'Agregado por el atleta':'Ajustado por el atleta'}</span>`:''}${kk?`<span class="mk">${fmtN(kk)} kcal</span>`:''}</div>
+    ${m.p||m.c||m.g?`<div class="mmac">Proteína <b>${+m.p||0} g</b> · Carbohidratos <b>${+m.c||0} g</b> · Grasa <b>${+m.g||0} g</b></div>`:''}
     ${m.foods&&m.foods.length?`<ul>${m.foods.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>`:''}
     ${m.supl?`<div class="ms">💊 ${esc(m.supl)}</div>`:''}${m.water?`<div class="ms">💧 ${esc(m.water)}</div>`:''}
-    ${editable?`<div class="mbtns">${Object.entries(MEAL_ST).map(([k,[l,icn]])=>`<button class="mbtn ${k} ${st===k?'on':''}" onclick="logMeal('${m.id}','${k}')">${ic(icn,13)} ${l}</button>`).join('')}</div>
+    ${canEd?`<div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="btn ghost sm" onclick="athMealEdit('${m.id}')">${ic('edit',12)} Ajustar bloque</button></div>`:''}
+    ${editable&&isTod?`<div class="mbtns">${Object.entries(MEAL_ST).map(([k,[l,icn]])=>`<button class="mbtn ${k} ${st===k?'on':''}" onclick="logMeal('${m.id}','${k}')">${ic(icn,13)} ${l}</button>`).join('')}</div>
     ${st==='var'||S.ui.varOpen===m.id?`<div class="mvar"><textarea class="inp" id="mv_${m.id}" rows="2" placeholder="¿Qué comiste en lugar de lo del plan?">${esc(lg&&lg.note||'')}</textarea><div class="row" style="align-items:center"><input class="inp" id="mk_${m.id}" type="number" placeholder="kcal aprox. (opcional)" value="${esc(lg&&lg.kcal||'')}"><button class="btn soft sm" style="flex:0" onclick="saveMealVar('${m.id}')">Guardar cambio</button></div></div>`:''}`:''}
   </div>`;
 }
@@ -4515,7 +4568,9 @@ function athNutHTML(a){
     <div class="nut-sum"><div class="s"><div class="l">Kcal del día</div><div class="v">${fmtN(c.kcalT||kc)}</div></div><div class="s"><div class="l">Comidas</div><div class="v">${ms.length}</div></div><div class="s"><div class="l">Hoy según el plan</div><div class="v">${ok}/${ms.length}</div></div></div>
     ${n.menus&&n.menus.length?`<div class="pchips">${n.menus.map((x,i)=>`<button class="pchip ${(S.ui.menu||0)===i?'on':''}" onclick="S.ui.menu=${i};renderApp()">${esc(x.name)}</button>`).join('')}</div>`:''}
     ${n.macros&&n.macros.length?`<div class="muted" style="font-size:12px;margin-bottom:8px">${n.macros.map(m=>`<b>${esc(m.name)}</b> ${esc(m.grams)}`).join(' · ')}</div>`:''}
-  </div>${ms.map(m=>mealCard(a,m,true)).join('')}
+    ${(()=>{const t=ms.filter(m=>mealOnDay(m,TODAY)).reduce((s,m)=>({k:s.k+mealK(m),p:s.p+(+m.p||0),c:s.c+(+m.c||0),g:s.g+(+m.g||0)}),{k:0,p:0,c:0,g:0});return t.p||t.c||t.g?`<div class="muted" style="font-size:12px">Hoy: <b>${fmtN(t.k)} kcal</b> · P ${t.p} g · C ${t.c} g · G ${t.g} g</div>`:''})()}
+  </div>${ms.slice().sort((x,y)=>String(x.time||'99').localeCompare(String(y.time||'99'))).map(m=>mealCard(a,m,true)).join('')}
+  ${n.menus&&n.menus.length?'':`<button class="btn ghost sm" style="margin:4px 0 10px" onclick="athMealEdit('new')">${ic('plus',13)} Agregar un bloque de comida</button>`}
   ${n.snacks&&n.snacks.length?`<div class="card" style="padding:12px 14px;margin-top:4px"><b style="font-size:13px">Colaciones permitidas</b><div class="muted" style="font-size:12px;margin-top:4px">${n.snacks.map(esc).join(' · ')}</div></div>`:''}
   ${n.notes&&n.notes.length?`<div class="card" style="padding:12px 14px;margin-top:8px"><b style="font-size:13px">Indicaciones</b><ul style="margin:6px 0 0 18px;padding:0;font-size:12px;color:var(--ink-2)">${n.notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}
   ${nutHistHTML(a,false)}`;
@@ -4529,20 +4584,33 @@ function nutHistHTML(a,coach){const H=(a.nutHist||[]).slice().reverse();if(!H.le
 function nutArchive(a){if(!a.nutrition)return;const h=JSON.parse(JSON.stringify(a.nutrition));h.end=TODAY;a.nutHist=(a.nutHist||[]).concat([h]).slice(-12)}
 function openNewNutPlan(aid){
   const a=S.athletes.find(x=>x.id===aid),has=!!(a.nutrition&&((a.nutrition.meals||[]).length||(a.nutrition.menus||[]).length)),w=lastWeight(aid);
-  S.ui.hb=null;const g0=genderOf(a),lv=a.trainLevel||'intermedio';
+  S.ui.hb=null;S.ui.hbAdj={mode:null,kc:0,man:false};S.ui.hbShown=false;const g0=genderOf(a),lv=a.trainLevel||'intermedio';
   openModal(`<div class="modal"><div class="modal-h"><h3>${ic('food',18)} Nuevo plan de nutrición · ${esc(a.name.split(' ')[0])}</h3><button class="x" onclick="openNutrition('${aid}')">${ic('x',20)}</button></div><div class="modal-b">
     <div class="field"><label>Nombre del plan</label><input id="np_name" placeholder="Ej. Definición · Diciembre"></div>
     <div class="row" style="flex-wrap:wrap"><div class="field" style="min-width:150px"><label>Objetivo</label><select id="np_goal" onchange="hbGoal()">${NUT_GOALS.map(g=>`<option>${g}</option>`).join('')}</select></div><div class="field" style="min-width:150px"><label>Inicia</label><input type="date" id="np_start" value="${TODAY}"></div></div>
-    <details class="hb" open><summary>🧮 Calcular gasto energético y macros (Harris-Benedict)</summary>
+    <details class="hb" open><summary>🧮 Gasto energético total y macros (Harris-Benedict)</summary>
+      <div class="hb-formula"><b>Fórmula Harris-Benedict revisada</b><br>
+        Hombre: <code>GEB = 88.362 + (13.397 × peso kg) + (4.799 × estatura cm) − (5.677 × edad)</code><br>
+        Mujer: <code>GEB = 447.593 + (9.247 × peso kg) + (3.098 × estatura cm) − (4.330 × edad)</code><br>
+        <code>GET = GEB × nivel de actividad</code> · <code>Calorías del plan = GET − déficit o + superávit</code></div>
+      <div class="hb-step">1 · Datos del atleta</div>
       <div class="row"><div class="field"><label>Sexo</label><select id="hb_sex" onchange="hbCalc()"><option value="" ${g0?'':'selected'}>Elegir…</option><option ${g0==='Hombre'?'selected':''}>Hombre</option><option ${g0==='Mujer'?'selected':''}>Mujer</option></select></div>
         <div class="field"><label>Edad (años)</label><input id="hb_age" type="number" min="12" max="90" value="${esc(a.age||'')}" oninput="hbCalc()"></div>
         <div class="field"><label>Peso (kg)</label><input id="hb_w" type="number" step="0.1" min="30" max="250" value="${esc(w||'')}" oninput="hbCalc()"></div>
         <div class="field"><label>Estatura (cm)</label><input id="hb_h" type="number" min="120" max="230" value="${esc(a.height||'')}" oninput="hbCalc()"></div></div>
       <div class="row"><div class="field" style="min-width:200px"><label>Nivel de actividad</label><select id="hb_act" onchange="hbCalc()">${ACT.map(([f,l])=>`<option value="${f}" ${(+a.activity||1.55)===f?'selected':''}>${l} · ×${f}</option>`).join('')}</select></div>
-        <div class="field" style="min-width:200px"><label>Grado de entrenamiento</label><select id="hb_lvl" onchange="hbCalc()">${HB_LVL.map(([k,l])=>`<option value="${k}" ${lv===k?'selected':''}>${l}</option>`).join('')}</select></div>
-        <div class="field" style="max-width:150px"><label>Ajuste por objetivo (%)</label><input id="hb_adj" type="number" step="1" min="-30" max="30" value="${HB_ADJ['Definición']}" oninput="this.dataset.man=1;hbCalc()"></div></div>
-      <div id="hb_out" class="hb-out"></div>
-      <div class="row" style="align-items:center;margin-top:10px"><label class="chk" style="flex:1;min-width:220px"><input type="checkbox" id="hb_save" checked> Guardar edad, estatura, actividad y grado de entrenamiento en la ficha</label><button type="button" class="btn primary sm" onclick="hbApply()">${ic('check',13)} Usar estos valores</button></div>
+        <div class="field" style="min-width:200px"><label>Grado de entrenamiento</label><select id="hb_lvl" onchange="hbCalc()">${HB_LVL.map(([k,l])=>`<option value="${k}" ${lv===k?'selected':''}>${l}</option>`).join('')}</select></div></div>
+      <div style="margin-top:10px"><button type="button" class="btn primary" onclick="hbShow()">🧮 Calcular gasto energético total</button></div>
+      <div id="hb_res" style="display:none">
+        <div class="hb-step">2 · Gasto energético</div>
+        <div class="hb-big" id="hb_get"></div>
+        <div class="hb-step">3 · Ajuste calórico del coach</div>
+        <div class="hb-seg"><button type="button" class="def" data-hbm="def" onclick="hbMode('def')">➖ Déficit</button><button type="button" class="man" data-hbm="man" onclick="hbMode('man')">＝ Mantenimiento</button><button type="button" class="sup" data-hbm="sup" onclick="hbMode('sup')">➕ Superávit</button></div>
+        <div class="hb-adj" id="hb_adjrow"><span class="stp"><button type="button" onclick="hbStep(-50)">−</button><input id="hb_kc" type="number" step="50" min="0" max="1500" oninput="hbKc()"><button type="button" onclick="hbStep(50)">+</button></span><span>kcal <span id="hb_pct" class="muted"></span></span></div>
+        <div class="hb-step">4 · Calorías y macronutrientes del plan</div>
+        <div id="hb_out" class="hb-out"></div>
+        <div class="row" style="align-items:center;margin-top:10px"><label class="chk" style="flex:1;min-width:220px"><input type="checkbox" id="hb_save" checked> Guardar edad, estatura, actividad y grado de entrenamiento en la ficha</label><button type="button" class="btn primary sm" onclick="hbApply()">${ic('check',13)} Usar estos valores en el plan</button></div>
+      </div>
     </details>
     <div class="field"><label>Macros por día (g)${w?` · peso actual ${w} kg`:''}</label><div class="row" style="flex-wrap:wrap"><input class="inp" id="np_p" type="number" min="0" placeholder="Proteína" oninput="npCalc()"><input class="inp" id="np_c" type="number" min="0" placeholder="Carbohidratos" oninput="npCalc()"><input class="inp" id="np_g" type="number" min="0" placeholder="Grasa" oninput="npCalc()"></div></div>
     <div class="field"><label>Calorías objetivo (kcal)</label><input id="np_kcal" type="number" min="0" placeholder="Se calcula con los macros" oninput="this.dataset.man=1;npCalc()"></div>
@@ -4565,33 +4633,50 @@ const HB_ADJ={'Definición':-15,'Mantenimiento':0,'Volumen':10,'Recomposición':
 const HB_PROT_ADJ={'Definición':0.3,'Recomposición':0.2};
 const HB_FAT={'Definición':0.8,'Recomposición':0.9};
 function hbGEB(sex,w,h,age){return sex==='Hombre'?88.362+13.397*w+4.799*h-5.677*age:447.593+9.247*w+3.098*h-4.330*age}
-function hbCompute(){
-  const sex=gv('hb_sex'),age=+gv('hb_age'),w=+gv('hb_w'),h=+gv('hb_h'),act=+gv('hb_act')||1.55,lvl=gv('hb_lvl')||'intermedio',goal=gv('np_goal')||'Mantenimiento',adj=+gv('hb_adj')||0;
+const HB_MODE={'Definición':'def','Recomposición':'def','Mantenimiento':'man','Volumen':'sup','Rendimiento':'sup'};
+function hbBase(){const sex=gv('hb_sex'),age=+gv('hb_age'),w=+gv('hb_w'),h=+gv('hb_h'),act=+gv('hb_act')||1.55,lvl=gv('hb_lvl')||'intermedio',goal=gv('np_goal')||'Mantenimiento';
   const miss=[!sex&&'sexo',!age&&'edad',!w&&'peso',!h&&'estatura'].filter(Boolean);if(miss.length)return {miss};
-  const geb=hbGEB(sex,w,h,age),get=geb*act,kcal=Math.round(get*(1+adj/100)/10)*10;
-  const pK=Math.min(2.6,HB_PROT[lvl]+(HB_PROT_ADJ[goal]||0));let fK=HB_FAT[goal]||1.0;
-  const P=Math.round(pK*w);let F=Math.round(fK*w),C=Math.round((kcal-P*4-F*9)/4);
-  if(C<w*1.5&&fK>0.6){fK=0.6;F=Math.round(fK*w);C=Math.round((kcal-P*4-F*9)/4)}
-  return {sex,age,w,h,act,lvl,goal,adj,geb:Math.round(geb),get:Math.round(get),kcal,P,F,C:Math.max(0,C),pK,fK,cK:Math.max(0,C)/w,formula:'Harris-Benedict revisada'}}
-function hbCalc(){const el=document.getElementById('hb_out');if(!el)return;const r=hbCompute();S.ui.hb=null;
-  if(r.miss){el.innerHTML=`<div class="muted">Falta ${r.miss.join(', ')} para calcular.</div>`;return}
+  const geb=hbGEB(sex,w,h,age);return {sex,age,w,h,act,lvl,goal,geb:Math.round(geb),get:Math.round(geb*act)}}
+function hbDefaultAdj(b){const pct=HB_ADJ[b.goal]??0;S.ui.hbAdj.mode=HB_MODE[b.goal]||'man';S.ui.hbAdj.kc=Math.round(Math.abs(pct)*b.get/100/50)*50}
+function hbCompute(){
+  const b=hbBase();if(b.miss)return b;const A=S.ui.hbAdj||{mode:'man',kc:0};
+  if(!A.mode||!A.man)hbDefaultAdj(b);
+  const sign=A.mode==='def'?-1:A.mode==='sup'?1:0,dk=sign*(+A.kc||0),kcal=Math.round((b.get+dk)/10)*10,adj=Math.round(dk/b.get*1000)/10;
+  const pK=Math.min(2.6,HB_PROT[b.lvl]+(A.mode==='def'?(HB_PROT_ADJ[b.goal]??0.3):0));let fK=A.mode==='def'?(HB_FAT[b.goal]||0.8):1.0;
+  const P=Math.round(pK*b.w);let F=Math.round(fK*b.w),C=Math.round((kcal-P*4-F*9)/4);
+  if(C<b.w*1.5&&fK>0.6){fK=0.6;F=Math.round(fK*b.w);C=Math.round((kcal-P*4-F*9)/4)}
+  return {...b,mode:A.mode,dk,adj,kcal,P,F,C:Math.max(0,C),pK,fK,cK:Math.max(0,C)/b.w,formula:'Harris-Benedict revisada'}}
+function hbShow(){const b=hbBase();if(b.miss){toast('Falta '+b.miss.join(', '));return}S.ui.hbShown=true;const el=document.getElementById('hb_res');if(el)el.style.display='';hbCalc()}
+function hbMode(m){const b=hbBase();if(b.miss)return;const A=S.ui.hbAdj;A.man=true;A.mode=m;if(m==='man')A.kc=0;else if(!A.kc)A.kc=Math.round(b.get*(m==='def'?0.15:0.10)/50)*50;hbCalc()}
+function hbStep(d){const A=S.ui.hbAdj;if(!A.mode||A.mode==='man'){toast('Elige Déficit o Superávit');return}A.man=true;A.kc=Math.max(0,Math.min(1500,(+A.kc||0)+d));hbCalc()}
+function hbKc(){const A=S.ui.hbAdj;A.man=true;A.kc=Math.max(0,Math.min(1500,+gv('hb_kc')||0));hbCalc(true)}
+function hbCalc(fromInput){
+  const el=document.getElementById('hb_out');if(!el)return;S.ui.hb=null;
+  if(!S.ui.hbShown){return}
+  const r=hbCompute(),g=document.getElementById('hb_get');
+  if(r.miss){g.innerHTML=`<div class="muted">Falta ${r.miss.join(', ')} para calcular.</div>`;el.innerHTML='';return}
+  const male=r.sex==='Hombre',f=male?`88.362 + (13.397 × ${r.w}) + (4.799 × ${r.h}) − (5.677 × ${r.age})`:`447.593 + (9.247 × ${r.w}) + (3.098 × ${r.h}) − (4.330 × ${r.age})`;
+  g.innerHTML=`<div class="c"><div class="l">Gasto energético basal (GEB)</div><div class="v">${fmtN(r.geb)} kcal</div><div class="x">${f}</div></div>
+    <div class="c main"><div class="l">Gasto energético total (GET)</div><div class="v">${fmtN(r.get)} kcal</div><div class="x">${fmtN(r.geb)} × ${r.act} (nivel de actividad)</div></div>`;
+  document.querySelectorAll('[data-hbm]').forEach(b=>b.classList.toggle('on',b.dataset.hbm===r.mode));
+  const kc=document.getElementById('hb_kc'),row=document.getElementById('hb_adjrow');
+  if(kc&&!fromInput)kc.value=Math.abs(r.dk);if(row)row.style.display=r.mode==='man'?'none':'';
+  const pe=document.getElementById('hb_pct');if(pe)pe.textContent=r.mode==='man'?'':`de ${r.mode==='def'?'déficit':'superávit'} (${r.adj>0?'+':''}${r.adj}% del GET)`;
   const pc=x=>Math.round(x/r.kcal*100),warn=[];
   if(r.C<r.w*2)warn.push('Carbohidratos bajos (menos de 2 g/kg): revisa el déficit si entrena con volumen alto.');
   if(r.kcal<1200)warn.push('Menos de 1,200 kcal: un déficit así requiere supervisión.');
   if(r.adj<-25)warn.push('Déficit mayor a 25%: riesgo de perder masa muscular.');
-  el.innerHTML=`<table><tr><th>Concepto</th><th style="text-align:right">kcal / día</th><th>Detalle</th></tr>
-    <tr><td>Gasto energético basal (GEB)</td><td class="n">${fmtN(r.geb)}</td><td class="muted">Harris-Benedict · ${r.sex.toLowerCase()}, ${r.age} años, ${r.w} kg, ${r.h} cm</td></tr>
-    <tr><td>Gasto energético total (GET)</td><td class="n">${fmtN(r.get)}</td><td class="muted">GEB × ${r.act} de actividad</td></tr>
-    <tr><td><b>Calorías del plan</b></td><td class="n">${fmtN(r.kcal)}</td><td class="muted">${r.goal} · ${r.adj>0?'+':''}${r.adj}% sobre el GET</td></tr></table>
-  <table style="margin-top:8px"><tr><th>Macronutriente</th><th style="text-align:right">g / día</th><th style="text-align:right">g / kg</th><th style="text-align:right">% kcal</th></tr>
-    <tr><td>Proteína</td><td class="n">${r.P}</td><td class="n">${r.pK.toFixed(1)}</td><td class="n">${pc(r.P*4)}%</td></tr>
-    <tr><td>Grasa</td><td class="n">${r.F}</td><td class="n">${r.fK.toFixed(1)}</td><td class="n">${pc(r.F*9)}%</td></tr>
-    <tr><td>Carbohidratos</td><td class="n">${r.C}</td><td class="n">${r.cK.toFixed(1)}</td><td class="n">${pc(r.C*4)}%</td></tr></table>
+  if(r.adj>20)warn.push('Superávit mayor a 20%: puede subir más grasa de la necesaria.');
+  el.innerHTML=`<div class="hb-big"><div class="c main"><div class="l">Calorías del plan</div><div class="v">${fmtN(r.kcal)} kcal</div><div class="x">${r.mode==='man'?'Mantenimiento: igual al GET':`${fmtN(r.get)} ${r.dk<0?'−':'+'} ${fmtN(Math.abs(r.dk))} kcal`}</div></div></div>
+  <table style="margin-top:8px"><tr><th>Macronutriente</th><th style="text-align:right">g / día</th><th style="text-align:right">g / kg</th><th style="text-align:right">kcal</th><th style="text-align:right">% kcal</th></tr>
+    <tr><td>Proteína</td><td class="n">${r.P}</td><td class="n">${r.pK.toFixed(1)}</td><td class="n">${fmtN(r.P*4)}</td><td class="n">${pc(r.P*4)}%</td></tr>
+    <tr><td>Grasa</td><td class="n">${r.F}</td><td class="n">${r.fK.toFixed(1)}</td><td class="n">${fmtN(r.F*9)}</td><td class="n">${pc(r.F*9)}%</td></tr>
+    <tr><td>Carbohidratos</td><td class="n">${r.C}</td><td class="n">${r.cK.toFixed(1)}</td><td class="n">${fmtN(r.C*4)}</td><td class="n">${pc(r.C*4)}%</td></tr></table>
   ${warn.length?`<div class="note" style="margin-top:8px">⚠️ ${warn.map(esc).join('<br>⚠️ ')}</div>`:''}
-  <div class="hb-f">Proteína según grado de entrenamiento${HB_PROT_ADJ[r.goal]?` (+${HB_PROT_ADJ[r.goal]} g/kg en ${r.goal.toLowerCase()} para cuidar masa muscular)`:''}; grasa ${r.fK.toFixed(1)} g/kg; carbohidratos con las calorías restantes. Es una estimación: ajústala con la evolución de peso de 2–3 semanas.</div>`;
+  <div class="hb-f">Proteína según grado de entrenamiento${r.mode==='def'?' (+0.3 g/kg en déficit para cuidar masa muscular)':''}; grasa ${r.fK.toFixed(1)} g/kg; carbohidratos con las calorías restantes. Es una estimación: ajústala con la evolución de peso de 2–3 semanas.</div>`;
   S.ui.hbLast=r}
-function hbGoal(){const a=document.getElementById('hb_adj');if(a&&!a.dataset.man)a.value=HB_ADJ[gv('np_goal')]??0;hbCalc()}
-function hbApply(){const r=hbCompute();if(r.miss){toast('Completa '+r.miss.join(', '));return}
+function hbGoal(){const A=S.ui.hbAdj;if(A&&!A.man)A.mode=null;hbCalc()}
+function hbApply(){if(!S.ui.hbShown){hbShow();if(!S.ui.hbShown)return}const r=hbCompute();if(r.miss){toast('Completa '+r.miss.join(', '));return}
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('np_p',r.P);set('np_c',r.C);set('np_g',r.F);set('np_kcal',r.kcal);
   const k=document.getElementById('np_kcal');if(k)k.dataset.man=1;S.ui.hb=r;npCalc();toast('Calorías y macros cargados en el plan')}
 function npCalc(){const p=+gv('np_p')||0,c=+gv('np_c')||0,g=+gv('np_g')||0,k=document.getElementById('np_kcal'),m=document.getElementById('np_msg');if(!k||!m)return;const calc=p*4+c*4+g*9;
@@ -4609,7 +4694,7 @@ function saveNewNutPlan(aid){
   delete base.end;
   const macros=[p&&{name:'Proteína',grams:p+' g'},c&&{name:'Carbohidratos',grams:c+' g'},g&&{name:'Grasa',grams:g+' g'}].filter(Boolean);
   const np={...base,label:name,goal:gv('np_goal'),start:gv('np_start')||TODAY,kcalTarget:kc||base.kcalTarget||null,macros:macros.length?macros:(base.macros||[]),created:Date.now()};
-  const hb=S.ui.hb;if(hb&&hb.kcal===kc&&hb.P===p){np.calc={formula:hb.formula,sex:hb.sex,age:hb.age,weight:hb.w,height:hb.h,activity:hb.act,level:hb.lvl,adj:hb.adj,geb:hb.geb,get:hb.get,date:TODAY}}
+  const hb=S.ui.hb;if(hb&&hb.kcal===kc&&hb.P===p){np.calc={formula:hb.formula,sex:hb.sex,age:hb.age,weight:hb.w,height:hb.h,activity:hb.act,level:hb.lvl,mode:hb.mode,adjKcal:hb.dk,adj:hb.adj,geb:hb.geb,get:hb.get,date:TODAY}}
   if(hb&&document.getElementById('hb_save')&&document.getElementById('hb_save').checked){a.age=String(hb.age);a.height=hb.h;a.activity=hb.act;a.trainLevel=hb.lvl;if(!genderOf(a)){a.gender=hb.sex;a.genderTs=Date.now()}}
   nutArchive(a);a.nutrition=np;if(kc)a.kcalTarget=kc;S.ui.hb=null;
   pushNotif(aid,`Tu coach te asignó un nuevo plan de alimentación: «${name}»`);
@@ -4625,20 +4710,59 @@ function openNutrition(aid){
   const tot=logs.filter(x=>x.date>=days[0]).length,okN=logs.filter(x=>x.date>=days[0]&&x.status==='ok').length;
   const grid=allMeals.length?`<div class="adh" style="grid-template-columns:130px repeat(14,14px)"><span></span>${days.map(d=>`<span style="text-align:center">${parse(d).getDate()}</span>`).join('')}${(n.menus&&n.menus.length?[{id:'__any',name:'Comidas del día'}]:allMeals).map(m=>`<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.time?m.time+' · ':'')}${esc(m.name||'')}</span>${days.map(d=>{const L=logs.filter(x=>x.date===d&&(m.id==='__any'||x.mealId===m.id));const s=L.find(x=>x.status==='skip')?'skip':L.find(x=>x.status==='var')?'var':L.length?'ok':'';return `<i class="d ${s}" data-tip="${dmy(d).slice(0,5)}${s?' · '+MEAL_ST[s][0]:' · sin registro'}"></i>`}).join('')}`).join('')}</div>`:'';
   openModal(`<div class="modal" id="nutModal"><div class="modal-h"><h3>${ic('food',20)} Nutrición · ${esc(a.name)}</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div><div class="modal-b">
-    <div class="nut-sum"><div class="s"><div class="l">Kcal del plan</div><div class="v">${fmtN(c.kcalT||allMeals.reduce((s,m)=>s+(m.kcal||0),0))}</div></div><div class="s"><div class="l">GET</div><div class="v">${c.get?fmtN(c.get):'—'}</div></div><div class="s"><div class="l">Apego 14 días</div><div class="v">${tot?Math.round(okN/tot*100)+'%':'—'}</div></div><div class="s"><div class="l">Cambios / omitidas</div><div class="v">${var14.length}</div></div></div>
+    <div class="nut-sum"><div class="s"><div class="l">Kcal del plan</div><div class="v">${fmtN(c.kcalT||allMeals.reduce((s,m)=>s+(m.kcal||0),0))}</div></div><div class="s"><div class="l">GET</div><div class="v">${c.get?fmtN(c.get):n.calc&&n.calc.get?fmtN(n.calc.get):'—'}</div></div><div class="s"><div class="l">Apego 14 días</div><div class="v">${tot?Math.round(okN/tot*100)+'%':'—'}</div></div><div class="s"><div class="l">Cambios / omitidas</div><div class="v">${var14.length}</div></div></div>
     <div class="muted" style="font-size:12px;margin:4px 0 6px">Registro de los últimos 14 días · verde: según el plan · ámbar: con cambios · rojo: no la hizo</div>${grid||'<div class="muted">Sin comidas cargadas.</div>'}
     ${var14.length?`<div style="margin-top:12px"><b style="font-size:13px">Variaciones reportadas</b>${var14.slice(0,10).map(x=>`<div class="feed-item" style="padding:8px 2px"><span class="pill ${x.status==='skip'?'missed':'pending'}">${MEAL_ST[x.status][0]}</span><div><div class="ft">${dmy(x.date).slice(0,5)} · <b>${esc(x.mealName||'')}</b>${x.note?` — ${esc(x.note)}`:''}${x.kcal?` (${x.kcal} kcal)`:''}</div></div></div>`).join('')}</div>`:''}
     <div class="sec-h" style="font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">${ic('edit',16)} Plan de alimentación vigente<span style="flex:1"></span><button class="btn soft sm" onclick="openNewNutPlan('${aid}')">${ic('plus',13)} Nuevo plan de nutrición</button></div>${nutHeadHTML(a.nutrition)}
-    ${ms?`<div id="nutEd">${ms.map((m,i)=>`<div class="meal"><div class="row" style="flex-wrap:wrap"><input class="inp" style="max-width:110px" data-nm="${i}|time" value="${esc(m.time)}" placeholder="Hora"><input class="inp" data-nm="${i}|name" value="${esc(m.name)}" placeholder="Nombre (Desayuno…)"><input class="inp" style="max-width:110px" type="number" data-nm="${i}|kcal" value="${esc(m.kcal??'')}" placeholder="kcal"><button class="mini-btn" style="flex:0 0 30px" onclick="nutDel(${i})">${ic('trash',13)}</button></div>
-      <textarea class="inp" style="margin-top:6px" rows="2" data-nm="${i}|foods" placeholder="Alimentos (uno por línea)">${esc((m.foods||[]).join('\n'))}</textarea><input class="inp" style="margin-top:6px" data-nm="${i}|supl" value="${esc(m.supl||'')}" placeholder="Suplementos (opcional)"></div>`).join('')}</div>
-      <button class="btn ghost sm" onclick="nutAdd()">${ic('plus',13)} Comida</button>`:`<div class="note">Este plan tiene ${n.menus.length} menús diarios (de su nutrióloga); se muestran tal cual al atleta.</div>${n.menus.map(x=>`<details style="margin-top:6px"><summary style="cursor:pointer;font-weight:600">${esc(x.name)}</summary>${x.meals.map(m=>mealCard(a,m,false)).join('')}</details>`).join('')}`}
+    ${ms?`${nutAdjNoteHTML(a)}<div id="nutEd">${ms.map((m,i)=>nutBlockHTML(a,m,i)).join('')}</div>
+      <div class="nut-tot" id="nutTot">${nutTotHTML(a)}</div>
+      <button class="btn ghost sm" onclick="nutAdd()">${ic('plus',13)} Bloque de alimentación</button>`:`<div class="note">Este plan tiene ${n.menus.length} menús diarios (de su nutrióloga); se muestran tal cual al atleta.</div>${n.menus.map(x=>`<details style="margin-top:6px"><summary style="cursor:pointer;font-weight:600">${esc(x.name)}</summary>${x.meals.map(m=>mealCard(a,m,false)).join('')}</details>`).join('')}`}
     ${nutHistHTML(a,true)}
   </div><div class="modal-f">${ms?`<button class="btn primary" onclick="nutSave()">${ic('check',14)} Guardar plan</button>`:'<button class="btn ghost" onclick="closeModal()">Cerrar</button>'}</div></div>`);
 }
-function nutCollect(){const a=S.athletes.find(x=>x.id===S.ui.nutA);a.nutrition=a.nutrition||{meals:[]};const ms=a.nutrition.meals;document.querySelectorAll('#nutEd [data-nm]').forEach(el=>{const [i,f]=el.dataset.nm.split('|');const m=ms[+i];if(!m)return;if(f==='foods')m.foods=el.value.split('\n').map(s=>s.trim()).filter(Boolean);else if(f==='kcal')m.kcal=+el.value||null;else m[f]=el.value.trim()});return a}
-function nutAdd(){const a=nutCollect();a.nutrition.meals.push({id:uid(),time:'',name:'',foods:[],kcal:null,supl:'',water:''});openNutrition(a.id)}
+function nutCollect(){const a=S.athletes.find(x=>x.id===S.ui.nutA);a.nutrition=a.nutrition||{meals:[]};a.nutrition.meals=a.nutrition.meals||[];const ms=a.nutrition.meals;
+  document.querySelectorAll('#nutEd [data-nm]').forEach(el=>{const [i,f]=el.dataset.nm.split('|');const m=ms[+i];if(!m)return;if(f==='foods')m.foods=el.value.split('\n').map(s=>s.trim()).filter(Boolean);else if(['kcal','p','c','g'].includes(f))m[f]=el.value===''?null:+el.value;else m[f]=el.value.trim()});
+  const dd={};document.querySelectorAll('#nutEd [data-nmd]').forEach(el=>{const [i,k]=el.dataset.nmd.split('|');(dd[i]=dd[i]||[]);if(el.checked)dd[i].push(+k)});
+  Object.entries(dd).forEach(([i,ks])=>{const m=ms[+i];if(m)m.days=ks.length===7?[]:ks});return a}
+function nutBlockHTML(a,m,i){
+  const adj=nutAdjOf(a.id),ov=adj&&adj.plan===nutKey(a.nutrition)&&adj.meals&&adj.meals[m.id],sel=m.days&&m.days.length?m.days:[0,1,2,3,4,5,6];
+  return `<div class="meal mblk"><div class="grid"><input class="inp" type="time" data-nm="${i}|time" value="${esc(m.time||'')}" title="Horario"><input class="inp" data-nm="${i}|name" value="${esc(m.name||'')}" placeholder="Nombre del bloque (Desayuno, Colación…)"><span style="display:flex;gap:4px"><button class="mini-btn" title="Duplicar bloque" onclick="nutDup(${i})">${ic('copy',13)}</button><button class="mini-btn" title="Borrar bloque" onclick="nutDel(${i})">${ic('trash',13)}</button></span></div>
+    <div class="mac"><div><label>Calorías (kcal)</label><input class="inp" type="number" min="0" data-nm="${i}|kcal" value="${esc(m.kcal??'')}" placeholder="${(+m.p||+m.c||+m.g)?'auto':''}" oninput="nutTot()"></div><div><label>Proteína (g)</label><input class="inp" type="number" min="0" data-nm="${i}|p" value="${esc(m.p??'')}" oninput="nutTot()"></div><div><label>Carbohidratos (g)</label><input class="inp" type="number" min="0" data-nm="${i}|c" value="${esc(m.c??'')}" oninput="nutTot()"></div><div><label>Grasa (g)</label><input class="inp" type="number" min="0" data-nm="${i}|g" value="${esc(m.g??'')}" oninput="nutTot()"></div></div>
+    <textarea class="inp" style="margin-top:6px" rows="2" data-nm="${i}|foods" placeholder="Alimentos y porciones (uno por línea)">${esc((m.foods||[]).join('\n'))}</textarea><input class="inp" style="margin-top:6px" data-nm="${i}|supl" value="${esc(m.supl||'')}" placeholder="Suplementos (opcional)">
+    <div class="dline">🔁 Se repite:${DOW_L.map((l,k)=>`<label class="rday ${sel.includes(k)?'on':''}"><input type="checkbox" data-nmd="${i}|${k}" ${sel.includes(k)?'checked':''} onchange="this.parentNode.classList.toggle('on',this.checked);nutTot()"><span>${l}</span></label>`).join('')}<button type="button" class="pchip" onclick="nutDays(${i},[0,1,2,3,4,5,6])">Todos los días</button><button type="button" class="pchip" onclick="nutDays(${i},[0,1,2,3,4])">L–V</button><button type="button" class="pchip" onclick="nutDays(${i},[5,6])">Fin de semana</button></div>
+    ${ov?`<div class="adjn">✏️ ${esc((a.name||'').split(' ')[0])} ajustó este bloque: ${esc(adjSummary(m,ov))}</div>`:''}</div>`}
+function adjSummary(m,ov){const L={time:'hora',name:'nombre',kcal:'kcal',p:'proteína',c:'carbohidratos',g:'grasa',foods:'alimentos',days:'días'};return ov.hidden?'lo quitó de su plan':Object.keys(ov).filter(k=>L[k]).map(k=>k==='foods'?'alimentos':k==='days'?`días (${daysTxt(ov.days)})`:`${L[k]} ${ov[k]??'—'}`).join(' · ')}
+function nutAdjNoteHTML(a){const adj=nutAdjOf(a.id);if(!adj||adj.plan!==nutKey(a.nutrition))return '';const n=Object.keys(adj.meals||{}).length,ad=(adj.added||[]).length;if(!n&&!ad)return '';
+  return `<div class="note" style="margin-bottom:8px">✏️ ${esc((a.name||'').split(' ')[0])} ajustó ${n} bloque${n===1?'':'s'}${ad?` y agregó ${ad}`:''}. Sus cambios ya se le muestran a ella/él. <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="btn soft sm" onclick="nutAdjMerge(true)">${ic('check',12)} Integrar al plan</button><button class="btn ghost sm" onclick="nutAdjMerge(false)">Descartar sus ajustes</button></div></div>`}
+function nutTotHTML(a){const ms=(a.nutrition&&a.nutrition.meals)||[],c=bodyComp(a),tg=+(a.nutrition&&a.nutrition.kcalTarget)||c.kcalT||0;
+  const t=ms.reduce((s,m)=>({k:s.k+mealK(m),p:s.p+(+m.p||0),c:s.c+(+m.c||0),g:s.g+(+m.g||0)}),{k:0,p:0,c:0,g:0}),mac=(a.nutrition&&a.nutrition.macros)||[],mg=nm=>{const x=mac.find(z=>z.name===nm);return x?parseFloat(x.grams):null};
+  const cmp=(v,goal)=>goal?` <span class="${Math.abs(v-goal)/goal>0.1?'delta down':'delta up'}">/ ${fmtN(goal)}</span>`:'';
+  return `<span>Total de bloques (un día con todos):</span><span><b>${fmtN(t.k)}</b> kcal${cmp(t.k,tg)}</span><span>P <b>${t.p}</b> g${cmp(t.p,mg('Proteína'))}</span><span>C <b>${t.c}</b> g${cmp(t.c,mg('Carbohidratos'))}</span><span>G <b>${t.g}</b> g${cmp(t.g,mg('Grasa'))}</span>`}
+function nutTot(){const a=nutCollect(),el=document.getElementById('nutTot');if(el)el.innerHTML=nutTotHTML(a)}
+function nutDays(i,arr){const a=nutCollect();a.nutrition.meals[i].days=arr.length===7?[]:arr.slice();openNutrition(a.id)}
+function nutDup(i){const a=nutCollect(),m=JSON.parse(JSON.stringify(a.nutrition.meals[i]));m.id=uid();m.name=(m.name||'Bloque')+' (copia)';a.nutrition.meals.splice(i+1,0,m);openNutrition(a.id)}
+function nutAdjMerge(keep){const a=nutCollect(),adj=nutAdjOf(a.id);if(!adj)return;
+  if(keep){const ov=adj.meals||{};a.nutrition.meals=a.nutrition.meals.map(m=>ov[m.id]?{...m,...ov[m.id]}:m).filter(m=>!m.hidden).concat((adj.added||[]).map(m=>{const x={...m};delete x._own;return x}));pushNotif(a.id,'Tu coach integró tus ajustes al plan de alimentación')}
+  adj.meals={};adj.added=[];adj.ts=Date.now();commit();openNutrition(a.id);toast(keep?'Ajustes integrados al plan':'Ajustes descartados')}
+/* El atleta ajusta un bloque (o agrega uno propio) */
+function athMealEdit(mid){const a=curA();if(!a||!a.nutrition)return;const isNew=mid==='new',m=isNew?{id:'own_'+uid(),time:'',name:'',foods:[],days:[]}:mealsOf(a).find(x=>x.id===mid);if(!m)return;const sel=m.days&&m.days.length?m.days:[0,1,2,3,4,5,6];
+  openModal(`<div class="modal sm"><div class="modal-h"><h3>${ic('food',18)} ${isNew?'Agregar bloque de comida':'Ajustar «'+esc(m.name||'Comida')+'»'}</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div><div class="modal-b">
+    <div class="row" style="flex-wrap:wrap"><div class="field" style="max-width:130px"><label>Horario</label><input class="inp" type="time" id="am_time" value="${esc(m.time||'')}"></div><div class="field" style="min-width:170px"><label>Nombre</label><input class="inp" id="am_name" value="${esc(m.name||'')}" placeholder="Desayuno, Colación…"></div></div>
+    <div class="row" style="flex-wrap:wrap"><div class="field"><label>Calorías</label><input class="inp" type="number" id="am_kcal" value="${esc(m.kcal??'')}"></div><div class="field"><label>Proteína (g)</label><input class="inp" type="number" id="am_p" value="${esc(m.p??'')}"></div><div class="field"><label>Carbohidratos (g)</label><input class="inp" type="number" id="am_c" value="${esc(m.c??'')}"></div><div class="field"><label>Grasa (g)</label><input class="inp" type="number" id="am_g" value="${esc(m.g??'')}"></div></div>
+    <div class="field"><label>Alimentos (uno por línea)</label><textarea class="inp" id="am_foods" rows="3">${esc((m.foods||[]).join('\n'))}</textarea></div>
+    <div class="field"><label>Días</label><div class="rep-days">${DOW_L.map((l,k)=>`<label class="rday ${sel.includes(k)?'on':''}"><input type="checkbox" data-amd="${k}" ${sel.includes(k)?'checked':''} onchange="this.parentNode.classList.toggle('on',this.checked)"><span>${l}</span></label>`).join('')}</div></div>
+    <div class="muted" style="font-size:12px">Tu coach verá que ajustaste este bloque.</div>
+  </div><div class="modal-f">${!isNew&&(m._adj||m._own)?`<button class="btn ghost" onclick="athMealReset('${m.id}')">${m._own?'Quitar bloque':'Volver a lo del coach'}</button>`:''}<button class="btn primary" onclick="athMealSave('${m.id}',${isNew})">${ic('check',14)} Guardar</button></div></div>`)}
+function athAdj(a){let adj=nutAdjOf(a.id);const k=nutKey(a.nutrition);if(!adj){adj={id:'nutadj_'+a.id,athleteId:a.id,kind:'nutAdj',date:TODAY,plan:k,meals:{},added:[]};S.evo.push(adj)}if(adj.plan!==k){adj.plan=k;adj.meals={};adj.added=[]}adj.ts=Date.now();adj.date=TODAY;return adj}
+function athMealSave(mid,isNew){const a=curA(),adj=athAdj(a),num=id=>gv(id)===''?null:+gv(id),ks=[...document.querySelectorAll('[data-amd]')].filter(x=>x.checked).map(x=>+x.dataset.amd);
+  const v={time:gv('am_time'),name:gv('am_name').trim()||'Comida',kcal:num('am_kcal'),p:num('am_p'),c:num('am_c'),g:num('am_g'),foods:gv('am_foods').split('\n').map(x=>x.trim()).filter(Boolean),days:ks.length===7||!ks.length?[]:ks};
+  const own=(adj.added||[]).find(x=>x.id===mid);
+  if(isNew)adj.added=(adj.added||[]).concat([{id:mid,...v}]);else if(own)Object.assign(own,v);else{const base=(a.nutrition.meals||[]).find(x=>x.id===mid)||{},d={};Object.keys(v).forEach(k=>{if(JSON.stringify(v[k]??null)!==JSON.stringify(base[k]??(k==='days'?[]:null)))d[k]=v[k]});adj.meals={...(adj.meals||{}),[mid]:d}}
+  pushActivity(a.id,'meal',`${isNew?'agregó':'ajustó'} el bloque de comida «${v.name}»`);closeModal();commit();toast('Bloque guardado')}
+function athMealReset(mid){const a=curA(),adj=athAdj(a);if((adj.added||[]).some(x=>x.id===mid))adj.added=adj.added.filter(x=>x.id!==mid);else if(adj.meals)delete adj.meals[mid];closeModal();commit();toast('Listo')}
+function nutAdd(){const a=nutCollect();a.nutrition.meals.push({id:uid(),time:'',name:'',foods:[],kcal:null,p:null,c:null,g:null,supl:'',water:'',days:[]});openNutrition(a.id)}
 function nutDel(i){const a=nutCollect();a.nutrition.meals.splice(i,1);openNutrition(a.id)}
-function nutSave(){const a=nutCollect();a.nutrition.kcalTarget=a.nutrition.kcalTarget||a.nutrition.meals.reduce((s,m)=>s+(m.kcal||0),0)||null;pushNotif(a.id,'Tu coach actualizó tu plan de alimentación');commit();openNutrition(a.id);toast('Plan de alimentación guardado')}
+function nutSave(){const a=nutCollect();a.nutrition.kcalTarget=a.nutrition.kcalTarget||a.nutrition.meals.reduce((s,m)=>s+mealK(m),0)||null;pushNotif(a.id,'Tu coach actualizó tu plan de alimentación');commit();openNutrition(a.id);toast('Plan de alimentación guardado')}
 
 /* =========================================================
    ESTADÍSTICAS POR PERIODO (diario · semanal · mensual)

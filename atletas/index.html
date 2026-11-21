@@ -3029,8 +3029,13 @@ function blkPer(bi,n){collectDraft();const b=S.ui.draft.blocks[bi],t=S.ui.draft.
 function mainDates(d){const ds=S.ui.addDate,aid=S.ui.athleteId;if(d.editId){const t=taskById(d.editId);return t?[S.ui.addDate||t.date,...(d.applyNext!==false?similarTasks(t).map(x=>x.date):[])]:[]}
   return repDates(d,ds,aid).filter(x=>!(x.busy&&d.onBusy==='skip')).map(x=>x.date)}
 function blkRange(b,ds){const r=b.rep||{};return repRange({from:r.from,to:r.to||(r.weeks!=null?addDays(mondayOf(ds),(+r.weeks||0)*7+6):addDays(ds,27))},ds)}
-function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d)),[f,to]=blkRange(b,ds),nm=(b.name||'').trim().toLowerCase();
-  return repDates({days:b.rep.days,from:f,to},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const dup=S.tasks.some(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==(t&&t.id)&&String(x.title||'').trim().toLowerCase()===nm);return {date:dt,dup}})}
+function blkKey(n){return String(n||'').trim().toLowerCase()||'bloque de ejercicios'}
+/* Por cada día: si ya hay un entrenamiento pendiente, el bloque se mete DENTRO de esa sesión (si ya lo trae, se actualiza; no se duplica).
+   Solo si ese día no hay entrenamiento se crea una sesión con el bloque. Si ese día solo hay sesiones completadas, se omite. */
+function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d)),[f,to]=blkRange(b,ds),nm=blkKey(b.name);
+  const has=x=>blkKey(x.title)===nm||((x.data&&x.data.blocks)||[]).some(y=>blkKey(y.name)===nm);
+  return repDates({days:b.rep.days,from:f,to},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const ts=S.tasks.filter(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==(t&&t.id)),open=ts.filter(x=>x.status!=='done'),into=open.find(has)||open[0]||null;
+    return {date:dt,dup:!into&&ts.length>0,into:into?into.id:null,upd:!!into&&has(into)}})}
 function blkRepHTML(b,bi){
   const d=S.ui.draft,r=b.rep,sel=r.days||[],xs=blkRepPlan(b,d),use=xs.filter(x=>!x.dup),dups=xs.length-use.length,t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds),nm=esc(b.name||'Bloque de ejercicios');
   return `<div class="brep-p"><div style="font-size:12px;font-weight:700;margin-bottom:6px">🔁 Repetir solo el bloque «${nm}» en otros días</div>
@@ -3039,15 +3044,21 @@ function blkRepHTML(b,bi){
     <div class="muted" style="font-size:11px;font-weight:700;margin-top:4px">Periodo del bloque</div>
     ${perHTML(`data-bp="${bi}|`,f,to,ds,`blkPer.bind(null,${bi})`).replace(/blkPer\.bind\(null,(\d+)\)\((\d+)\)/g,'blkPer($1,$2)')}
     <div style="margin-top:8px"><button type="button" class="btn ghost sm" onclick="blkRep(${bi})">Quitar repetición</button></div>
-    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'} llamada${use.length>1?'s':''} «${nm}» (solo este bloque): ${use.slice(0,12).map(x=>`<span>${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')}${use.length>12?` · y ${use.length-12} más`:''}${dups?`<br>${dups} día${dups>1?'s':''} ya tiene${dups>1?'n':''} «${nm}»: no se duplica.`:''}`:blkRepRaw(b,d)?(dups?`Esos días ya tienen «${nm}»: no se duplica.`:'Esos días ya llevan el entrenamiento completo: no hay días extra.'):'No hay días dentro del periodo: cambia las fechas o los días.'}</div></div>`}
+    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':use.length?(()=>{const ins=use.filter(x=>x.into&&!x.upd),up=use.filter(x=>x.upd),nw=use.filter(x=>!x.into),L=a=>a.slice(0,10).map(x=>`<span>${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')+(a.length>10?` · y ${a.length-10} más`:'');
+      return [ins.length?`Se agrega dentro del entrenamiento que ya hay en <b>${ins.length}</b> día${ins.length>1?'s':''}: ${L(ins)}`:'',up.length?`Se actualiza en <b>${up.length}</b> día${up.length>1?'s':''} que ya lo traen (no se duplica): ${L(up)}`:'',nw.length?`Se crea${nw.length>1?'n':''} <b>${nw.length}</b> sesi${nw.length>1?'ones':'ón'} solo con este bloque (no hay entrenamiento ese día): ${L(nw)}`:''].filter(Boolean).join('<br>')+(dups?`<br>${dups} día${dups>1?'s':''} solo tiene${dups>1?'n':''} sesiones ya completadas: se omite${dups>1?'n':''}.`:'')})():blkRepRaw(b,d)?(dups?'Esos días ya tienen sesiones completadas: no se modifica nada.':'Esos días ya llevan el entrenamiento completo: no hay días extra.'):'No hay días dentro del periodo: cambia las fechas o los días.'}</div></div>`}
 function blkRepRaw(b,d){const t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds);return repDates({days:b.rep.days,from:f,to},ds,t?t.athleteId:S.ui.athleteId).length}
 function blkRep(bi){collectDraft();const d=S.ui.draft,b=d.blocks[bi],t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date);b.rep=b.rep?null:{days:[],from:ds,to:d.to&&d.to>ds?d.to:addDays(ds,27)};rerenderBuilder()}
 function blkRepQuick(bi,arr){collectDraft();const b=S.ui.draft.blocks[bi],ds=S.ui.addDate;b.rep=b.rep||{days:[],from:ds,to:addDays(ds,27)};b.rep.days=arr.slice();rerenderBuilder()}
 const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;return b});
-function applyBlockReps(d,aid,ds){let add=0,neu=0;
-  d.blocks.forEach(b=>{const xs=blkRepPlan(b,d).filter(x=>!x.dup);if(!xs.length)return;const copy=stripRep([b])[0],sid=uid(),nm=(copy.name||'').trim()||'Bloque de ejercicios';copy.name=nm;
-    xs.forEach(x=>{S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:nm,data:{blocks:[JSON.parse(JSON.stringify(copy))],attach:[]}});neu++})});
-  return {add,neu}}
+function applyBlockReps(d,aid,ds){let add=0,neu=0,upd=0;
+  d.blocks.forEach((b,bi)=>{const xs=blkRepPlan(b,d).filter(x=>!x.dup);if(!xs.length)return;const copy=stripRep([b])[0],nm=(copy.name||'').trim()||'Bloque de ejercicios',key=blkKey(nm);copy.name=nm;let sid=null;
+    xs.forEach(x=>{const tk=x.into&&taskById(x.into),cp=JSON.parse(JSON.stringify(copy));
+      if(tk){tk.data=tk.data||{};const old=JSON.parse(JSON.stringify(tk.data.blocks||[])),bs=tk.data.blocks=tk.data.blocks||[],k=bs.findIndex(y=>blkKey(y.name)===key);
+        if(k>=0){bs[k]=cp;upd++}else{bs.splice(Math.min(bi,bs.length),0,cp);add++}
+        tk.edited=Date.now();remapProgress(tk,old);return}
+      sid=sid||uid();S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:nm,data:{blocks:[cp],attach:[]}});neu++})});
+  return {add,neu,upd}}
+function brMsg(BR){if(!BR)return '';const p=[];if(BR.add)p.push(`agregado en ${BR.add} sesi${BR.add>1?'ones':'ón'}`);if(BR.upd)p.push(`actualizado en ${BR.upd}`);if(BR.neu)p.push(`${BR.neu} sesi${BR.neu>1?'ones':'ón'} nueva${BR.neu>1?'s':''}`);return p.length?' · bloque '+p.join(', '):''}
 function repQuick(arr){collectDraft();S.ui.draft.days=arr?arr.slice():null;rerenderBuilder()}
 function rerenderBuilder(){const b=document.getElementById('builder');if(b)b.innerHTML=builderInner()}
 function collectDraft(){
@@ -3113,7 +3124,7 @@ function saveTask(type){
   closeModal();
   S.ui.month=first.date.slice(0,7);S.ui.coachTab='plan';S.ui.selDay=first.date;S.ui.athTab='agenda';
   commit();
-  const brTxt=typeof BR!=='undefined'&&BR&&(BR.add||BR.neu)?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''} con su propio nombre`:'';
+  const brTxt=typeof BR!=='undefined'?brMsg(BR):'';
   toast((created.length>1?`${created.length} tareas asignadas a ${a.name}`:`Asignado a ${a.name} · ${dmy(first.date)}`)+brTxt);
 }
 
@@ -3243,7 +3254,7 @@ function openCoachTask(id){
   <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:6px;text-transform:capitalize">${T.label} · ${longDate(t.date)}${t.planName?` · ${esc(t.planName)} · fase ${t.phase}`:''}</div>${detailBody(t,'coach')}</div>
   <div class="modal-f">
     <button class="btn danger sm" onclick="delTask('${t.id}')">${ic('trash',14)} Eliminar</button>
-    ${t.type==='entrenamiento'?`<button class="btn primary sm" onclick="openEditTask('${t.id}')">${ic('edit',14)} Editar</button>`:''}
+    ${t.type==='entrenamiento'?`<button class="btn primary sm" onclick="openEditTask('${t.id}')">${ic('edit',14)} Editar</button><button class="btn soft sm" onclick="openRepeatTask('${t.id}')" title="Copiar este entrenamiento completo a otros días">🔁 Repetir</button>`:''}
     <span style="flex:1"></span>
     <input type="date" class="inp" id="mv_date" value="${t.date}" style="width:auto;padding:6px 10px">
     <button class="btn ghost sm" onclick="moveTask('${t.id}',false)">Mover</button>
@@ -3257,6 +3268,46 @@ function moveTask(id,dup){
   else{t.date=nd;pushNotif(t.athleteId,`«${t.title}» se movió al ${longDate(nd)}`);toast(`Movido al ${dmy(nd)}`)}
   closeModal();S.ui.month=nd.slice(0,7);commit();
 }
+
+/* Repetir (copiar y pegar) un entrenamiento YA asignado en otros días: días de la semana + periodo, y/o fechas sueltas */
+function openRepeatTask(id){const t=taskById(id);if(!t)return;const f=addDays(t.date>=TODAY?t.date:TODAY,1);
+  S.ui.rpt={id,days:[(parse(t.date).getDay()+6)%7],from:f,to:addDays(f,27),onBusy:'skip',extra:[]};
+  openModal(`<div class="modal"><div class="modal-h"><h3>🔁 Repetir «${esc(t.title)}»</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
+  <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:10px">Se copia el entrenamiento completo (bloques, ejercicios, videos y adjuntos) en los días que elijas. Cada copia empieza sin registros del atleta.</div><div id="rptBody">${rptInner()}</div></div>
+  <div class="modal-f"><button class="btn ghost" onclick="openCoachTask('${t.id}')">Volver</button><span style="flex:1"></span><button class="btn primary" id="rptGo" onclick="saveRepeatTask()">${ic('copy',15)} Repetir</button></div></div>`)}
+function rptDates(){const r=S.ui.rpt,t=r&&taskById(r.id);if(!t)return [];const set=new Set();
+  if(r.days.length)repDates({days:r.days,from:r.from,to:r.to},r.from,t.athleteId).forEach(x=>set.add(x.date));
+  r.extra.forEach(x=>set.add(x));set.delete(t.date);
+  return [...set].sort().map(dt=>{const ex=S.tasks.filter(x=>x.athleteId===t.athleteId&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==t.id);return {date:dt,busy:ex.length>0,pend:ex.filter(x=>x.status!=='done').length}})}
+function rptInner(){const r=S.ui.rpt,xs=rptDates(),busy=xs.filter(x=>x.busy).length,use=xs.filter(x=>!(x.busy&&r.onBusy==='skip')),D=x=>`${DOW_N[(parse(x).getDay()+6)%7]} ${dmy(x).slice(0,5)}`;
+  return `<div class="rep" style="margin-top:0"><div class="rep-t">Días de la semana</div>
+    <div class="rep-days">${DOW_L.map((l,k)=>`<label class="rday ${r.days.includes(k)?'on':''}" title="${DOW_N[k]}"><input type="checkbox" data-trday="${k}" ${r.days.includes(k)?'checked':''} onchange="trChange()"><span>${l}</span></label>`).join('')}</div>
+    <div class="rep-quick"><button type="button" class="pchip" onclick="trQuick([0,1,2,3,4])">L–V</button><button type="button" class="pchip" onclick="trQuick([0,1,2,3,4,5])">L–S</button><button type="button" class="pchip" onclick="trQuick([0,2,4])">L·X·V</button><button type="button" class="pchip" onclick="trQuick([1,3])">M·J</button><button type="button" class="pchip" onclick="trQuick([0,1,2,3,4,5,6])">Todos</button><button type="button" class="pchip" onclick="trQuick([])">Ninguno</button></div>
+    ${r.days.length?`<div class="muted" style="font-size:11px;font-weight:700;margin-top:4px">Periodo</div>${perHTML('data-tr="',r.from,r.to,'','trPer').replace(/repChange\(\)/g,'trChange()')}`:''}
+    <div class="muted" style="font-size:11px;font-weight:700;margin-top:10px">Fechas sueltas (opcional)</div>
+    <div class="row" style="align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px"><input type="date" class="inp" id="tr_x" style="width:auto;padding:6px 10px"><button type="button" class="btn ghost sm" onclick="trAddDate()">${ic('plus',13)} Agregar fecha</button></div>
+    ${r.extra.length?`<div class="pchips" style="flex-wrap:wrap;margin-top:6px">${r.extra.slice().sort().map(x=>`<button type="button" class="pchip on" onclick="trDelDate('${x}')" title="Quitar">${D(x)} ✕</button>`).join('')}</div>`:''}
+    ${busy?`<div class="field" style="margin:10px 0 0;max-width:320px"><label>${busy} de esos días ya tiene${busy>1?'n':''} entrenamiento</label><select id="tr_busy" onchange="trChange()"><option value="skip" ${r.onBusy==='skip'?'selected':''}>Omitir esos días</option><option value="add" ${r.onBusy==='add'?'selected':''}>Agregarlo además</option><option value="replace" ${r.onBusy==='replace'?'selected':''}>Reemplazar el pendiente (no toca los completados)</option></select></div>`:''}
+    <div class="rep-prev">${use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'}: ${use.slice(0,14).map(x=>`<span class="${x.busy?'bz':''}">${D(x.date)}</span>`).join(' · ')}${use.length>14?` · y ${use.length-14} más`:''}`:'<b>No hay días por asignar</b>: elige días de la semana o agrega fechas.'}</div></div>`}
+function trCollect(){const r=S.ui.rpt,root=document.getElementById('rptBody');if(!r||!root)return;
+  const ds=root.querySelectorAll('[data-trday]');if(ds.length)r.days=[...ds].filter(x=>x.checked).map(x=>+x.dataset.trday);
+  const f=root.querySelector('[data-tr="from"]'),to=root.querySelector('[data-tr="to"]');if(f&&f.value)r.from=f.value;if(to&&to.value)r.to=to.value;if(r.to<r.from)r.to=r.from;
+  const ob=root.querySelector('#tr_busy');if(ob)r.onBusy=ob.value}
+function trRender(){const el=document.getElementById('rptBody');if(el)el.innerHTML=rptInner()}
+function trChange(){trCollect();trRender()}
+function trQuick(arr){trCollect();S.ui.rpt.days=arr.slice();trRender()}
+function trPer(n){trCollect();const r=S.ui.rpt;r.to=addDays(r.from,n);trRender()}
+function trAddDate(){const v=(document.getElementById('tr_x')||{}).value;trCollect();if(!v){toast('Elige una fecha');return}const r=S.ui.rpt;if(!r.extra.includes(v))r.extra.push(v);trRender()}
+function trDelDate(v){trCollect();S.ui.rpt.extra=S.ui.rpt.extra.filter(x=>x!==v);trRender()}
+function saveRepeatTask(){trCollect();const r=S.ui.rpt,t=r&&taskById(r.id);if(!t){closeModal();return}
+  const xs=rptDates().filter(x=>!(x.busy&&r.onBusy==='skip'));if(!xs.length){toast('Elige al menos un día');return}
+  if(xs.length>60&&!confirm(`Se crearán ${xs.length} sesiones. ¿Continuar?`))return;
+  const sid=t.seriesId||uid();let rem=0;
+  xs.forEach(x=>{if(x.busy&&r.onBusy==='replace'){const n=S.tasks.length;S.tasks=S.tasks.filter(y=>!(y.athleteId===t.athleteId&&y.date===x.date&&y.type==='entrenamiento'&&!y.hist&&y.status!=='done'&&y.id!==t.id));rem+=n-S.tasks.length}
+    const c=JSON.parse(JSON.stringify(t));Object.assign(c,{id:uid(),date:x.date,seriesId:sid,createdAt:Date.now(),status:'pending',progress:{sets:{}},feedback:null,answers:null,result:null,attachAns:null,confirmed:false});S.tasks.push(c)});
+  pushNotif(t.athleteId,`Tu coach agendó «${t.title}» en ${xs.length} día${xs.length>1?'s':''} más (desde el ${longDate(xs[0].date)})`);
+  S.ui.rpt=null;closeModal();S.ui.month=xs[0].date.slice(0,7);S.ui.selDay=xs[0].date;commit();
+  toast(`«${t.title}» repetido en ${xs.length} día${xs.length>1?'s':''}`+(rem?` · ${rem} sesi${rem>1?'ones':'ón'} pendiente${rem>1?'s':''} reemplazada${rem>1?'s':''}`:''))}
 
 /* =========================================================
    VISTA ATLETA
@@ -3977,7 +4028,7 @@ function saveEditTask(){
   const nd=S.ui.addDate||t.date;if(nd!==t.date)t.date=nd;
   blocks.forEach(b=>b.exercises.forEach(e=>libAdd(e.name,t.title,e.video,!!e.cardio)));
   pushNotif(t.athleteId,`Tu coach actualizó «${oldTitle}»${sims.length?` y ${sims.length} sesiones más`:''}`);
-  S.ui.draft=null;closeModal();S.ui.selDay=t.date;commit();toast((sims.length?`Cambios guardados en ${sims.length+1} sesiones`:'Cambios guardados')+(BR.add+BR.neu?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''}`:''));
+  S.ui.draft=null;closeModal();S.ui.selDay=t.date;commit();toast((sims.length?`Cambios guardados en ${sims.length+1} sesiones`:'Cambios guardados')+brMsg(BR));
 }
 
 /* ---- plan editado → sesiones pendientes del calendario ---- */

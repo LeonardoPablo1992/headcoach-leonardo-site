@@ -142,3 +142,28 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Factores nuevos del semáforo (además de ACWR, cumplimiento, disposición del formulario de inicio, monotonía y pulso): formulario final de cada sesión («¿Cómo te sentiste?» 1–5), check-in semanal (fatiga, sueño, comida, descanso 1–5, el más reciente de 10 días) y apego a comidas (recuadros marcados vs. comidas programadas en 7 días; cumplida = 1, con cambios = 0.5). Umbrales: ≥3.5 → 0 · 2.5–3.4 → 1 · <2.5 → 2; comidas ≥80 % → 0 · 50–79 % → 1 · <50 % → 2.
 - Check-in semanal: se abre solo al terminar el último entrenamiento programado de la semana; si no lo responde, queda una tarjeta «Check-in semanal pendiente» en su agenda (semana actual o la anterior). Se guarda en `pt_evo` kind `weekly` e incluye el % de comidas marcadas. El coach lo ve en la tarjeta del semáforo.
 - Cada comida tiene un recuadro para marcarla como cumplida (agenda «Hoy te toca comer» y pestaña Nutrición). Se puede marcar hasta 2 días atrás. Usa los mismos registros `kind:'meal'` que los botones existentes.
+
+## Repetir entrenamiento y bloques (21/11/2026)
+
+- **Repetir una sesión ya asignada**: en el detalle de un entrenamiento del calendario hay un botón «🔁 Repetir». Se eligen días de la semana + periodo (inicia / termina) y/o fechas sueltas. Copia el entrenamiento completo (bloques, ejercicios, videos, adjuntos); cada copia empieza sin registros del atleta. Si un día ya tiene entrenamiento: omitir, agregarlo además o reemplazar el pendiente (nunca toca sesiones completadas).
+- **Repetir un bloque** (ej. «Músculo rezagado»): ya no crea una sesión aparte con el nombre del bloque en cada día. Ahora se mete dentro del entrenamiento que ya existe ese día, en la misma posición; si esa sesión ya trae un bloque con ese nombre, se actualiza en lugar de duplicarse. Solo se crea una sesión con el nombre del bloque si ese día no hay entrenamiento. Los días que solo tienen sesiones completadas se omiten.
+
+## Arrastrar sesiones a otro día (21/11/2026)
+
+- En el calendario del coach cada tarea se puede arrastrar a otro día. Computadora: clic sostenido y arrastrar. Celular: mantener presionado ~medio segundo y arrastrar.
+- Se guarda al soltar (igual que «Mover») y el atleta recibe el aviso. El mensaje de confirmación trae **Deshacer** por 7 segundos.
+- Para cambiar de mes mientras arrastras, deja la tarea sobre las flechas ‹ › del calendario.
+- Las sesiones ya completadas no se pueden mover. Si el día destino ya tiene otro entrenamiento, el aviso lo indica.
+
+## Volumen total del entrenamiento (21/11/2026)
+
+- Recuadro «📊 Volumen total» al final de cada entrenamiento (detalle de la sesión, vista coach) y en el editor (se actualiza mientras escribes).
+- Suma series totales, repeticiones totales, ejercicios y minutos aeróbicos, con desglose por bloque.
+- Reps «12» = 12 por serie; «8-12» se suma como rango mínimo–máximo; «12/10/8» suma cada serie. Reps por tiempo («30 s») o AMRAP no suman reps (sí series).
+- En sesiones con registros del atleta muestra también series hechas y tonelaje (peso anotado × reps × series hechas; lb se convierte a kg).
+
+## Nota opcional por ejercicio (21/11/2026)
+
+- En el editor de sesión y en el editor de plantillas, cada ejercicio (incluido el aeróbico) tiene el botón «📝 ＋ Nota». Abre un campo de texto (máx. 400 caracteres) para casos especiales; el bote de basura la quita.
+- El atleta la ve en un recuadro amarillo debajo de series × reps, y el ícono 📝 aparece junto al nombre del ejercicio aunque esté cerrado.
+- Las notas de una plantilla pasan a las sesiones al asignar el plan. Excel: columna «Nota» al final (exportar y cargar).

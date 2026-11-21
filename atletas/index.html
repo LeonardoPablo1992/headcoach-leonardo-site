@@ -166,6 +166,33 @@ svg{flex-shrink:0}
 .chip.missed .st{color:var(--danger)}
 .more{font-size:11px;color:var(--green-d);font-weight:600;padding-left:4px}
 .cell.sel{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-50)}
+.cal .chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.chip.cdg-src{opacity:.35}
+.exnote-ed{display:flex;gap:6px;align-items:flex-start;margin-top:8px}
+.exnote-ed textarea{flex:1;min-height:38px;resize:vertical;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--card);color:var(--ink);font-family:inherit}
+.exnote-ed .del{border:0;background:transparent;color:#9ca3af;padding:6px;cursor:pointer}
+.tchip.note.on{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.exnote{width:100%;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:8px;padding:7px 10px;font-size:13px;color:#78350f;white-space:pre-wrap;line-height:1.45}
+.npill{font-size:13px;line-height:1}
+.volbox{margin-top:14px;border:1.5px solid var(--green);border-radius:14px;background:var(--green-50);padding:12px 14px}
+.volbox .vt{font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.volbox .vk{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.volbox .vk>div{background:var(--card);border-radius:10px;padding:8px 10px}
+.volbox .vk .l{font-size:11px;color:var(--muted);font-weight:600}
+.volbox .vk .v{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.volbox .vk .v small{font-size:11px;font-weight:600;color:var(--muted)}
+.volbox table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.volbox th,.volbox td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line-2)}
+.volbox th:first-child,.volbox td:first-child{text-align:left}
+.volbox th{color:var(--muted);font-weight:700;font-size:11px}
+.volbox tfoot td{font-weight:800;border-bottom:0}
+.volbox .vn{font-size:11px;color:var(--muted);margin-top:6px}
+.cell.cdg-over{background:var(--green-50);outline:2px dashed var(--green);outline-offset:-3px}
+.cell.cdg-over.cdg-bad{background:#fef2f2;outline-color:#ef4444}
+.cdg-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-130%) rotate(-2deg);max-width:200px;padding:6px 10px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:color-mix(in srgb,var(--c) 18%,var(--card));border-left:4px solid var(--c);color:var(--ink);box-shadow:var(--shadow-lg)}
+body.cdg-on,body.cdg-on *{cursor:grabbing!important}
+.toast:has(.tundo){border-radius:14px;width:max-content;max-width:min(92vw,520px)}
+.toast .tundo{flex:0 0 auto;margin-left:6px;border:0;background:var(--green);color:var(--on-green);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
 
 /* compact (split / mobile) */
 .coach.compact{grid-template-columns:1fr}
@@ -2514,8 +2541,8 @@ function calHTML(role){
   const first=new Date(y,m-1,1), off=(first.getDay()+6)%7, days=new Date(y,m,0).getDate();
   const cells=Math.ceil((off+days)/7)*7, tctx=role==='coach'?tlCtx(aid):null, calA=S.athletes.find(x=>x.id===aid);
   let h=`<div class="cal-h">
-    <button class="icon-btn" onclick="shiftMonth('${key}',-1)">‹</button>
-    <button class="icon-btn" onclick="shiftMonth('${key}',1)">›</button>
+    <button class="icon-btn" ${role==='coach'?'data-mnav="-1"':''} onclick="shiftMonth('${key}',-1)">‹</button>
+    <button class="icon-btn" ${role==='coach'?'data-mnav="1"':''} onclick="shiftMonth('${key}',1)">›</button>
     <h3>${MES[m-1]} ${y}</h3>
     <button class="btn soft sm" onclick="S.ui['${key}']=TODAY.slice(0,7);commit()">Hoy</button>
     ${role==='coach'?`<div class="legend">${['entrenamiento','video','nutricion','evolucion','formulario'].map(k=>`<span><i style="background:${TYPES[k].color}"></i>${TYPES[k].label}</span>`).join('')}</div>`:''}
@@ -2527,8 +2554,8 @@ function calHTML(role){
     const ds=`${y}-${pad(m)}-${pad(dn)}`, ts=tasksOn(aid,ds);
     const cls=`cell ${ds===TODAY?'today':''} ${ds<TODAY?'past':''} ${role==='athlete'&&ds===S.ui.selDay?'sel':''}`;
     if(role==='coach'){
-      h+=`<div class="${cls}" onclick="openAddTask('${ds}')"><div class="dn">${dn}</div>${tctx&&ds<=TODAY?`<span class="tl-cal">${tlDot(trafficDay(tctx,ds),9,ds)}</span>`:''}<button class="add" onclick="event.stopPropagation();openAddTask('${ds}')">+</button>`;
-      ts.slice(0,3).forEach(t=>{const st=status(t);h+=`<div class="chip ${st}" style="--c:${TYPES[t.type].color}" onclick="event.stopPropagation();openCoachTask('${t.id}')" title="${esc(t.title)}"><span>${esc(t.title)}</span><b class="st">${st==='done'?ic('check',12):st==='missed'?ic('x',12):''}</b></div>`});
+      h+=`<div class="${cls}" data-ds="${ds}" onclick="openAddTask('${ds}')"><div class="dn">${dn}</div>${tctx&&ds<=TODAY?`<span class="tl-cal">${tlDot(trafficDay(tctx,ds),9,ds)}</span>`:''}<button class="add" onclick="event.stopPropagation();openAddTask('${ds}')">+</button>`;
+      ts.slice(0,3).forEach(t=>{const st=status(t);h+=`<div class="chip ${st}" style="--c:${TYPES[t.type].color}" onpointerdown="calDragStart(event,'${t.id}')" onclick="event.stopPropagation();openCoachTask('${t.id}')" title="${esc(t.title)}${st==='done'?'':' · arrastra para cambiar de día'}"><span>${esc(t.title)}</span><b class="st">${st==='done'?ic('check',12):st==='missed'?ic('x',12):''}</b></div>`});
       if(ts.length>3) h+=`<div class="more" onclick="event.stopPropagation();openDayList('${ds}')">+${ts.length-3} más</div>`;
       const md=calA?mealsForDay(calA,ds):[];if(md.length)h+=`<div class="cmeal" title="${esc(md.map(x=>`${x.time||''} ${x.name||'Comida'}`).join(' · '))}" onclick="event.stopPropagation();openNutrition('${aid}')">🍽 ${md.length} · ${fmtN(md.reduce((s,x)=>s+mealK(x),0))} kcal</div>`;
       h+='</div>';
@@ -2538,6 +2565,38 @@ function calHTML(role){
   }
   return h+'</div>';
 }
+/* Arrastrar y soltar una sesión a otro día (calendario del coach). Mouse: arrastra. Celular: mantén presionado ~0.35 s y arrastra.
+   Se guarda al soltar; el aviso trae «Deshacer». Sesiones completadas no se mueven. Sobre ‹ › cambia de mes. */
+const CDG={};
+function calDragStart(e,id){if(e.button>0||CDG.id)return;Object.assign(CDG,{id,el:e.currentTarget,x:e.clientX,y:e.clientY,on:false,touch:e.pointerType!=='mouse',timer:null,hov:null,over:null,g:null});
+  if(CDG.touch)CDG.timer=setTimeout(cdgBegin,350);
+  document.addEventListener('pointermove',cdgMove);document.addEventListener('pointerup',cdgUp);document.addEventListener('pointercancel',cdgEnd)}
+function cdgBegin(){const t=taskById(CDG.id);if(!t)return cdgEnd();if(t.status==='done'){toast('Esta sesión ya se completó: no se puede mover');return cdgEnd()}
+  CDG.on=true;try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
+  const g=document.createElement('div');g.className='cdg-ghost';g.style.setProperty('--c',TYPES[t.type].color);g.textContent=t.title;document.body.appendChild(g);CDG.g=g;
+  if(CDG.el)CDG.el.classList.add('cdg-src');document.body.classList.add('cdg-on');cdgPos(CDG.x,CDG.y)}
+function cdgMove(e){if(!CDG.id)return;if(!CDG.on){if(Math.hypot(e.clientX-CDG.x,e.clientY-CDG.y)>6){if(CDG.touch)return cdgEnd();CDG.x=e.clientX;CDG.y=e.clientY;cdgBegin()}return}
+  e.preventDefault();cdgPos(e.clientX,e.clientY)}
+function cdgPos(x,y){CDG.x=x;CDG.y=y;if(CDG.g){CDG.g.style.left=x+'px';CDG.g.style.top=y+'px'}
+  const el=document.elementFromPoint(x,y),cell=el&&el.closest('.cal .cell[data-ds]'),t=taskById(CDG.id);
+  document.querySelectorAll('.cell.cdg-over').forEach(c=>{if(c!==cell)c.classList.remove('cdg-over','cdg-bad')});
+  if(cell){cell.classList.add('cdg-over');cell.classList.toggle('cdg-bad',!!t&&cell.dataset.ds===t.date)}CDG.over=cell?cell.dataset.ds:null;
+  const nb=el&&el.closest('[data-mnav]');if(nb&&!CDG.hov)CDG.hov=setTimeout(()=>{CDG.hov=null;if(CDG.on){shiftMonth('month',+nb.dataset.mnav);requestAnimationFrame(()=>cdgPos(CDG.x,CDG.y))}},700);
+  if(!nb&&CDG.hov){clearTimeout(CDG.hov);CDG.hov=null}}
+function cdgUp(){const on=CDG.on,id=CDG.id,ds=CDG.over;cdgEnd();if(!on)return;
+  CDG.block=Date.now();if(ds)calMove(id,ds)}
+function cdgEnd(){clearTimeout(CDG.timer);clearTimeout(CDG.hov);if(CDG.g)CDG.g.remove();if(CDG.el)CDG.el.classList.remove('cdg-src');
+  document.querySelectorAll('.cell.cdg-over').forEach(c=>c.classList.remove('cdg-over','cdg-bad'));document.body.classList.remove('cdg-on');
+  document.removeEventListener('pointermove',cdgMove);document.removeEventListener('pointerup',cdgUp);document.removeEventListener('pointercancel',cdgEnd);
+  Object.assign(CDG,{id:null,el:null,g:null,on:false,over:null,timer:null,hov:null})}
+document.addEventListener('touchmove',e=>{if(CDG.on)e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>{if(CDG.id&&CDG.touch)e.preventDefault()});
+document.addEventListener('click',e=>{if(CDG.block&&Date.now()-CDG.block<400){e.stopPropagation();e.preventDefault();CDG.block=0}},true);
+function calMove(id,nd){const t=taskById(id);if(!t||!nd||nd===t.date)return;const prev=t.date,busy=t.type==='entrenamiento'&&S.tasks.some(x=>x!==t&&x.athleteId===t.athleteId&&x.date===nd&&x.type==='entrenamiento'&&!x.hist);
+  t.date=nd;pushNotif(t.athleteId,`«${t.title}» se movió al ${longDate(nd)}`);commit();
+  toastUndo(`«${t.title}» movido al ${DOW_N[(parse(nd).getDay()+6)%7]} ${dmy(nd).slice(0,5)}${busy?' · ese día ya tenía otro entrenamiento':''}`,()=>{const x=taskById(id);if(!x)return;x.date=prev;pushNotif(x.athleteId,`«${x.title}» regresó al ${longDate(prev)}`);commit();toast(`Regresado al ${dmy(prev)}`)})}
+function toastUndo(msg,fn){const el=document.createElement('div');el.className='toast';el.innerHTML=`<span class="ok">${ic('checkc',16)}</span><span>${esc(msg)}</span><button type="button" class="tundo">Deshacer</button>`;
+  el.querySelector('button').onclick=()=>{el.remove();fn()};document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),7000)}
 function shiftMonth(key,n){const [y,m]=S.ui[key].split('-').map(Number);const d=new Date(y,m-1+n,1);S.ui[key]=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;commit()}
 function mealLogOf(aid,mid,ds){return S.evo.find(e=>e.kind==='meal'&&e.athleteId===aid&&e.date===ds&&e.mealId===mid)||null}
 function mealChkHTML(a,m,ds){const lg=mealLogOf(a.id,m.id,ds),st=lg?lg.status:null,can=isMe(a.id)&&ds<=TODAY&&ds>=addDays(TODAY,-2);
@@ -2991,6 +3050,7 @@ function builderInner(){
     <div class="blk-f"><button onclick="addEx(${bi})">+ Ejercicio</button></div>
   </div>`).join('')}
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="addBlock()">${ic('plus',14)} Agregar bloque</button><button class="btn soft sm aero-add" onclick="addAeroBlock()">🏃 Agregar bloque aeróbico</button></div>
+  <div id="volBox">${volHTML(d.blocks)}</div>
   <div class="attach-bar">
     <div class="lbl">Agregar a esta sesión</div>
     <div class="ico-chips">${ATTACH_TYPES.map(k=>`<button class="ico-chip" style="--c:${TYPES[k].color}" onclick="addAttach('${k}')"><i></i>${ic(TYPES[k].icon,14)} ${TYPES[k].label}</button>`).join('')}</div>
@@ -3029,8 +3089,13 @@ function blkPer(bi,n){collectDraft();const b=S.ui.draft.blocks[bi],t=S.ui.draft.
 function mainDates(d){const ds=S.ui.addDate,aid=S.ui.athleteId;if(d.editId){const t=taskById(d.editId);return t?[S.ui.addDate||t.date,...(d.applyNext!==false?similarTasks(t).map(x=>x.date):[])]:[]}
   return repDates(d,ds,aid).filter(x=>!(x.busy&&d.onBusy==='skip')).map(x=>x.date)}
 function blkRange(b,ds){const r=b.rep||{};return repRange({from:r.from,to:r.to||(r.weeks!=null?addDays(mondayOf(ds),(+r.weeks||0)*7+6):addDays(ds,27))},ds)}
-function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d)),[f,to]=blkRange(b,ds),nm=(b.name||'').trim().toLowerCase();
-  return repDates({days:b.rep.days,from:f,to},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const dup=S.tasks.some(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==(t&&t.id)&&String(x.title||'').trim().toLowerCase()===nm);return {date:dt,dup}})}
+function blkKey(n){return String(n||'').trim().toLowerCase()||'bloque de ejercicios'}
+/* Por cada día: si ya hay un entrenamiento pendiente, el bloque se mete DENTRO de esa sesión (si ya lo trae, se actualiza; no se duplica).
+   Solo si ese día no hay entrenamiento se crea una sesión con el bloque. Si ese día solo hay sesiones completadas, se omite. */
+function blkRepPlan(b,d){if(!b.rep||!(b.rep.days||[]).length)return [];const t=d.editId?taskById(d.editId):null,aid=t?t.athleteId:S.ui.athleteId,ds=S.ui.addDate||(t&&t.date),skip=new Set(mainDates(d)),[f,to]=blkRange(b,ds),nm=blkKey(b.name);
+  const has=x=>blkKey(x.title)===nm||((x.data&&x.data.blocks)||[]).some(y=>blkKey(y.name)===nm);
+  return repDates({days:b.rep.days,from:f,to},ds,aid).map(x=>x.date).filter(dt=>!skip.has(dt)).map(dt=>{const ts=S.tasks.filter(x=>x.athleteId===aid&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==(t&&t.id)),open=ts.filter(x=>x.status!=='done'),into=open.find(has)||open[0]||null;
+    return {date:dt,dup:!into&&ts.length>0,into:into?into.id:null,upd:!!into&&has(into)}})}
 function blkRepHTML(b,bi){
   const d=S.ui.draft,r=b.rep,sel=r.days||[],xs=blkRepPlan(b,d),use=xs.filter(x=>!x.dup),dups=xs.length-use.length,t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds),nm=esc(b.name||'Bloque de ejercicios');
   return `<div class="brep-p"><div style="font-size:12px;font-weight:700;margin-bottom:6px">🔁 Repetir solo el bloque «${nm}» en otros días</div>
@@ -3039,15 +3104,21 @@ function blkRepHTML(b,bi){
     <div class="muted" style="font-size:11px;font-weight:700;margin-top:4px">Periodo del bloque</div>
     ${perHTML(`data-bp="${bi}|`,f,to,ds,`blkPer.bind(null,${bi})`).replace(/blkPer\.bind\(null,(\d+)\)\((\d+)\)/g,'blkPer($1,$2)')}
     <div style="margin-top:8px"><button type="button" class="btn ghost sm" onclick="blkRep(${bi})">Quitar repetición</button></div>
-    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'} llamada${use.length>1?'s':''} «${nm}» (solo este bloque): ${use.slice(0,12).map(x=>`<span>${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')}${use.length>12?` · y ${use.length-12} más`:''}${dups?`<br>${dups} día${dups>1?'s':''} ya tiene${dups>1?'n':''} «${nm}»: no se duplica.`:''}`:blkRepRaw(b,d)?(dups?`Esos días ya tienen «${nm}»: no se duplica.`:'Esos días ya llevan el entrenamiento completo: no hay días extra.'):'No hay días dentro del periodo: cambia las fechas o los días.'}</div></div>`}
+    <div class="rep-prev">${!sel.length?'Elige los días en que se repite este bloque.':use.length?(()=>{const ins=use.filter(x=>x.into&&!x.upd),up=use.filter(x=>x.upd),nw=use.filter(x=>!x.into),L=a=>a.slice(0,10).map(x=>`<span>${DOW_N[(parse(x.date).getDay()+6)%7]} ${dmy(x.date).slice(0,5)}</span>`).join(' · ')+(a.length>10?` · y ${a.length-10} más`:'');
+      return [ins.length?`Se agrega dentro del entrenamiento que ya hay en <b>${ins.length}</b> día${ins.length>1?'s':''}: ${L(ins)}`:'',up.length?`Se actualiza en <b>${up.length}</b> día${up.length>1?'s':''} que ya lo traen (no se duplica): ${L(up)}`:'',nw.length?`Se crea${nw.length>1?'n':''} <b>${nw.length}</b> sesi${nw.length>1?'ones':'ón'} solo con este bloque (no hay entrenamiento ese día): ${L(nw)}`:''].filter(Boolean).join('<br>')+(dups?`<br>${dups} día${dups>1?'s':''} solo tiene${dups>1?'n':''} sesiones ya completadas: se omite${dups>1?'n':''}.`:'')})():blkRepRaw(b,d)?(dups?'Esos días ya tienen sesiones completadas: no se modifica nada.':'Esos días ya llevan el entrenamiento completo: no hay días extra.'):'No hay días dentro del periodo: cambia las fechas o los días.'}</div></div>`}
 function blkRepRaw(b,d){const t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds);return repDates({days:b.rep.days,from:f,to},ds,t?t.athleteId:S.ui.athleteId).length}
 function blkRep(bi){collectDraft();const d=S.ui.draft,b=d.blocks[bi],t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date);b.rep=b.rep?null:{days:[],from:ds,to:d.to&&d.to>ds?d.to:addDays(ds,27)};rerenderBuilder()}
 function blkRepQuick(bi,arr){collectDraft();const b=S.ui.draft.blocks[bi],ds=S.ui.addDate;b.rep=b.rep||{days:[],from:ds,to:addDays(ds,27)};b.rep.days=arr.slice();rerenderBuilder()}
-const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;return b});
-function applyBlockReps(d,aid,ds){let add=0,neu=0;
-  d.blocks.forEach(b=>{const xs=blkRepPlan(b,d).filter(x=>!x.dup);if(!xs.length)return;const copy=stripRep([b])[0],sid=uid(),nm=(copy.name||'').trim()||'Bloque de ejercicios';copy.name=nm;
-    xs.forEach(x=>{S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:nm,data:{blocks:[JSON.parse(JSON.stringify(copy))],attach:[]}});neu++})});
-  return {add,neu}}
+const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;(b.exercises||[]).forEach(e=>{delete e._nt;if(!String(e.note||'').trim())delete e.note;else e.note=String(e.note).trim()});return b});
+function applyBlockReps(d,aid,ds){let add=0,neu=0,upd=0;
+  d.blocks.forEach((b,bi)=>{const xs=blkRepPlan(b,d).filter(x=>!x.dup);if(!xs.length)return;const copy=stripRep([b])[0],nm=(copy.name||'').trim()||'Bloque de ejercicios',key=blkKey(nm);copy.name=nm;let sid=null;
+    xs.forEach(x=>{const tk=x.into&&taskById(x.into),cp=JSON.parse(JSON.stringify(copy));
+      if(tk){tk.data=tk.data||{};const old=JSON.parse(JSON.stringify(tk.data.blocks||[])),bs=tk.data.blocks=tk.data.blocks||[],k=bs.findIndex(y=>blkKey(y.name)===key);
+        if(k>=0){bs[k]=cp;upd++}else{bs.splice(Math.min(bi,bs.length),0,cp);add++}
+        tk.edited=Date.now();remapProgress(tk,old);return}
+      sid=sid||uid();S.tasks.push({athleteId:aid,date:x.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),seriesId:sid,blockRep:true,title:nm,data:{blocks:[cp],attach:[]}});neu++})});
+  return {add,neu,upd}}
+function brMsg(BR){if(!BR)return '';const p=[];if(BR.add)p.push(`agregado en ${BR.add} sesi${BR.add>1?'ones':'ón'}`);if(BR.upd)p.push(`actualizado en ${BR.upd}`);if(BR.neu)p.push(`${BR.neu} sesi${BR.neu>1?'ones':'ón'} nueva${BR.neu>1?'s':''}`);return p.length?' · bloque '+p.join(', '):''}
 function repQuick(arr){collectDraft();S.ui.draft.days=arr?arr.slice():null;rerenderBuilder()}
 function rerenderBuilder(){const b=document.getElementById('builder');if(b)b.innerHTML=builderInner()}
 function collectDraft(){
@@ -3113,7 +3184,7 @@ function saveTask(type){
   closeModal();
   S.ui.month=first.date.slice(0,7);S.ui.coachTab='plan';S.ui.selDay=first.date;S.ui.athTab='agenda';
   commit();
-  const brTxt=typeof BR!=='undefined'&&BR&&(BR.add||BR.neu)?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''} con su propio nombre`:'';
+  const brTxt=typeof BR!=='undefined'?brMsg(BR):'';
   toast((created.length>1?`${created.length} tareas asignadas a ${a.name}`:`Asignado a ${a.name} · ${dmy(first.date)}`)+brTxt);
 }
 
@@ -3191,6 +3262,7 @@ function trainingView(t,role){
     h+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">${tm?`<span class="timer"><span class="pulse"></span><span class="live-timer" data-start="${S.ui.timer.start}">00:00:00</span></span>`:`<button class="btn primary" onclick="openReadiness('${t.id}')">${ic('play',14,true)} Iniciar entrenamiento</button>`}<span class="muted" style="font-size:12px;display:inline-flex;align-items:center">Toca cada serie al terminarla y anota el peso ${qm('kg')}</span></div>`;
   }
   h+=blocksViewHTML(t,live);
+  if(role==='coach')h+=volHTML(t.data.blocks||[],t);
   h+=attachPills(t,role);
   if(t.status==='done'&&t.feedback?.comment) h+=`<div style="margin-top:14px"><div class="muted" style="font-size:12px;font-weight:600;margin-bottom:6px">Comentario del atleta</div><div class="note">💬 ${esc(t.feedback.comment)}</div></div>`;
   if(live) h+=finishHTML(t);
@@ -3243,7 +3315,7 @@ function openCoachTask(id){
   <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:6px;text-transform:capitalize">${T.label} · ${longDate(t.date)}${t.planName?` · ${esc(t.planName)} · fase ${t.phase}`:''}</div>${detailBody(t,'coach')}</div>
   <div class="modal-f">
     <button class="btn danger sm" onclick="delTask('${t.id}')">${ic('trash',14)} Eliminar</button>
-    ${t.type==='entrenamiento'?`<button class="btn primary sm" onclick="openEditTask('${t.id}')">${ic('edit',14)} Editar</button>`:''}
+    ${t.type==='entrenamiento'?`<button class="btn primary sm" onclick="openEditTask('${t.id}')">${ic('edit',14)} Editar</button><button class="btn soft sm" onclick="openRepeatTask('${t.id}')" title="Copiar este entrenamiento completo a otros días">🔁 Repetir</button>`:''}
     <span style="flex:1"></span>
     <input type="date" class="inp" id="mv_date" value="${t.date}" style="width:auto;padding:6px 10px">
     <button class="btn ghost sm" onclick="moveTask('${t.id}',false)">Mover</button>
@@ -3257,6 +3329,46 @@ function moveTask(id,dup){
   else{t.date=nd;pushNotif(t.athleteId,`«${t.title}» se movió al ${longDate(nd)}`);toast(`Movido al ${dmy(nd)}`)}
   closeModal();S.ui.month=nd.slice(0,7);commit();
 }
+
+/* Repetir (copiar y pegar) un entrenamiento YA asignado en otros días: días de la semana + periodo, y/o fechas sueltas */
+function openRepeatTask(id){const t=taskById(id);if(!t)return;const f=addDays(t.date>=TODAY?t.date:TODAY,1);
+  S.ui.rpt={id,days:[(parse(t.date).getDay()+6)%7],from:f,to:addDays(f,27),onBusy:'skip',extra:[]};
+  openModal(`<div class="modal"><div class="modal-h"><h3>🔁 Repetir «${esc(t.title)}»</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
+  <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:10px">Se copia el entrenamiento completo (bloques, ejercicios, videos y adjuntos) en los días que elijas. Cada copia empieza sin registros del atleta.</div><div id="rptBody">${rptInner()}</div></div>
+  <div class="modal-f"><button class="btn ghost" onclick="openCoachTask('${t.id}')">Volver</button><span style="flex:1"></span><button class="btn primary" id="rptGo" onclick="saveRepeatTask()">${ic('copy',15)} Repetir</button></div></div>`)}
+function rptDates(){const r=S.ui.rpt,t=r&&taskById(r.id);if(!t)return [];const set=new Set();
+  if(r.days.length)repDates({days:r.days,from:r.from,to:r.to},r.from,t.athleteId).forEach(x=>set.add(x.date));
+  r.extra.forEach(x=>set.add(x));set.delete(t.date);
+  return [...set].sort().map(dt=>{const ex=S.tasks.filter(x=>x.athleteId===t.athleteId&&x.date===dt&&x.type==='entrenamiento'&&!x.hist&&x.id!==t.id);return {date:dt,busy:ex.length>0,pend:ex.filter(x=>x.status!=='done').length}})}
+function rptInner(){const r=S.ui.rpt,xs=rptDates(),busy=xs.filter(x=>x.busy).length,use=xs.filter(x=>!(x.busy&&r.onBusy==='skip')),D=x=>`${DOW_N[(parse(x).getDay()+6)%7]} ${dmy(x).slice(0,5)}`;
+  return `<div class="rep" style="margin-top:0"><div class="rep-t">Días de la semana</div>
+    <div class="rep-days">${DOW_L.map((l,k)=>`<label class="rday ${r.days.includes(k)?'on':''}" title="${DOW_N[k]}"><input type="checkbox" data-trday="${k}" ${r.days.includes(k)?'checked':''} onchange="trChange()"><span>${l}</span></label>`).join('')}</div>
+    <div class="rep-quick"><button type="button" class="pchip" onclick="trQuick([0,1,2,3,4])">L–V</button><button type="button" class="pchip" onclick="trQuick([0,1,2,3,4,5])">L–S</button><button type="button" class="pchip" onclick="trQuick([0,2,4])">L·X·V</button><button type="button" class="pchip" onclick="trQuick([1,3])">M·J</button><button type="button" class="pchip" onclick="trQuick([0,1,2,3,4,5,6])">Todos</button><button type="button" class="pchip" onclick="trQuick([])">Ninguno</button></div>
+    ${r.days.length?`<div class="muted" style="font-size:11px;font-weight:700;margin-top:4px">Periodo</div>${perHTML('data-tr="',r.from,r.to,'','trPer').replace(/repChange\(\)/g,'trChange()')}`:''}
+    <div class="muted" style="font-size:11px;font-weight:700;margin-top:10px">Fechas sueltas (opcional)</div>
+    <div class="row" style="align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px"><input type="date" class="inp" id="tr_x" style="width:auto;padding:6px 10px"><button type="button" class="btn ghost sm" onclick="trAddDate()">${ic('plus',13)} Agregar fecha</button></div>
+    ${r.extra.length?`<div class="pchips" style="flex-wrap:wrap;margin-top:6px">${r.extra.slice().sort().map(x=>`<button type="button" class="pchip on" onclick="trDelDate('${x}')" title="Quitar">${D(x)} ✕</button>`).join('')}</div>`:''}
+    ${busy?`<div class="field" style="margin:10px 0 0;max-width:320px"><label>${busy} de esos días ya tiene${busy>1?'n':''} entrenamiento</label><select id="tr_busy" onchange="trChange()"><option value="skip" ${r.onBusy==='skip'?'selected':''}>Omitir esos días</option><option value="add" ${r.onBusy==='add'?'selected':''}>Agregarlo además</option><option value="replace" ${r.onBusy==='replace'?'selected':''}>Reemplazar el pendiente (no toca los completados)</option></select></div>`:''}
+    <div class="rep-prev">${use.length?`Se ${use.length>1?'crearán':'creará'} <b>${use.length}</b> sesi${use.length>1?'ones':'ón'}: ${use.slice(0,14).map(x=>`<span class="${x.busy?'bz':''}">${D(x.date)}</span>`).join(' · ')}${use.length>14?` · y ${use.length-14} más`:''}`:'<b>No hay días por asignar</b>: elige días de la semana o agrega fechas.'}</div></div>`}
+function trCollect(){const r=S.ui.rpt,root=document.getElementById('rptBody');if(!r||!root)return;
+  const ds=root.querySelectorAll('[data-trday]');if(ds.length)r.days=[...ds].filter(x=>x.checked).map(x=>+x.dataset.trday);
+  const f=root.querySelector('[data-tr="from"]'),to=root.querySelector('[data-tr="to"]');if(f&&f.value)r.from=f.value;if(to&&to.value)r.to=to.value;if(r.to<r.from)r.to=r.from;
+  const ob=root.querySelector('#tr_busy');if(ob)r.onBusy=ob.value}
+function trRender(){const el=document.getElementById('rptBody');if(el)el.innerHTML=rptInner()}
+function trChange(){trCollect();trRender()}
+function trQuick(arr){trCollect();S.ui.rpt.days=arr.slice();trRender()}
+function trPer(n){trCollect();const r=S.ui.rpt;r.to=addDays(r.from,n);trRender()}
+function trAddDate(){const v=(document.getElementById('tr_x')||{}).value;trCollect();if(!v){toast('Elige una fecha');return}const r=S.ui.rpt;if(!r.extra.includes(v))r.extra.push(v);trRender()}
+function trDelDate(v){trCollect();S.ui.rpt.extra=S.ui.rpt.extra.filter(x=>x!==v);trRender()}
+function saveRepeatTask(){trCollect();const r=S.ui.rpt,t=r&&taskById(r.id);if(!t){closeModal();return}
+  const xs=rptDates().filter(x=>!(x.busy&&r.onBusy==='skip'));if(!xs.length){toast('Elige al menos un día');return}
+  if(xs.length>60&&!confirm(`Se crearán ${xs.length} sesiones. ¿Continuar?`))return;
+  const sid=t.seriesId||uid();let rem=0;
+  xs.forEach(x=>{if(x.busy&&r.onBusy==='replace'){const n=S.tasks.length;S.tasks=S.tasks.filter(y=>!(y.athleteId===t.athleteId&&y.date===x.date&&y.type==='entrenamiento'&&!y.hist&&y.status!=='done'&&y.id!==t.id));rem+=n-S.tasks.length}
+    const c=JSON.parse(JSON.stringify(t));Object.assign(c,{id:uid(),date:x.date,seriesId:sid,createdAt:Date.now(),status:'pending',progress:{sets:{}},feedback:null,answers:null,result:null,attachAns:null,confirmed:false});S.tasks.push(c)});
+  pushNotif(t.athleteId,`Tu coach agendó «${t.title}» en ${xs.length} día${xs.length>1?'s':''} más (desde el ${longDate(xs[0].date)})`);
+  S.ui.rpt=null;closeModal();S.ui.month=xs[0].date.slice(0,7);S.ui.selDay=xs[0].date;commit();
+  toast(`«${t.title}» repetido en ${xs.length} día${xs.length>1?'s':''}`+(rem?` · ${rem} sesi${rem>1?'ones':'ón'} pendiente${rem>1?'s':''} reemplazada${rem>1?'s':''}`:''))}
 
 /* =========================================================
    VISTA ATLETA
@@ -3883,8 +3995,16 @@ function aeroCard(mode,a,i,e,lab,P,at,vid){
     <div class="pf"><label>Inclinación</label>${!oth&&mq==='Caminadora'?`<span class="incl">${stp('incl',at('incline'),e.incline,'0')}<b>%</b></span>`:'<span class="na-pill">No aplica</span>'}</div>
     ${P?'':`<div class="pf"><label>FCE ${qm('fce')}</label><span class="fce fce-big">${fceTxt(ath,e.zone)||'—'}</span></div>`}
    </div>
+   <div style="margin-top:6px">${exNoteChip(mode,a,i,e)}</div>${exNoteEd(mode,a,i,e,at)}
    <div class="ex-vp" id="${vid}">${vInfo(e.video)?inlineVid(e.video,e.name):''}</div></div>`;
 }
+/* Nota opcional por ejercicio (casos especiales): la ve el atleta debajo de las indicaciones */
+function exNoteChip(mode,a,i,e){const on=!!String(e.note||'').trim();return `<button type="button" class="tchip note ${on?'on':''}" title="Nota opcional para el atleta (casos especiales)" onclick="exNoteOpen('${mode}',${a},${i})">📝 ${on?'Nota':'＋ Nota'}</button>`}
+function exNoteEd(mode,a,i,e,at){if(!e._nt&&!String(e.note||'').trim())return '';return `<div class="exnote-ed"><textarea ${at('note')} rows="2" maxlength="400" placeholder="Nota opcional para el atleta. Ej. Rodilla izquierda: rango parcial, sin bloquear al final.">${esc(e.note||'')}</textarea><button type="button" class="del" title="Quitar nota" onclick="exNoteDel('${mode}',${a},${i})">${ic('trash',14)}</button></div>`}
+function exNoteRow(mode,a,i){return mode==='p'?(S.ui.pd&&S.ui.pd.days[a]&&S.ui.pd.days[a].rows[i]):(S.ui.draft&&S.ui.draft.blocks[a]&&S.ui.draft.blocks[a].exercises[i])}
+function exNoteOpen(mode,a,i){mode==='p'?collectPlan():collectDraft();const e=exNoteRow(mode,a,i);if(!e)return;e._nt=true;exRerender(mode);setTimeout(()=>{const el=document.querySelector(`[data-${mode==='p'?'pf':'ef'}="${a}|${i}|note"]`);if(el)el.focus()},30)}
+function exNoteDel(mode,a,i){mode==='p'?collectPlan():collectDraft();const e=exNoteRow(mode,a,i);if(!e)return;delete e._nt;delete e.note;exRerender(mode)}
+const exNoteV=e=>String(e.note||'').trim()?`<div class="exnote">📝 ${esc(String(e.note).trim())}</div>`:'';
 function exCard(mode,a,i,e,lab,g){
   const P=mode==='p',at=f=>P?`data-pf="${a}|${i}|${f}"`:`data-ef="${a}|${i}|${f}"`,vid=`vp_${mode}${a}_${i}`,inG=g.n>1;
   if(P?e.cat===AERO:e.cardio)return aeroCard(mode,a,i,e,lab,P,at,vid);
@@ -3895,7 +4015,7 @@ function exCard(mode,a,i,e,lab,g){
     <span class="vwrap vw"><input class="yt-in" ${at('video')} value="${esc(e.video||'')}" placeholder="Link del video" oninput="rowPrev(this,'${vid}')"><button type="button" class="vprev" title="Vista previa" onclick="prevInput(this)">${ic('play',12,true)}</button></span>
     <span class="mv"><button type="button" title="Subir" onclick="exMove('${mode}',${a},${i},-1)">↑</button><button type="button" title="Bajar" onclick="exMove('${mode}',${a},${i},1)">↓</button></span>
     <button type="button" class="del" title="Quitar" onclick="${P?`planDelRow(${i})`:`delEx(${a},${i})`}">${ic('trash',15)}</button></div>
-   <div class="tchips">${inG?'':TYPE_LIST.filter(t=>t!=='Dropset').map(t=>`<button type="button" class="tchip ${t==='Aislado'?'on':''}" title="${esc(TYPE_TIP[t])}" onclick="exType('${mode}',${a},${i},'${t}')">${t}</button>`).join('')}<button type="button" class="tchip drop ${e.drop?'on':''}" title="${esc(TYPE_TIP.Dropset)}" onclick="exType('${mode}',${a},${i},'Dropset')">${e.drop?'✓ ':''}Dropset</button><button type="button" class="tchip aero-t" title="Convertir en trabajo aeróbico: quita series, reps, RIR, tempo y descanso" onclick="toAero('${mode}',${a},${i})">🏃 Aeróbico</button>${inG?`<button type="button" class="tchip ghost" onclick="exType('${mode}',${a},${i},'Aislado')">Sacar del grupo</button>`:''}</div>
+   <div class="tchips">${inG?'':TYPE_LIST.filter(t=>t!=='Dropset').map(t=>`<button type="button" class="tchip ${t==='Aislado'?'on':''}" title="${esc(TYPE_TIP[t])}" onclick="exType('${mode}',${a},${i},'${t}')">${t}</button>`).join('')}<button type="button" class="tchip drop ${e.drop?'on':''}" title="${esc(TYPE_TIP.Dropset)}" onclick="exType('${mode}',${a},${i},'Dropset')">${e.drop?'✓ ':''}Dropset</button><button type="button" class="tchip aero-t" title="Convertir en trabajo aeróbico: quita series, reps, RIR, tempo y descanso" onclick="toAero('${mode}',${a},${i})">🏃 Aeróbico</button>${inG?`<button type="button" class="tchip ghost" onclick="exType('${mode}',${a},${i},'Aislado')">Sacar del grupo</button>`:''}${exNoteChip(mode,a,i,e)}</div>
    ${P?`<div class="phs">${[0,1,2,3].map(f=>`<div class="phc ${e.ph[f]?'':'off'}"><b>Fase ${f+1}</b>${stp('sets',`data-pp="${a}|${i}|${f}|0"`,e.ph[f]?e.ph[f][0]:'','—')}<span class="by">series × reps</span>${stp('reps',`data-pp="${a}|${i}|${f}|1"`,e.ph[f]?e.ph[f][1]:'','—','w')}</div>`).join('')}</div>`:''}
    <div class="prm">
     ${P?'':`<div class="pf"><label>Series</label>${stp('sets',at('sets'),e.sets,'3')}</div><div class="pf"><label>Reps</label>${stp('reps',at('reps'),e.reps,'10-12','w')}</div>`}
@@ -3904,6 +4024,7 @@ function exCard(mode,a,i,e,lab,g){
     <div class="pf"><label>Descanso</label>${stp('rest',at('rest'),e.rest,'60 s','w')}</div>
     <div class="pf"><label>Peso en</label>${unitTog(mode,a,i,e.unit)}</div>
    </div>
+   ${exNoteEd(mode,a,i,e,at)}
    <div class="ex-vp" id="${vid}">${vInfo(e.video)?inlineVid(e.video,e.name):''}</div></div>`;
 }
 function exEditList(mode,a,list){
@@ -3919,18 +4040,48 @@ const toKg=(v,u)=>u==='lb'?v*0.45359237:v;
 function grpHint(g,list){const labs=g.lab,last=list[g.e]||{};return `Haz ${labs.slice(0,-1).join(', ')} y ${labs[labs.length-1]} seguidos, sin descanso entre ellos. Descansa ${last.rest?esc(last.rest):'lo indicado'} al terminar la vuelta.`}
 function exvHTML(t,bi,ei,e,lab,live,nx){
   if(e.cardio){const key=`${bi}-${ei}`,[sc,sl]=exStatus(t,bi,ei,e),vurl=e.video||libFind(e.name)?.video||'',vid=vInfo(vurl),on=t.progress?.sets?.[`${key}-0`],ath=S.athletes.find(x=>x.id===t.athleteId);
-    return `<details class="exv aero-v" ${live&&sc!=='done'?'open':''}><summary><span class="n">🏃</span><span class="nm">${esc(e.name)}</span>${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
-      <div class="exv-b"><span>${aeroLine(e.machine,e.time,e.zone,e.incline,ath)} ${qm('fce')}</span>
+    return `<details class="exv aero-v" ${live&&sc!=='done'?'open':''}><summary><span class="n">🏃</span><span class="nm">${esc(e.name)}</span>${String(e.note||'').trim()?'<span class="npill" title="Tiene nota del coach">📝</span>':''}${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
+      <div class="exv-b"><span>${aeroLine(e.machine,e.time,e.zone,e.incline,ath)} ${qm('fce')}</span>${exNoteV(e)}
       ${vid?`<div style="width:100%">${inlineVid(vurl,e.name)}</div><button class="vbtn" onclick="playVideo('${jsq(vurl)}','${jsq(e.name)}')">${ic('ext',12)} Pantalla completa</button>`:''}
       <div class="setpills" style="width:100%"><button class="setp ${on?'on':''}" ${live?`onclick="toggleSet('${t.id}','${key}-0')"`:'disabled'}>${on?ic('check',12):''} ${on?'Hecho':'Marcar como hecho'}</button></div></div></details>`}
   const key=`${bi}-${ei}`,[sc,sl]=exStatus(t,bi,ei,e),n=Math.max(1,parseInt(e.sets)||1),vurl=e.video||libFind(e.name)?.video||'',vid=vInfo(vurl),kg=t.progress?.kg?.[key],u=wUnit(t,key,e);
-  return `<details class="exv" ${live&&sc!=='done'?'open':''}><summary><span class="n">${lab}</span><span class="nm">${esc(e.name)}</span>${e.drop?'<span class="kpill drop">Dropset</span>':''}${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
+  return `<details class="exv" ${live&&sc!=='done'?'open':''}><summary><span class="n">${lab}</span><span class="nm">${esc(e.name)}</span>${e.drop?'<span class="kpill drop">Dropset</span>':''}${String(e.note||'').trim()?'<span class="npill" title="Tiene nota del coach">📝</span>':''}${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
       <div class="exv-b"><span><b>${esc(e.sets||1)}</b> × <b>${esc(e.reps||'—')}</b>${e.tempo?` · tempo ${esc(e.tempo)}`:''}${e.rir!==''&&e.rir!=null?` · RIR ${esc(e.rir)}`:''}${nx?` · <b>sin descanso</b>, sigue con ${nx}`:e.rest?` · descanso ${esc(e.rest)}`:''}${!live&&kg?` · <b>${esc(kg)} ${u}</b>`:''}</span>
+      ${exNoteV(e)}
       ${e.drop?`<div class="dtip">${ic('flame',13)} <span><b>Dropset</b> ${qm('dropset')}: ${TYPE_TIP.Dropset}</span></div>`:''}
       ${vid?`<div style="width:100%">${inlineVid(vurl,e.name)}</div><button class="vbtn" onclick="playVideo('${jsq(vurl)}','${jsq(e.name)}')">${ic('ext',12)} Pantalla completa</button>`:''}
       ${live?`<span class="wt"><input class="kg" type="number" step="0.5" min="0" inputmode="decimal" placeholder="Peso" title="Peso usado" value="${esc(kg??'')}" onchange="setKg('${t.id}','${key}',this.value)"><span class="unit" role="group" aria-label="Unidad de peso">${['kg','lb'].map(x=>`<button type="button" class="${u===x?'on':''}" onclick="setUnit('${t.id}','${key}','${x}')">${x}</button>`).join('')}</span>${qm('kg')}</span>`:''}
       <div class="setpills" style="width:100%">${Array.from({length:n},(_,s)=>{const on=t.progress?.sets?.[`${key}-${s}`];return `<button class="setp ${on?'on':''}" ${live?`onclick="toggleSet('${t.id}','${key}-${s}')"`:'disabled'}>${on?ic('check',12):''} Serie ${s+1}</button>`}).join('')}</div></div></details>`;
 }
+/* Volumen total del entrenamiento: series y repeticiones (por bloque y total). Los ejercicios aeróbicos suman minutos.
+   Reps: "12" → 12 por serie · "8-12" → rango · "12/10/8" → suma por serie · tiempo ("30 s", "1'") o AMRAP no cuentan como reps. */
+function volReps(r,sets){const s=String(r??'').trim().toLowerCase();if(!s||!sets)return null;
+  if(/\d\s*(s|seg|segs|segundos|min|minutos|'|"|″|’)(?![a-z])/.test(s)||/amrap|fallo|m[aá]x/.test(s))return null;
+  const rg=s.match(/(\d+)\s*(?:-|–|a)\s*(\d+)/);if(rg)return {lo:+rg[1]*sets,hi:+rg[2]*sets};
+  const ls=s.split(/[\/,;]/).map(x=>parseInt(x)).filter(n=>!isNaN(n));
+  if(ls.length>1){const sum=ls.reduce((a,b)=>a+b,0);if(ls.length===sets)return {lo:sum,hi:sum};const v=Math.round(sum/ls.length*sets);return {lo:v,hi:v}}
+  const n=parseInt(s.match(/\d+/)?.[0]);return n?{lo:n*sets,hi:n*sets}:null}
+function volCalc(blocks,t){const rows=[],T={ex:0,sets:0,lo:0,hi:0,min:0,noRep:0,done:0,ton:0};
+  (blocks||[]).forEach((b,bi)=>{const r={name:(b.name||'').trim()||'Bloque',ex:0,sets:0,lo:0,hi:0,min:0};
+    (b.exercises||[]).forEach((e,ei)=>{if(!String(e.name||'').trim())return;r.ex++;
+      if(e.cardio||isAeroBlock(b.name)){r.min+=parseFloat(e.time)||0;return}
+      const n=parseInt(e.sets)||0;r.sets+=n;const v=volReps(e.reps,n);if(v){r.lo+=v.lo;r.hi+=v.hi}else if(n)T.noRep++;
+      if(t&&t.progress){const key=`${bi}-${ei}`,pr=t.progress,dn=Array.from({length:n},(_,k)=>pr.sets&&pr.sets[`${key}-${k}`]).filter(Boolean).length;T.done+=dn;
+        const kg=pr.kg&&pr.kg[key];if(kg&&dn&&v){const w=(pr.u&&pr.u[key]==='lb')?kg*0.4536:kg;T.ton+=w*((v.lo+v.hi)/2/n)*dn}}});
+    if(r.ex){rows.push(r);['ex','sets','lo','hi','min'].forEach(k=>T[k]+=r[k])}});
+  return {rows,T}}
+function volHTML(blocks,t){const {rows,T}=volCalc(blocks,t);if(!rows.length)return '';
+  const R=(lo,hi)=>lo===hi?fmtN(lo):`${fmtN(lo)}–${fmtN(hi)}`,showDone=t&&(t.status==='done'||T.done>0);
+  return `<div class="volbox"><div class="vt">📊 Volumen total del entrenamiento</div>
+    <div class="vk"><div><div class="l">Series totales</div><div class="v">${fmtN(T.sets)}</div></div>
+      <div><div class="l">Repeticiones totales</div><div class="v">${T.hi?R(T.lo,T.hi):'—'}</div></div>
+      <div><div class="l">Ejercicios</div><div class="v">${T.ex}</div></div>
+      ${T.min?`<div><div class="l">Aeróbico</div><div class="v">${fmtN(T.min)} <small>min</small></div></div>`:''}
+      ${showDone?`<div><div class="l">Series hechas</div><div class="v">${T.done}<small> / ${T.sets}</small></div></div>`:''}
+      ${showDone&&T.ton?`<div><div class="l">Tonelaje</div><div class="v">${fmtN(Math.round(T.ton))} <small>kg</small></div></div>`:''}</div>
+    ${rows.length>1?`<table><thead><tr><th>Bloque</th><th>Ejercicios</th><th>Series</th><th>Reps</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.ex}</td><td>${r.min&&!r.sets?`${fmtN(r.min)} min`:r.sets}</td><td>${r.hi?R(r.lo,r.hi):'—'}</td></tr>`).join('')}</tbody><tfoot><tr><td>Total</td><td>${T.ex}</td><td>${T.sets}</td><td>${T.hi?R(T.lo,T.hi):'—'}</td></tr></tfoot></table>`:''}
+    ${T.noRep?`<div class="vn">${T.noRep} ejercicio${T.noRep>1?'s':''} con reps por tiempo o sin número no suma${T.noRep>1?'n':''} repeticiones (sí sus series).</div>`:''}${T.lo!==T.hi?'<div class="vn">Los rangos (ej. 8–12) se suman como mínimo–máximo.</div>':''}${showDone&&T.ton?'<div class="vn">Tonelaje = peso anotado × reps × series hechas.</div>':''}</div>`}
+let volT=null;const volUpd=e=>{if(!e.target.closest||!e.target.closest('#builder'))return;clearTimeout(volT);volT=setTimeout(()=>{const vb=document.getElementById('volBox');if(!vb||!S.ui.draft)return;collectDraft();vb.innerHTML=volHTML(S.ui.draft.blocks)},250)};document.addEventListener('input',volUpd);document.addEventListener('change',volUpd);
 function blocksViewHTML(t,live){
   let h='';const cnt={L:0,k:0};
   (t.data.blocks||[]).forEach((b,bi)=>{
@@ -3977,7 +4128,7 @@ function saveEditTask(){
   const nd=S.ui.addDate||t.date;if(nd!==t.date)t.date=nd;
   blocks.forEach(b=>b.exercises.forEach(e=>libAdd(e.name,t.title,e.video,!!e.cardio)));
   pushNotif(t.athleteId,`Tu coach actualizó «${oldTitle}»${sims.length?` y ${sims.length} sesiones más`:''}`);
-  S.ui.draft=null;closeModal();S.ui.selDay=t.date;commit();toast((sims.length?`Cambios guardados en ${sims.length+1} sesiones`:'Cambios guardados')+(BR.add+BR.neu?` · bloque repetido en ${BR.add+BR.neu} día${BR.add+BR.neu>1?'s':''}`:''));
+  S.ui.draft=null;closeModal();S.ui.selDay=t.date;commit();toast((sims.length?`Cambios guardados en ${sims.length+1} sesiones`:'Cambios guardados')+brMsg(BR));
 }
 
 /* ---- plan editado → sesiones pendientes del calendario ---- */
@@ -4000,7 +4151,7 @@ function refreshPlanTasks(p,orig){
 /* ---- Excel: plantilla, exportar y subir ---- */
 const XLSX_SRC='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 function loadXLSX(){return window.XLSX?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement('script');s.src=XLSX_SRC;s.onload=ok;s.onerror=()=>ko(new Error('No se pudo cargar el lector de Excel. Revisa tu conexión.'));document.head.appendChild(s)})}
-const XL_HEAD=['Grupo','Combinación','Tipo','Ejercicio','F1 Series','F1 Reps','F2 Series','F2 Reps','F3 Series','F3 Reps','F4 Series','F4 Reps','Tempo','RIR','Descanso','Unidad','Video','Modalidad','Inclinación'];
+const XL_HEAD=['Grupo','Combinación','Tipo','Ejercicio','F1 Series','F1 Reps','F2 Series','F2 Reps','F3 Series','F3 Reps','F4 Series','F4 Reps','Tempo','RIR','Descanso','Unidad','Video','Modalidad','Inclinación','Nota'];
 const catShort=c=>c===CATS[0]?'Rezagado':c===CATS[2]?'Complementario':c===AERO?'Aeróbico':'Principal';
 function xlSheetName(n,used){let s=String(n||'Día').replace(/[\[\]:*?\/\\]/g,' ').trim().slice(0,31)||'Día',b=s,k=2;while(used.has(s.toLowerCase()))s=`${b.slice(0,28)} ${k++}`;used.add(s.toLowerCase());return s}
 async function exportPlanXlsx(id){
@@ -4013,8 +4164,8 @@ async function exportPlanXlsx(id){
   p.days.forEach(d=>{
     const comb=[],kind=[];exGroups(d.rows).forEach(g=>{for(let i=g.s;i<=g.e;i++){comb[i]=g.L;kind[i]=g.n>1?g.kind+(d.rows[i].drop?' + Dropset':''):(d.rows[i].drop?'Dropset':'Aislado')}});
     const aoa=[[String(d.name).toUpperCase()],['Misma letra en Combinación (filas seguidas) = biserie, triserie o megaserie. Deja vacías las series de una fase si ese ejercicio no va en esa fase.'],XL_HEAD];
-    d.rows.forEach((r,i)=>aoa.push([catShort(r.cat),r.cat===AERO?'':comb[i]||'',r.cat===AERO?'Aeróbico':kind[i],r.name,...[0,1,2,3].flatMap(f=>r.ph[f]?[r.ph[f][0],r.ph[f][1]]:['','']),r.cat===AERO?'':r.tempo||'',r.cat===AERO?'':r.rir??'',r.cat===AERO?'':r.rest||'',r.unit||'kg',r.video||'',r.cat===AERO?r.machine||'Caminadora':'',r.cat===AERO?r.incline??'':'']));
-    const ws=X.aoa_to_sheet(aoa);ws['!cols']=[14,12,18,34,9,9,9,9,9,9,9,9,10,6,10,8,36,14,11].map(w=>({wch:w}));
+    d.rows.forEach((r,i)=>aoa.push([catShort(r.cat),r.cat===AERO?'':comb[i]||'',r.cat===AERO?'Aeróbico':kind[i],r.name,...[0,1,2,3].flatMap(f=>r.ph[f]?[r.ph[f][0],r.ph[f][1]]:['','']),r.cat===AERO?'':r.tempo||'',r.cat===AERO?'':r.rir??'',r.cat===AERO?'':r.rest||'',r.unit||'kg',r.video||'',r.cat===AERO?r.machine||'Caminadora':'',r.cat===AERO?r.incline??'':'',r.note||'']));
+    const ws=X.aoa_to_sheet(aoa);ws['!cols']=[14,12,18,34,9,9,9,9,9,9,9,9,10,6,10,8,36,14,11,40].map(w=>({wch:w}));
     X.book_append_sheet(wb,ws,xlSheetName(d.name,used));
   });
   XLSX.writeFile(wb,`${(p.name||'plan').replace(/[^\wáéíóúñü -]/gi,'').trim().replace(/\s+/g,'-')||'plan'}.xlsx`);
@@ -4036,14 +4187,14 @@ function parseTrainingWorkbook(wb,fname){
       else if(/^series?$/.test(h))col.sets=c;else if(/^reps?$|repetici/.test(h))col.reps=c;
       else if(/grupo|categor/.test(h))col.cat=c;else if(/combin/.test(h))col.combo=c;else if(/^tipo/.test(h))col.type=c;
       else if(/^ejercicio$/.test(h))col.name=c;else if(/tempo/.test(h))col.tempo=c;else if(/^rir/.test(h))col.rir=c;
-      else if(/m[aá]quina|equipo|modalidad/.test(h))col.machine=c;else if(/inclin/.test(h))col.incline=c;else if(/desc|rest/.test(h))col.rest=c;else if(/unidad|unit/.test(h))col.unit=c;else if(/video|link/.test(h))col.video=c}
+      else if(/^(nota|notas|observaci|indicaci)/.test(h))col.note=c;else if(/m[aá]quina|equipo|modalidad/.test(h))col.machine=c;else if(/inclin/.test(h))col.incline=c;else if(/desc|rest/.test(h))col.rest=c;else if(/unidad|unit/.test(h))col.unit=c;else if(/video|link/.test(h))col.video=c}
     const na=v=>/^(na|n\/a|-|—|–)$/i.test(v)?'':v,rows=[];let lastCat='Principal';
     for(let r=hr+1;r<=R.e.r;r++){
       const name=txt(r,col.name);if(!name)continue;if(/^total$/i.test(name))break;
       const cv=txt(r,col.cat).toLowerCase(),cat=/aer[oó]b|cardio/.test(cv)?AERO:/rezag|activ/.test(cv)?CATS[0]:/complem|acces/.test(cv)?CATS[2]:/princ/.test(cv)?CATS[1]:lastCat;lastCat=cat;
       const ph=[0,1,2,3].map(f=>{const sc=col.ph[f][0]!=null?col.ph[f][0]:col.sets,rc=col.ph[f][1]!=null?col.ph[f][1]:col.reps,s=na(txt(r,sc)),rp=na(txt(r,rc));return s?[s,rp]:null});
       const tv=TYPE_ALIAS(txt(r,col.type)),vc=cell(r,col.video);
-      rows.push({name,cat,ph,tempo:na(txt(r,col.tempo)),rir:na(txt(r,col.rir)),rest:na(txt(r,col.rest)),video:vc?String((vc.l&&vc.l.Target)||vc.v||'').trim():'',unit:/lb|libra/i.test(txt(r,col.unit))?'lb':'kg',...(cat===AERO?{machine:normMachine(txt(r,col.machine)),incline:na(txt(r,col.incline)).replace('%','').trim(),tempo:'',rir:'',rest:''}:{}),link:false,gtype:'',drop:/drop/.test(tv),_c:txt(r,col.combo).toUpperCase(),_t:Object.keys(GSIZE).find(k=>tv.includes(k.toLowerCase()))||''});
+      rows.push({name,cat,ph,note:na(txt(r,col.note)),tempo:na(txt(r,col.tempo)),rir:na(txt(r,col.rir)),rest:na(txt(r,col.rest)),video:vc?String((vc.l&&vc.l.Target)||vc.v||'').trim():'',unit:/lb|libra/i.test(txt(r,col.unit))?'lb':'kg',...(cat===AERO?{machine:normMachine(txt(r,col.machine)),incline:na(txt(r,col.incline)).replace('%','').trim(),tempo:'',rir:'',rest:''}:{}),link:false,gtype:'',drop:/drop/.test(tv),_c:txt(r,col.combo).toUpperCase(),_t:Object.keys(GSIZE).find(k=>tv.includes(k.toLowerCase()))||''});
     }
     if(!rows.length)return;
     rows.forEach(x=>{if(x.cat===AERO){x._c='';x._t='';x.drop=false;x.ph=x.ph.map(q=>q?[String(parseInt(q[0])||q[0]),zIdx(q[1])?'Z'+zIdx(q[1]):'']:null)}});
@@ -4223,7 +4374,7 @@ function guessGroup(day){const k=day.toLowerCase();return /chest|pecho/.test(k)?
 function savePlan(assign){
   collectPlan();const p=S.ui.pd;
   if(!p.name){toast('Ponle nombre al plan');return}
-  const days=p.days.map(d=>({...d,rows:d.rows.filter(r=>r.name.trim())})).filter(d=>d.rows.length);
+  const days=p.days.map(d=>({...d,rows:d.rows.filter(r=>r.name.trim()).map(r=>{const x={...r};delete x._nt;if(!String(x.note||'').trim())delete x.note;else x.note=String(x.note).trim();return x})})).filter(d=>d.rows.length);
   if(!days.length){toast('Agrega al menos un ejercicio');return}
   if(days.some(d=>d.rows.some(r=>r.video&&!vInfo(r.video)))){toast('Hay un link de video que no es válido');return}
   p.days=days;
@@ -4290,8 +4441,8 @@ function renderAssignPlan(){
 function apSync(){const ap=S.ui.ap;ap.start=gv('ap_s')||ap.start;if(ap.start<TODAY)ap.start=TODAY;ap.wpp=+gv('ap_w');ap.aid=gv('ap_a');document.querySelectorAll('.ap_m').forEach(el=>ap.map[+el.dataset.i]=+el.value);renderAssignPlan()}
 function dayToBlocks(d,phase){
   return CATS.map(c=>{const all=d.rows.filter(r=>(CATS.includes(r.cat)?r.cat:'Principal')===c);
-    if(c===AERO)return {name:c,exercises:all.filter(r=>r.ph[phase]).map(r=>({name:r.name,cardio:true,sets:'1',reps:'',time:String(r.ph[phase][0]),zone:String(r.ph[phase][1]||''),machine:r.machine||'Caminadora',incline:r.incline??'',video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):'')}))};
-    return {name:c,exercises:all.map((r,i)=>r.ph[phase]?{name:r.name,sets:String(r.ph[phase][0]),reps:String(r.ph[phase][1]??''),rest:r.rest||'',tempo:r.tempo||'',rir:r.rir??'',video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):''),link:!!(r.link&&all[i+1]&&all[i+1].ph[phase]),gtype:r.gtype||'',drop:!!r.drop,unit:r.unit||'kg'}:null).filter(Boolean)}}).filter(b=>b.exercises.length);
+    if(c===AERO)return {name:c,exercises:all.filter(r=>r.ph[phase]).map(r=>({name:r.name,cardio:true,sets:'1',reps:'',time:String(r.ph[phase][0]),zone:String(r.ph[phase][1]||''),machine:r.machine||'Caminadora',incline:r.incline??'',...(String(r.note||'').trim()?{note:String(r.note).trim()}:{}),video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):'')}))};
+    return {name:c,exercises:all.map((r,i)=>r.ph[phase]?{name:r.name,sets:String(r.ph[phase][0]),reps:String(r.ph[phase][1]??''),rest:r.rest||'',tempo:r.tempo||'',rir:r.rir??'',video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):''),link:!!(r.link&&all[i+1]&&all[i+1].ph[phase]),gtype:r.gtype||'',drop:!!r.drop,unit:r.unit||'kg',...(String(r.note||'').trim()?{note:String(r.note).trim()}:{})}:null).filter(Boolean)}}).filter(b=>b.exercises.length);
 }
 function assignPlan(){
   const ap=S.ui.ap,p=S.plans.find(x=>x.id===ap.pid),aid=ap.aid,dates=planSchedule(p,ap);

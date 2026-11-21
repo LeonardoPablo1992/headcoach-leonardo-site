@@ -166,6 +166,14 @@ svg{flex-shrink:0}
 .chip.missed .st{color:var(--danger)}
 .more{font-size:11px;color:var(--green-d);font-weight:600;padding-left:4px}
 .cell.sel{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-50)}
+.cal .chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.chip.cdg-src{opacity:.35}
+.cell.cdg-over{background:var(--green-50);outline:2px dashed var(--green);outline-offset:-3px}
+.cell.cdg-over.cdg-bad{background:#fef2f2;outline-color:#ef4444}
+.cdg-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-130%) rotate(-2deg);max-width:200px;padding:6px 10px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:color-mix(in srgb,var(--c) 18%,var(--card));border-left:4px solid var(--c);color:var(--ink);box-shadow:var(--shadow-lg)}
+body.cdg-on,body.cdg-on *{cursor:grabbing!important}
+.toast:has(.tundo){border-radius:14px;width:max-content;max-width:min(92vw,520px)}
+.toast .tundo{flex:0 0 auto;margin-left:6px;border:0;background:var(--green);color:var(--on-green);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
 
 /* compact (split / mobile) */
 .coach.compact{grid-template-columns:1fr}
@@ -2514,8 +2522,8 @@ function calHTML(role){
   const first=new Date(y,m-1,1), off=(first.getDay()+6)%7, days=new Date(y,m,0).getDate();
   const cells=Math.ceil((off+days)/7)*7, tctx=role==='coach'?tlCtx(aid):null, calA=S.athletes.find(x=>x.id===aid);
   let h=`<div class="cal-h">
-    <button class="icon-btn" onclick="shiftMonth('${key}',-1)">‹</button>
-    <button class="icon-btn" onclick="shiftMonth('${key}',1)">›</button>
+    <button class="icon-btn" ${role==='coach'?'data-mnav="-1"':''} onclick="shiftMonth('${key}',-1)">‹</button>
+    <button class="icon-btn" ${role==='coach'?'data-mnav="1"':''} onclick="shiftMonth('${key}',1)">›</button>
     <h3>${MES[m-1]} ${y}</h3>
     <button class="btn soft sm" onclick="S.ui['${key}']=TODAY.slice(0,7);commit()">Hoy</button>
     ${role==='coach'?`<div class="legend">${['entrenamiento','video','nutricion','evolucion','formulario'].map(k=>`<span><i style="background:${TYPES[k].color}"></i>${TYPES[k].label}</span>`).join('')}</div>`:''}
@@ -2527,8 +2535,8 @@ function calHTML(role){
     const ds=`${y}-${pad(m)}-${pad(dn)}`, ts=tasksOn(aid,ds);
     const cls=`cell ${ds===TODAY?'today':''} ${ds<TODAY?'past':''} ${role==='athlete'&&ds===S.ui.selDay?'sel':''}`;
     if(role==='coach'){
-      h+=`<div class="${cls}" onclick="openAddTask('${ds}')"><div class="dn">${dn}</div>${tctx&&ds<=TODAY?`<span class="tl-cal">${tlDot(trafficDay(tctx,ds),9,ds)}</span>`:''}<button class="add" onclick="event.stopPropagation();openAddTask('${ds}')">+</button>`;
-      ts.slice(0,3).forEach(t=>{const st=status(t);h+=`<div class="chip ${st}" style="--c:${TYPES[t.type].color}" onclick="event.stopPropagation();openCoachTask('${t.id}')" title="${esc(t.title)}"><span>${esc(t.title)}</span><b class="st">${st==='done'?ic('check',12):st==='missed'?ic('x',12):''}</b></div>`});
+      h+=`<div class="${cls}" data-ds="${ds}" onclick="openAddTask('${ds}')"><div class="dn">${dn}</div>${tctx&&ds<=TODAY?`<span class="tl-cal">${tlDot(trafficDay(tctx,ds),9,ds)}</span>`:''}<button class="add" onclick="event.stopPropagation();openAddTask('${ds}')">+</button>`;
+      ts.slice(0,3).forEach(t=>{const st=status(t);h+=`<div class="chip ${st}" style="--c:${TYPES[t.type].color}" onpointerdown="calDragStart(event,'${t.id}')" onclick="event.stopPropagation();openCoachTask('${t.id}')" title="${esc(t.title)}${st==='done'?'':' · arrastra para cambiar de día'}"><span>${esc(t.title)}</span><b class="st">${st==='done'?ic('check',12):st==='missed'?ic('x',12):''}</b></div>`});
       if(ts.length>3) h+=`<div class="more" onclick="event.stopPropagation();openDayList('${ds}')">+${ts.length-3} más</div>`;
       const md=calA?mealsForDay(calA,ds):[];if(md.length)h+=`<div class="cmeal" title="${esc(md.map(x=>`${x.time||''} ${x.name||'Comida'}`).join(' · '))}" onclick="event.stopPropagation();openNutrition('${aid}')">🍽 ${md.length} · ${fmtN(md.reduce((s,x)=>s+mealK(x),0))} kcal</div>`;
       h+='</div>';
@@ -2538,6 +2546,38 @@ function calHTML(role){
   }
   return h+'</div>';
 }
+/* Arrastrar y soltar una sesión a otro día (calendario del coach). Mouse: arrastra. Celular: mantén presionado ~0.35 s y arrastra.
+   Se guarda al soltar; el aviso trae «Deshacer». Sesiones completadas no se mueven. Sobre ‹ › cambia de mes. */
+const CDG={};
+function calDragStart(e,id){if(e.button>0||CDG.id)return;Object.assign(CDG,{id,el:e.currentTarget,x:e.clientX,y:e.clientY,on:false,touch:e.pointerType!=='mouse',timer:null,hov:null,over:null,g:null});
+  if(CDG.touch)CDG.timer=setTimeout(cdgBegin,350);
+  document.addEventListener('pointermove',cdgMove);document.addEventListener('pointerup',cdgUp);document.addEventListener('pointercancel',cdgEnd)}
+function cdgBegin(){const t=taskById(CDG.id);if(!t)return cdgEnd();if(t.status==='done'){toast('Esta sesión ya se completó: no se puede mover');return cdgEnd()}
+  CDG.on=true;try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
+  const g=document.createElement('div');g.className='cdg-ghost';g.style.setProperty('--c',TYPES[t.type].color);g.textContent=t.title;document.body.appendChild(g);CDG.g=g;
+  if(CDG.el)CDG.el.classList.add('cdg-src');document.body.classList.add('cdg-on');cdgPos(CDG.x,CDG.y)}
+function cdgMove(e){if(!CDG.id)return;if(!CDG.on){if(Math.hypot(e.clientX-CDG.x,e.clientY-CDG.y)>6){if(CDG.touch)return cdgEnd();CDG.x=e.clientX;CDG.y=e.clientY;cdgBegin()}return}
+  e.preventDefault();cdgPos(e.clientX,e.clientY)}
+function cdgPos(x,y){CDG.x=x;CDG.y=y;if(CDG.g){CDG.g.style.left=x+'px';CDG.g.style.top=y+'px'}
+  const el=document.elementFromPoint(x,y),cell=el&&el.closest('.cal .cell[data-ds]'),t=taskById(CDG.id);
+  document.querySelectorAll('.cell.cdg-over').forEach(c=>{if(c!==cell)c.classList.remove('cdg-over','cdg-bad')});
+  if(cell){cell.classList.add('cdg-over');cell.classList.toggle('cdg-bad',!!t&&cell.dataset.ds===t.date)}CDG.over=cell?cell.dataset.ds:null;
+  const nb=el&&el.closest('[data-mnav]');if(nb&&!CDG.hov)CDG.hov=setTimeout(()=>{CDG.hov=null;if(CDG.on){shiftMonth('month',+nb.dataset.mnav);requestAnimationFrame(()=>cdgPos(CDG.x,CDG.y))}},700);
+  if(!nb&&CDG.hov){clearTimeout(CDG.hov);CDG.hov=null}}
+function cdgUp(){const on=CDG.on,id=CDG.id,ds=CDG.over;cdgEnd();if(!on)return;
+  CDG.block=Date.now();if(ds)calMove(id,ds)}
+function cdgEnd(){clearTimeout(CDG.timer);clearTimeout(CDG.hov);if(CDG.g)CDG.g.remove();if(CDG.el)CDG.el.classList.remove('cdg-src');
+  document.querySelectorAll('.cell.cdg-over').forEach(c=>c.classList.remove('cdg-over','cdg-bad'));document.body.classList.remove('cdg-on');
+  document.removeEventListener('pointermove',cdgMove);document.removeEventListener('pointerup',cdgUp);document.removeEventListener('pointercancel',cdgEnd);
+  Object.assign(CDG,{id:null,el:null,g:null,on:false,over:null,timer:null,hov:null})}
+document.addEventListener('touchmove',e=>{if(CDG.on)e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>{if(CDG.id&&CDG.touch)e.preventDefault()});
+document.addEventListener('click',e=>{if(CDG.block&&Date.now()-CDG.block<400){e.stopPropagation();e.preventDefault();CDG.block=0}},true);
+function calMove(id,nd){const t=taskById(id);if(!t||!nd||nd===t.date)return;const prev=t.date,busy=t.type==='entrenamiento'&&S.tasks.some(x=>x!==t&&x.athleteId===t.athleteId&&x.date===nd&&x.type==='entrenamiento'&&!x.hist);
+  t.date=nd;pushNotif(t.athleteId,`«${t.title}» se movió al ${longDate(nd)}`);commit();
+  toastUndo(`«${t.title}» movido al ${DOW_N[(parse(nd).getDay()+6)%7]} ${dmy(nd).slice(0,5)}${busy?' · ese día ya tenía otro entrenamiento':''}`,()=>{const x=taskById(id);if(!x)return;x.date=prev;pushNotif(x.athleteId,`«${x.title}» regresó al ${longDate(prev)}`);commit();toast(`Regresado al ${dmy(prev)}`)})}
+function toastUndo(msg,fn){const el=document.createElement('div');el.className='toast';el.innerHTML=`<span class="ok">${ic('checkc',16)}</span><span>${esc(msg)}</span><button type="button" class="tundo">Deshacer</button>`;
+  el.querySelector('button').onclick=()=>{el.remove();fn()};document.getElementById('toasts').appendChild(el);setTimeout(()=>el.remove(),7000)}
 function shiftMonth(key,n){const [y,m]=S.ui[key].split('-').map(Number);const d=new Date(y,m-1+n,1);S.ui[key]=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;commit()}
 function mealLogOf(aid,mid,ds){return S.evo.find(e=>e.kind==='meal'&&e.athleteId===aid&&e.date===ds&&e.mealId===mid)||null}
 function mealChkHTML(a,m,ds){const lg=mealLogOf(a.id,m.id,ds),st=lg?lg.status:null,can=isMe(a.id)&&ds<=TODAY&&ds>=addDays(TODAY,-2);

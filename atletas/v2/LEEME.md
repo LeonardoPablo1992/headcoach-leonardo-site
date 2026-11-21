@@ -147,3 +147,10 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 
 - **Repetir una sesión ya asignada**: en el detalle de un entrenamiento del calendario hay un botón «🔁 Repetir». Se eligen días de la semana + periodo (inicia / termina) y/o fechas sueltas. Copia el entrenamiento completo (bloques, ejercicios, videos, adjuntos); cada copia empieza sin registros del atleta. Si un día ya tiene entrenamiento: omitir, agregarlo además o reemplazar el pendiente (nunca toca sesiones completadas).
 - **Repetir un bloque** (ej. «Músculo rezagado»): ya no crea una sesión aparte con el nombre del bloque en cada día. Ahora se mete dentro del entrenamiento que ya existe ese día, en la misma posición; si esa sesión ya trae un bloque con ese nombre, se actualiza en lugar de duplicarse. Solo se crea una sesión con el nombre del bloque si ese día no hay entrenamiento. Los días que solo tienen sesiones completadas se omiten.
+
+## Arrastrar sesiones a otro día (21/11/2026)
+
+- En el calendario del coach cada tarea se puede arrastrar a otro día. Computadora: clic sostenido y arrastrar. Celular: mantener presionado ~medio segundo y arrastrar.
+- Se guarda al soltar (igual que «Mover») y el atleta recibe el aviso. El mensaje de confirmación trae **Deshacer** por 7 segundos.
+- Para cambiar de mes mientras arrastras, deja la tarea sobre las flechas ‹ › del calendario.
+- Las sesiones ya completadas no se pueden mover. Si el día destino ya tiene otro entrenamiento, el aviso lo indica.

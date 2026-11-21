@@ -4489,7 +4489,7 @@ function assignPlan(){
 const repsNum=r=>{const m=String(r||'').match(/\d+/);return m?+m[0]:0};
 const fmtN=v=>Math.round(v||0).toLocaleString('es-MX');
 function trimpOf(z){if(!z||!z.some(v=>+v>0))return null;return z.reduce((s,v,i)=>s+(+v||0)*(i+1),0)}
-function volOf(t){let v=0;(t.data.blocks||[]).forEach((b,bi)=>b.exercises.forEach((e,ei)=>{const kg=toKg(+(t.progress?.kg?.[`${bi}-${ei}`])||0,wUnit(t,`${bi}-${ei}`,e));if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;v+=d*repsNum(e.reps)*kg}));return Math.round(v)}
+function volOf(t){let v=0;(t.data.blocks||[]).forEach((b,bi)=>isWarmBlock(b)||b.exercises.forEach((e,ei)=>{const kg=toKg(+(t.progress?.kg?.[`${bi}-${ei}`])||0,wUnit(t,`${bi}-${ei}`,e));if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;v+=d*repsNum(e.reps)*kg}));return Math.round(v)}
 function karvonen(a){if(!a||!+a.age||!+a.hrRest)return null;const max=220-(+a.age),rest=+a.hrRest,res=max-rest;if(res<=0)return null;return {max,rest,res,z:ZONES.map((q,i)=>{const plo=0.5+i*0.1,phi=plo+0.1;return {plo,phi,lo:Math.round(rest+res*plo),hi:Math.round(rest+res*phi)-(i<4?1:0)}})}}
 function hrZone(a,bpm){const k=karvonen(a);if(!k||!bpm)return null;for(let i=4;i>=0;i--)if(bpm>=k.z[i].lo)return i+1;return 0}
 function sessTrimp(f,a){if(!f)return null;const t=trimpOf(f.zones);if(t)return t;const z=hrZone(a,+f.hrAvg)||+f.zoneMain;return z?(+f.durMin||0)*z:null}
@@ -4500,7 +4500,7 @@ function sessionsOf(aid){
   S.acts.forEach(x=>{if(x.athleteId!==aid)return;const T=tt(x,+x.durMin);out.push({date:x.date,title:x.kind,kind:'Actividad',min:+x.durMin,rpe:+x.rpe,load:x.durMin*x.rpe,trimp:T.v,trimpTxt:T.txt,vol:0,ready:null,rd:null,hr:+x.hrAvg||null,zones:x.zones||null,zm:hrZone(a,+x.hrAvg)||+x.zoneMain||null})});
   return out.sort((p,q)=>p.date.localeCompare(q.date));
 }
-function volRows(t){const out=[];(t.data.blocks||[]).forEach((b,bi)=>b.exercises.forEach((e,ei)=>{const raw=+(t.progress?.kg?.[`${bi}-${ei}`])||0,un=wUnit(t,`${bi}-${ei}`,e),kg=Math.round(toKg(raw,un)*10)/10;if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;const reps=repsNum(e.reps);out.push({name:e.name,d,reps,kg,wt:un==='lb'?`${raw} lb (${kg} kg)`:`${kg} kg`,v:Math.round(d*reps*kg)})}));return out}
+function volRows(t){const out=[];(t.data.blocks||[]).forEach((b,bi)=>isWarmBlock(b)||b.exercises.forEach((e,ei)=>{const raw=+(t.progress?.kg?.[`${bi}-${ei}`])||0,un=wUnit(t,`${bi}-${ei}`,e),kg=Math.round(toKg(raw,un)*10)/10;if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;const reps=repsNum(e.reps);out.push({name:e.name,d,reps,kg,wt:un==='lb'?`${raw} lb (${kg} kg)`:`${kg} kg`,v:Math.round(d*reps*kg)})}));return out}
 function calcData(aid){
   const a=S.athletes.find(x=>x.id===aid),st=loadStats(aid);
   const last7=[...Array(7)].map((_,i)=>addDays(TODAY,i-6)).map(ds=>({ds,v:st.daily[ds]||0}));

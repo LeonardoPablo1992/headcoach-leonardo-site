@@ -179,3 +179,4 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Botón «🔥 Agregar calentamiento» en el editor de sesión: crea un bloque naranja al inicio (solo uno por sesión).
 - En plantillas: categoría «Calentamiento» en el selector de cada ejercicio; al asignar el plan va primero en la sesión. Excel: Grupo = Calentamiento.
 - No suma al volumen total (series, reps, ejercicios, tonelaje ni series hechas). El recuadro lo muestra aparte como «🔥 Calentamiento · no cuentan». También cuenta como calentamiento cualquier bloque llamado «Calentamiento» o «Warm up».
+- El calentamiento tampoco suma en «Carga y estadísticas» (volumen/tonelaje por sesión y por ejercicio), también en sesiones pasadas. Sí cuenta para el % de cumplimiento de la sesión (si el atleta lo hizo o no).

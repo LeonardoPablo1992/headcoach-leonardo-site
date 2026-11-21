@@ -2258,7 +2258,7 @@ async function start(u){
   document.getElementById('whoAmI').textContent=ME.email;document.getElementById('btnLogout').style.display='';
   document.getElementById('app').innerHTML='<div class="empty-state" style="padding:80px 20px">Cargando tu información…</div>';
   try{await loadRole(u);
-    await loadData();await loadCoachRequests();await loadMyCoachProfile();if(!IS_COACH)await loadCatalog();if(IS_ADMIN)loadAdmin();if(DEMO.on&&IS_COACH&&!DEMO.db.seeded)seedDemo();renderApp();setSync('ok')}
+    await loadData();await loadCoachRequests();await loadMyCoachProfile();if(!IS_COACH)await loadCatalog();if(IS_ADMIN)loadAdmin();if(DEMO.on&&IS_COACH&&!DEMO.db.seeded)seedDemo();renderApp();setSync('ok');if(IS_COACH)setTimeout(blockRepCheck,900)}
   catch(e){console.error(e);if(String(e.message)==='COACH_REVIEW'){coachReviewScreen();return}if(String(e.message)==='COACH_PENDING'){document.getElementById('app').innerHTML=`<div class="card" style="max-width:500px;margin:60px auto;padding:26px;text-align:center"><div style="font-size:44px">🏋️</div><h2>Estamos activando tu cuenta de coach</h2><p class="muted">Tu registro quedó guardado. En cuanto esté lista podrás entrar a tu panel y empezar tus 14 días gratis. Si tienes dudas escríbenos a coach@headcoachleonardopablo.com.</p></div>`;return}document.getElementById('app').innerHTML=`<div class="card" style="max-width:540px;margin:60px auto;padding:22px"><h3 style="margin-top:0">No se pudo cargar</h3><p class="muted">${esc(e.message||String(e))}</p><p class="muted" style="font-size:12px">Si el mensaje menciona una tabla "pt_", falta correr el script de instalación (supabase-v2.sql) en Supabase.</p><button class="btn primary" onclick="location.reload()">Reintentar</button></div>`}
 }
 function renderLoginV2(msg){
@@ -2571,7 +2571,7 @@ const CDG={};
 function calDragStart(e,id){if(e.button>0||CDG.id)return;Object.assign(CDG,{id,el:e.currentTarget,x:e.clientX,y:e.clientY,on:false,touch:e.pointerType!=='mouse',timer:null,hov:null,over:null,g:null});
   if(CDG.touch)CDG.timer=setTimeout(cdgBegin,350);
   document.addEventListener('pointermove',cdgMove);document.addEventListener('pointerup',cdgUp);document.addEventListener('pointercancel',cdgEnd)}
-function cdgBegin(){const t=taskById(CDG.id);if(!t)return cdgEnd();if(t.status==='done'){toast('Esta sesión ya se completó: no se puede mover');return cdgEnd()}
+function cdgBegin(){const t=taskById(CDG.id);if(!t)return cdgEnd();if(t.status==='done'||t.hist){toast(t.hist?'Es una sesión del plan anterior (historial): no se puede mover':'Esta sesión ya se completó: no se puede mover');return cdgEnd()}
   CDG.on=true;try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
   const g=document.createElement('div');g.className='cdg-ghost';g.style.setProperty('--c',TYPES[t.type].color);g.textContent=t.title;document.body.appendChild(g);CDG.g=g;
   if(CDG.el)CDG.el.classList.add('cdg-src');document.body.classList.add('cdg-on');cdgPos(CDG.x,CDG.y)}
@@ -2592,6 +2592,24 @@ function cdgEnd(){clearTimeout(CDG.timer);clearTimeout(CDG.hov);if(CDG.g)CDG.g.r
 document.addEventListener('touchmove',e=>{if(CDG.on)e.preventDefault()},{passive:false});
 document.addEventListener('contextmenu',e=>{if(CDG.id&&CDG.touch)e.preventDefault()});
 document.addEventListener('click',e=>{if(CDG.block&&Date.now()-CDG.block<400){e.stopPropagation();e.preventDefault();CDG.block=0}},true);
+/* Sesiones sueltas que dejó el «Repetir bloque» anterior (una sesión llamada como el bloque, p. ej. «Músculo rezagado»,
+   en un día que ya tiene entrenamiento). Al entrar el coach se ofrece unirlas DENTRO de ese entrenamiento y quitar la suelta.
+   Solo pendientes y sin registros del atleta; las completadas no se tocan. */
+function oldBlockReps(){const out=[];S.tasks.forEach(t=>{if(!t.blockRep||t.type!=='entrenamiento'||t.hist||t.status==='done')return;const p=t.progress||{};if(Object.keys(p.sets||{}).length||Object.keys(p.kg||{}).length)return;
+  const into=S.tasks.find(x=>x!==t&&!x.blockRep&&x.athleteId===t.athleteId&&x.date===t.date&&x.type==='entrenamiento'&&!x.hist&&x.status!=='done');if(into)out.push([t,into])});return out}
+function blockRepCheck(){if(!IS_COACH||!S||document.getElementById('modalRoot').innerHTML)return;const xs=oldBlockReps();if(!xs.length)return;try{if(sessionStorage.getItem('ptp_brm_skip'))return}catch(e){}
+  const by={},nm=new Set();xs.forEach(([t])=>{const a=S.athletes.find(x=>x.id===t.athleteId),k=a?a.name:t.athleteId;by[k]=(by[k]||0)+1;nm.add(t.title)});
+  openModal(`<div class="modal sm"><div class="modal-h"><h3>🔁 Unir bloques repetidos</h3><button class="x" onclick="blockRepLater()">${ic('x',20)}</button></div>
+  <div class="modal-b"><div class="note" style="margin-bottom:10px">Hay <b>${xs.length}</b> sesi${xs.length>1?'ones':'ón'} sueltas de bloque repetido (${[...nm].slice(0,3).map(x=>'«'+esc(x)+'»').join(', ')}) en días que ya tienen su entrenamiento. Con la mejora nueva, el bloque va <b>dentro</b> del entrenamiento de ese día y no como sesión aparte.</div>
+  ${Object.entries(by).map(([k,n])=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--line-2)"><span>${esc(k)}</span><b>${n}</b></div>`).join('')}
+  <div class="muted" style="font-size:12px;margin-top:10px">Solo se tocan sesiones pendientes sin registros del atleta. Las completadas se quedan igual.</div></div>
+  <div class="modal-f"><button class="btn ghost" onclick="blockRepLater()">Ahora no</button><button class="btn primary" onclick="blockRepMerge()">${ic('check',15)} Unir ${xs.length} bloque${xs.length>1?'s':''}</button></div></div>`)}
+function blockRepLater(){try{sessionStorage.setItem('ptp_brm_skip','1')}catch(e){}closeModal()}
+function blockRepMerge(){const xs=oldBlockReps(),del=new Set(),who=new Set();
+  xs.forEach(([t,into])=>{if(del.has(t.id))return;into.data=into.data||{};const old=JSON.parse(JSON.stringify(into.data.blocks||[])),bs=into.data.blocks=into.data.blocks||[];
+    (t.data&&t.data.blocks||[]).forEach(b=>{const cp=stripRep([b])[0],k=bs.findIndex(y=>blkKey(y.name)===blkKey(cp.name));if(k>=0)bs[k]=cp;else if(/rezagad|activaci|calentamiento/i.test(cp.name||''))bs.unshift(cp);else bs.push(cp)});
+    into.edited=Date.now();remapProgress(into,old);del.add(t.id);who.add(t.athleteId)});
+  S.tasks=S.tasks.filter(t=>!del.has(t.id));closeModal();commit();toast(`${del.size} bloque${del.size>1?'s':''} unido${del.size>1?'s':''} a su entrenamiento${who.size>1?` (${who.size} clientes)`:''}`)}
 function calMove(id,nd){const t=taskById(id);if(!t||!nd||nd===t.date)return;const prev=t.date,busy=t.type==='entrenamiento'&&S.tasks.some(x=>x!==t&&x.athleteId===t.athleteId&&x.date===nd&&x.type==='entrenamiento'&&!x.hist);
   t.date=nd;pushNotif(t.athleteId,`«${t.title}» se movió al ${longDate(nd)}`);commit();
   toastUndo(`«${t.title}» movido al ${DOW_N[(parse(nd).getDay()+6)%7]} ${dmy(nd).slice(0,5)}${busy?' · ese día ya tenía otro entrenamiento':''}`,()=>{const x=taskById(id);if(!x)return;x.date=prev;pushNotif(x.athleteId,`«${x.title}» regresó al ${longDate(prev)}`);commit();toast(`Regresado al ${dmy(prev)}`)})}

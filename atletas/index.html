@@ -1236,6 +1236,8 @@ const CATS=['Activación / rezagado','Principal','Complementario','Aeróbico / c
 const WARM=CATS[4],CAT_ORDER=[WARM,CATS[0],CATS[1],CATS[2],CATS[3]];
 /* Calentamiento: bloque que NO suma al volumen total (series, reps, tonelaje) */
 const isWarmBlock=b=>!!b&&(b.warm||/calentamiento|warm.?up/i.test(String(b.name||'')));
+/* Si TODOS los bloques con ejercicios son «calentamiento» (p. ej. sesiones viejas donde todo se escribió en el bloque «Calentamiento» que venía por defecto), se cuentan normal */
+const warmSet=bs=>{const w=new Set();(bs||[]).forEach((b,i)=>{if(isWarmBlock(b))w.add(i)});return (bs||[]).some((b,i)=>!w.has(i)&&(b.exercises||[]).length)?w:new Set()};
 const AERO=CATS[3];
 const DEFAULT_DAYS=['Hams & Glutes','Shoulder & Tricep','Quads','Back & Bicep','Chest'];
 const RPE_LBL=['Reposo','Muy, muy fácil','Fácil','Moderado','Algo duro','Duro','Duro +','Muy duro','Muy duro +','Muy, muy duro','Máximo'];
@@ -1349,7 +1351,7 @@ async function sbFetch(input,init){
   catch(e){clearTimeout(t);if(init.signal&&init.signal.aborted)throw e;SBNET.proxy=true;try{sessionStorage.setItem('sb-proxy','1')}catch(_){}return fetch(sbURL(url),init)}
 }
 let SB=null,ME=null,IS_COACH=false,OLDPLANS={};
-const TABLES={tasks:'pt_tasks',library:'pt_library',plans:'pt_templates',acts:'pt_acts',evo:'pt_evo',messages:'pt_messages',activity:'pt_activity',notifs:'pt_notifs',athletes:'pt_athletes'};
+const TABLES={tasks:'pt_tasks',library:'pt_library',plans:'pt_templates',workouts:'pt_templates',acts:'pt_acts',evo:'pt_evo',messages:'pt_messages',activity:'pt_activity',notifs:'pt_notifs',athletes:'pt_athletes'};
 const PERSON=['tasks','acts','evo','messages','activity','notifs'];
 const PALETTE=['#a855f7','#14b8a6','#f59e0b','#3b82f6','#ef4444','#ec4899','#12d99b','#f97316','#0ea5e9','#8b5cf6'];
 const colorFor=s=>{let x=0;for(const c of String(s))x=(x*31+c.charCodeAt(0))>>>0;return PALETTE[x%PALETTE.length]};
@@ -1366,7 +1368,7 @@ async function flush(){
   if(!SB||!S||DEL.busy)return;
   if(flushing){clearTimeout(flushT);flushT=setTimeout(flush,600);return}
   flushing=true;const ups={},dels={},seen=new Set();
-  Object.keys(TABLES).forEach(c=>{if((c==='athletes'||c==='plans')&&!IS_COACH)return;if(c==='library'&&!IS_COACH)return;
+  Object.keys(TABLES).forEach(c=>{if((c==='athletes'||c==='plans'||c==='workouts')&&!IS_COACH)return;if(c==='library'&&!IS_COACH)return;
     (S[c]||[]).forEach(x=>{const k=c+'|'+x.id,s=keyStr(c,x);seen.add(k);if(SNAP[k]!==s)(ups[c]=ups[c]||[]).push([k,s,rowOf(c,x)])})});
   Object.keys(SNAP).forEach(k=>{const i=k.indexOf('|'),c=k.slice(0,i),id=k.slice(i+1);if(seen.has(k)||c==='athletes')return;if(!IS_COACH&&!PERSON.includes(c))return;(dels[c]=dels[c]||[]).push([k,id])});
   let err=null;
@@ -1407,7 +1409,7 @@ async function loadData(){
     const m=metaMap[ME.email]||{};athletes=[{goal:'',...m,id:ME.email,email:ME.email,color:colorFor(ME.email),name:m.name||ME.name||ME.email.split('@')[0]}];
   }
   OLDPLANS={};plansOld.filter(p=>p.active!==false&&p.athlete_email).forEach(p=>{OLDPLANS[String(p.athlete_email).toLowerCase()]=p});
-  S={athletes,tasks:tasks.map(r=>r.doc),library:lib.map(r=>r.doc),plans:tpl.map(r=>r.doc),acts:acts.map(r=>r.doc),evo:evo.map(r=>r.doc),messages:msgs.map(r=>r.doc),activity:act.map(r=>r.doc).sort((a,b)=>b.ts-a.ts),notifs:notifs.map(r=>r.doc).sort((a,b)=>b.ts-a.ts),
+  S={athletes,tasks:tasks.map(r=>r.doc),library:lib.map(r=>r.doc),plans:tpl.map(r=>r.doc).filter(d=>d&&d.kind!=='workout'),workouts:tpl.map(r=>r.doc).filter(d=>d&&d.kind==='workout').sort((x,y)=>String(x.name).localeCompare(String(y.name),'es')),acts:acts.map(r=>r.doc),evo:evo.map(r=>r.doc),messages:msgs.map(r=>r.doc),activity:act.map(r=>r.doc).sort((a,b)=>b.ts-a.ts),notifs:notifs.map(r=>r.doc).sort((a,b)=>b.ts-a.ts),
     ui:Object.assign({mode:IS_COACH?'coach':'athlete',coachTab:'plan',athTab:'agenda',q:'',timer:null,section:'clientes'},ui||{},{month:TODAY.slice(0,7),athMonth:TODAY.slice(0,7),selDay:TODAY})};
   if(!IS_COACH)S.ui.mode='athlete';
   if(!S.athletes.some(a=>a.id===S.ui.athleteId))S.ui.athleteId=S.athletes[0]?S.athletes[0].id:null;
@@ -2984,7 +2986,7 @@ function saveAthlete(id){
 function openModal(html){document.getElementById('modalRoot').innerHTML=`<div class="ov" onmousedown="if(event.target===this)closeModal()">${html}</div>`}
 function closeModal(){document.getElementById('modalRoot').innerHTML='';S.ui.draft=null}
 function openAddTask(ds,type){
-  S.ui.addDate=ds||TODAY;S.ui.addOpen=type||'entrenamiento';S.ui.draft=tplToDraft('pecho');S.ui.draft.title='';S.ui.draft.blocks=[{name:'Calentamiento',exercises:[{name:'',sets:'',reps:'',rest:'',video:''}]}];
+  S.ui.addDate=ds||TODAY;S.ui.addOpen=type||'entrenamiento';S.ui.draft=tplToDraft('pecho');S.ui.draft.title='';S.ui.draft.blocks=[{name:'Principal',exercises:[{name:'',sets:'',reps:'',rest:'',video:''}]}];
   renderAddModal();
 }
 function renderAddModal(){
@@ -3064,7 +3066,7 @@ function builderInner(){
   const d=S.ui.draft;
   return `
   <div class="field"><label>Nombre del entrenamiento</label><input id="f_title" value="${esc(d.title)}" placeholder="Ej. Superior Pecho/Hombro/Tríceps"></div>
-  <div class="tpls"><span>Plantillas rápidas:</span>${Object.entries(TEMPLATES).map(([k,t])=>`<button class="btn soft sm" onclick="loadTpl('${k}')">${esc(t.title)}</button>`).join('')}<select class="inp" style="width:auto;padding:6px 10px;font-size:12px" onchange="if(this.value)loadPlanDay(this.value)"><option value="">Cargar rutina de un plan…</option>${S.plans.map(p=>`<optgroup label="${esc(p.name)}">${p.days.map((d,i)=>`<option value="${p.id}|${i}">${esc(d.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+  <div class="tpls"><span>Plantillas rápidas:</span>${Object.entries(TEMPLATES).map(([k,t])=>`<button class="btn soft sm" onclick="loadTpl('${k}')">${esc(t.title)}</button>`).join('')}${(S.workouts||[]).length?`<select class="inp" style="width:auto;padding:6px 10px;font-size:12px" onchange="if(this.value)loadWorkout(this.value)"><option value="">💾 Cargar entrenamiento guardado…</option>${S.workouts.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select>`:''}<select class="inp" style="width:auto;padding:6px 10px;font-size:12px" onchange="if(this.value)loadPlanDay(this.value)"><option value="">Cargar rutina de un plan…</option>${S.plans.map(p=>`<optgroup label="${esc(p.name)}">${p.days.map((d,i)=>`<option value="${p.id}|${i}">${esc(d.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
   <datalist id="dl_ex">${S.library.map(e=>`<option value="${esc(e.name)}">`).join('')}</datalist>
   <datalist id="dl_blk">${BLOCK_NAMES.map(e=>`<option value="${esc(e)}">`).join('')}</datalist>
   ${d.blocks.map((b,bi)=>`<div class="blk">
@@ -3073,7 +3075,7 @@ function builderInner(){
     ${b.rep?blkRepHTML(b,bi):''}
     <div class="blk-f"><button onclick="addEx(${bi})">+ Ejercicio</button></div>
   </div>`).join('')}
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="addBlock()">${ic('plus',14)} Agregar bloque</button><button class="btn soft sm aero-add" onclick="addAeroBlock()">🏃 Agregar bloque aeróbico</button><button class="btn soft sm warm-add" onclick="addWarmBlock()" title="Va al inicio y no suma al volumen total">🔥 Agregar calentamiento</button></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="addBlock()">${ic('plus',14)} Agregar bloque</button><button class="btn soft sm aero-add" onclick="addAeroBlock()">🏃 Agregar bloque aeróbico</button><button class="btn soft sm warm-add" onclick="addWarmBlock()" title="Va al inicio y no suma al volumen total">🔥 Agregar calentamiento</button><span style="flex:1"></span><button class="btn ghost sm" onclick="saveWorkoutFromDraft()" title="Guardarlo para pegarlo a otros atletas">💾 Guardar entrenamiento</button></div>
   <div id="volBox">${volHTML(d.blocks)}</div>
   <div class="attach-bar">
     <div class="lbl">Agregar a esta sesión</div>
@@ -3339,7 +3341,7 @@ function openCoachTask(id){
   <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:6px;text-transform:capitalize">${T.label} · ${longDate(t.date)}${t.planName?` · ${esc(t.planName)} · fase ${t.phase}`:''}</div>${detailBody(t,'coach')}</div>
   <div class="modal-f">
     <button class="btn danger sm" onclick="delTask('${t.id}')">${ic('trash',14)} Eliminar</button>
-    ${t.type==='entrenamiento'?`<button class="btn primary sm" onclick="openEditTask('${t.id}')">${ic('edit',14)} Editar</button><button class="btn soft sm" onclick="openRepeatTask('${t.id}')" title="Copiar este entrenamiento completo a otros días">🔁 Repetir</button>`:''}
+    ${t.type==='entrenamiento'?`<button class="btn primary sm" onclick="openEditTask('${t.id}')">${ic('edit',14)} Editar</button><button class="btn soft sm" onclick="openRepeatTask('${t.id}')" title="Copiar este entrenamiento completo a otros días">🔁 Repetir</button><button class="btn soft sm" onclick="openCopyWorkout({task:'${t.id}'})" title="Pegar este entrenamiento a otros atletas">📋 Copiar a atletas</button><button class="btn ghost sm" onclick="saveWorkoutFromTask('${t.id}')" title="Guardarlo para usarlo después con cualquier atleta">💾 Guardar</button>`:''}
     <span style="flex:1"></span>
     <input type="date" class="inp" id="mv_date" value="${t.date}" style="width:auto;padding:6px 10px">
     <button class="btn ghost sm" onclick="moveTask('${t.id}',false)">Mover</button>
@@ -4087,7 +4089,7 @@ function volReps(r,sets){const s=String(r??'').trim().toLowerCase();if(!s||!sets
   if(ls.length>1){const sum=ls.reduce((a,b)=>a+b,0);if(ls.length===sets)return {lo:sum,hi:sum};const v=Math.round(sum/ls.length*sets);return {lo:v,hi:v}}
   const n=parseInt(s.match(/\d+/)?.[0]);return n?{lo:n*sets,hi:n*sets}:null}
 function volCalc(blocks,t){const rows=[],T={ex:0,sets:0,lo:0,hi:0,min:0,noRep:0,done:0,ton:0,wsets:0,wex:0};
-  (blocks||[]).forEach((b,bi)=>{const warm=isWarmBlock(b),r={name:(b.name||'').trim()||'Bloque',ex:0,sets:0,lo:0,hi:0,min:0,warm};
+  const WS=warmSet(blocks);(blocks||[]).forEach((b,bi)=>{const warm=WS.has(bi),r={name:(b.name||'').trim()||'Bloque',ex:0,sets:0,lo:0,hi:0,min:0,warm};
     (b.exercises||[]).forEach((e,ei)=>{if(!String(e.name||'').trim())return;r.ex++;
       if(e.cardio||isAeroBlock(b.name)){r.min+=parseFloat(e.time)||0;return}
       const n=parseInt(e.sets)||0;r.sets+=n;const v=volReps(e.reps,n);if(v){r.lo+=v.lo;r.hi+=v.hi}else if(n&&!warm)T.noRep++;
@@ -4344,6 +4346,7 @@ function applyLoadFile(){
 
 function plansHTML(){
   return `<div class="src-banner">${ic('layers',18)}<div>Plantillas con el formato de tu Excel: días por grupo muscular y 4 fases de series × reps. Crea el plan completo aquí y asígnalo sin subir archivos, o hazlo en Excel.</div><span class="xl-bar"><a class="btn soft sm" href="plantilla-entrenamiento.xlsx" download>${ic('file',13)} Descargar plantilla Excel</a><label class="btn primary sm upl">${ic('plus',13)} Cargar desde archivo<input type="file" accept=".xlsx,.xls" onchange="uploadPlanXlsx(this.files[0]);this.value=''"></label></span></div>
+  ${savedWorkoutsHTML()}
   <div class="plans-grid">
     <div class="plan-new" onclick="openPlanEditor()"><div style="text-align:center">${ic('plus',28)}<div style="margin-top:6px">Crear plan desde cero</div></div></div>
     ${S.plans.map(p=>{const n=p.days.reduce((s,d)=>s+d.rows.length,0);return `<div class="card plan-card">
@@ -4352,6 +4355,59 @@ function plansHTML(){
       <div class="acts"><button class="btn primary sm" onclick="openAssignPlan('${p.id}')">${ic('users',13)} Asignar</button><button class="btn ghost sm" onclick="openPlanEditor('${p.id}')">${ic('edit',13)} Editar</button><button class="btn ghost sm" onclick="dupPlan('${p.id}')">${ic('copy',13)} Duplicar</button><button class="btn ghost sm" onclick="exportPlanXlsx('${p.id}')">${ic('file',13)} Excel</button></div></div>`}).join('')}
   </div>`;
 }
+/* ===== Entrenamientos guardados (copiar y pegar a otros atletas). Viven en pt_templates con kind:'workout' ===== */
+const wkClone=x=>JSON.parse(JSON.stringify(x||[]));
+const wkInfo=w=>{const bs=w.blocks||[],n=bs.reduce((s,b)=>s+(b.exercises||[]).length,0);return `${bs.length} bloque${bs.length===1?'':'s'} · ${n} ejercicio${n===1?'':'s'}`};
+function wkStore(name,title,blocks,attach,from){name=String(name||'').trim();if(!name)return false;S.workouts=S.workouts||[];
+  const ex=S.workouts.find(w=>String(w.name).toLowerCase()===name.toLowerCase());if(ex&&!confirm(`Ya tienes un entrenamiento guardado llamado «${ex.name}». ¿Reemplazarlo?`))return false;
+  const w={id:ex?ex.id:uid(),kind:'workout',name,title:String(title||name).trim(),blocks:stripRep(blocks||[]),attach:wkClone(attach),from:from||'',createdAt:ex?ex.createdAt:Date.now(),updatedAt:Date.now()};
+  if(ex)Object.assign(ex,w);else S.workouts.push(w);S.workouts.sort((x,y)=>String(x.name).localeCompare(String(y.name),'es'));return true}
+function saveWorkoutFromTask(id){const t=taskById(id);if(!t)return;const a=S.athletes.find(x=>x.id===t.athleteId),nm=prompt('Nombre para guardar este entrenamiento (lo podrás pegar a cualquier atleta):',t.title);if(nm==null)return;
+  if(!String(nm).trim()){toast('Ponle nombre');return}if(wkStore(nm,t.title,t.data.blocks,t.data.attach,a?a.name:'')){commit();toast(`«${String(nm).trim()}» guardado · Plantillas → Entrenamientos guardados`)}}
+function saveWorkoutFromDraft(){collectDraft();const d=S.ui.draft;if(!d)return;const bs=normAero(wkClone(d.blocks)).map(b=>({...b,exercises:b.exercises.filter(e=>String(e.name||'').trim())})).filter(b=>b.exercises.length);
+  if(!bs.length){toast('Agrega al menos un ejercicio antes de guardar');return}const nm=prompt('Nombre para guardar este entrenamiento:',d.title||'');if(nm==null)return;if(!String(nm).trim()){toast('Ponle nombre');return}
+  const a=curA();if(wkStore(nm,d.title||nm,bs,(d.attach||[]).filter(x=>x.value||x.type==='formulario'),a?a.name:'')){save();rerenderBuilder();toast(`«${String(nm).trim()}» guardado`)}}
+function loadWorkout(id){const w=(S.workouts||[]).find(x=>x.id===id);if(!w)return;collectDraft();const o=S.ui.draft;
+  S.ui.draft={...o,title:w.title||w.name,blocks:wkClone(w.blocks),attach:wkClone(w.attach).length?wkClone(w.attach):o.attach};rerenderBuilder();toast(`«${w.name}» cargado — edítalo a tu gusto`)}
+function delWorkout(id){const w=(S.workouts||[]).find(x=>x.id===id);if(!w||!confirm(`¿Eliminar «${w.name}» de tus entrenamientos guardados? Las sesiones ya asignadas no cambian.`))return;S.workouts=S.workouts.filter(x=>x.id!==id);commit();toast('Entrenamiento guardado eliminado')}
+function renWorkout(id){const w=(S.workouts||[]).find(x=>x.id===id);if(!w)return;const nm=prompt('Nuevo nombre:',w.name);if(nm==null||!String(nm).trim())return;w.name=String(nm).trim();w.updatedAt=Date.now();commit()}
+function viewWorkout(id){const w=(S.workouts||[]).find(x=>x.id===id);if(!w)return;
+  openModal(`<div class="modal"><div class="modal-h"><h3>💾 ${esc(w.name)}</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
+  <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:6px">${wkInfo(w)}${w.from?` · guardado de ${esc(w.from)}`:''}</div>${blocksViewHTML({id:'_wk',athleteId:'',data:{blocks:w.blocks},progress:{sets:{}}},false)}${volHTML(w.blocks)}</div>
+  <div class="modal-f"><button class="btn danger sm" onclick="closeModal();delWorkout('${w.id}')">${ic('trash',14)} Eliminar</button><span style="flex:1"></span><button class="btn primary" onclick="openCopyWorkout({wk:'${w.id}'})">📋 Copiar a atletas</button></div></div>`)}
+function savedWorkoutsHTML(){const xs=S.workouts||[];
+  return `<div class="card" style="padding:14px 16px;margin-bottom:14px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h4 style="margin:0">💾 Entrenamientos guardados</h4><span class="muted" style="font-size:12px">${xs.length?`${xs.length} guardado${xs.length>1?'s':''}`:'Guarda una sesión desde su detalle («💾 Guardar») o desde el editor, y pégala a otros atletas.'}</span></div>
+  ${xs.length?`<div style="display:grid;gap:8px;margin-top:10px">${xs.map(w=>`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--line-2);border-radius:12px;padding:8px 10px"><div style="flex:1;min-width:160px;cursor:pointer" onclick="viewWorkout('${w.id}')"><b>${esc(w.name)}</b><div class="muted" style="font-size:12px">${wkInfo(w)}${w.from?` · de ${esc(w.from)}`:''}</div></div>
+    <button class="btn primary sm" onclick="openCopyWorkout({wk:'${w.id}'})">📋 Copiar a atletas</button><button class="btn ghost sm" onclick="viewWorkout('${w.id}')">Ver</button><button class="btn ghost sm" onclick="renWorkout('${w.id}')">${ic('edit',13)}</button><button class="btn ghost sm" title="Eliminar" onclick="delWorkout('${w.id}')">${ic('trash',13)}</button></div>`).join('')}</div>`:''}</div>`}
+/* Copiar (pegar) un entrenamiento a uno o varios atletas en una fecha */
+function cwSrc(){const s=S.ui.cw&&S.ui.cw.src;if(!s)return null;if(s.task){const t=taskById(s.task);return t&&{name:t.title,title:t.title,blocks:t.data.blocks,attach:t.data.attach,own:t.athleteId}}
+  const w=(S.workouts||[]).find(x=>x.id===s.wk);return w&&{name:w.name,title:w.title||w.name,blocks:w.blocks,attach:w.attach,own:null}}
+function openCopyWorkout(src){S.ui.cw={src,ids:[],date:addDays(TODAY,1),onBusy:'add',q:''};const c=cwSrc();if(!c)return;
+  openModal(`<div class="modal"><div class="modal-h"><h3>📋 Copiar «${esc(c.name)}» a atletas</h3><button class="x" onclick="closeModal()">${ic('x',20)}</button></div>
+  <div class="modal-b"><div class="muted" style="font-size:12px;margin-bottom:10px">Se copia completo (bloques, ejercicios, notas, videos y adjuntos). Cada atleta recibe su propia sesión, sin registros.</div><div id="cwBody">${cwInner()}</div></div>
+  <div class="modal-f"><button class="btn ghost" onclick="closeModal()">Cancelar</button><span style="flex:1"></span><button class="btn ghost" id="cwEd" onclick="cwEdit()" title="Abre el editor para ajustarlo antes de asignarlo (un atleta)">Editar antes</button><button class="btn primary" onclick="cwSave()">${ic('copy',15)} Copiar</button></div></div>`)}
+function cwInner(){const r=S.ui.cw,c=cwSrc(),q=(r.q||'').toLowerCase(),busy=id=>S.tasks.some(x=>x.athleteId===id&&x.date===r.date&&x.type==='entrenamiento'&&!x.hist),nb=r.ids.filter(busy).length;
+  const list=S.athletes.filter(a=>!q||a.name.toLowerCase().includes(q)||String(a.email||'').includes(q));
+  return `<div class="row" style="gap:10px;flex-wrap:wrap;align-items:end"><div class="field" style="margin:0;max-width:190px"><label>Fecha</label><input type="date" id="cw_date" value="${r.date}" onchange="cwSet()"></div>
+    <div class="field" style="margin:0;flex:1;min-width:160px"><label>Buscar atleta</label><input id="cw_q" value="${esc(r.q||'')}" placeholder="Nombre o correo" oninput="S.ui.cw.q=this.value;clearTimeout(window.__cwq);window.__cwq=setTimeout(()=>{cwRender();const i=document.getElementById('cw_q');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},200)"></div></div>
+    <div style="display:flex;gap:6px;margin:10px 0 6px;flex-wrap:wrap"><button type="button" class="pchip" onclick="cwAll(true)">Seleccionar ${q?'los mostrados':'todos'}</button><button type="button" class="pchip" onclick="cwAll(false)">Ninguno</button><span class="muted" style="font-size:12px;margin-left:auto;align-self:center"><b>${r.ids.length}</b> seleccionado${r.ids.length===1?'':'s'}</span></div>
+    <div style="max-height:300px;overflow:auto;border:1px solid var(--line-2);border-radius:12px">${list.map(a=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line-2);cursor:pointer"><input type="checkbox" data-cw="${esc(a.id)}" ${r.ids.includes(a.id)?'checked':''} onchange="cwSet()" style="width:auto;accent-color:var(--green-d)"><span style="flex:1"><b>${esc(a.name)}</b>${c&&c.own===a.id?' <span class="muted" style="font-size:11px">(de quien es)</span>':''}</span>${busy(a.id)?'<span class="muted" style="font-size:11px;color:var(--tt-b45309)">ya tiene entrenamiento ese día</span>':''}</label>`).join('')||'<div class="muted" style="padding:12px">Sin resultados</div>'}</div>
+    ${nb?`<div class="field" style="margin:10px 0 0;max-width:340px"><label>${nb} de los seleccionados ya tiene${nb>1?'n':''} entrenamiento ese día</label><select id="cw_busy" onchange="cwSet()"><option value="add" ${r.onBusy==='add'?'selected':''}>Agregarlo además</option><option value="skip" ${r.onBusy==='skip'?'selected':''}>Omitir a esos atletas</option><option value="replace" ${r.onBusy==='replace'?'selected':''}>Reemplazar el pendiente (no toca completados)</option></select></div>`:''}`}
+function cwCollect(){const r=S.ui.cw,root=document.getElementById('cwBody');if(!r||!root)return;const d=root.querySelector('#cw_date');if(d&&d.value)r.date=d.value;
+  root.querySelectorAll('[data-cw]').forEach(el=>{const id=el.dataset.cw,i=r.ids.indexOf(id);if(el.checked&&i<0)r.ids.push(id);if(!el.checked&&i>=0)r.ids.splice(i,1)});const b=root.querySelector('#cw_busy');if(b)r.onBusy=b.value}
+function cwRender(){const el=document.getElementById('cwBody');if(el)el.innerHTML=cwInner()}
+function cwSet(){cwCollect();cwRender()}
+function cwAll(on){cwCollect();const r=S.ui.cw,q=(r.q||'').toLowerCase();S.athletes.filter(a=>!q||a.name.toLowerCase().includes(q)||String(a.email||'').includes(q)).forEach(a=>{const i=r.ids.indexOf(a.id);if(on&&i<0)r.ids.push(a.id);if(!on&&i>=0)r.ids.splice(i,1)});cwRender()}
+function cwEdit(){cwCollect();const r=S.ui.cw,c=cwSrc();if(!c)return;if(r.ids.length!==1){toast('Para editar antes, elige un solo atleta');return}
+  S.ui.athleteId=r.ids[0];S.ui.section='clientes';S.ui.coachTab='plan';S.ui.addDate=r.date;S.ui.addOpen='entrenamiento';S.ui.draft={title:c.title,blocks:wkClone(c.blocks),attach:wkClone(c.attach),repeat:0};S.ui.cw=null;renderApp();renderAddModal()}
+function cwSave(){cwCollect();const r=S.ui.cw,c=cwSrc();if(!c){closeModal();return}if(!r.ids.length){toast('Elige al menos un atleta');return}if(!r.date){toast('Elige la fecha');return}
+  let n=0,rem=0,sk=0;r.ids.forEach(aid=>{const busy=S.tasks.some(x=>x.athleteId===aid&&x.date===r.date&&x.type==='entrenamiento'&&!x.hist);
+    if(busy&&r.onBusy==='skip'){sk++;return}
+    if(busy&&r.onBusy==='replace'){const k=S.tasks.length;S.tasks=S.tasks.filter(x=>!(x.athleteId===aid&&x.date===r.date&&x.type==='entrenamiento'&&!x.hist&&x.status!=='done'));rem+=k-S.tasks.length}
+    S.tasks.push({athleteId:aid,date:r.date,type:'entrenamiento',status:'pending',progress:{sets:{}},feedback:null,createdAt:Date.now(),id:uid(),title:c.title,data:{blocks:stripRep(c.blocks),attach:wkClone(c.attach)}});
+    pushNotif(aid,`Tu coach agendó «${c.title}» para el ${longDate(r.date)}`);n++});
+  S.ui.cw=null;closeModal();S.ui.month=r.date.slice(0,7);commit();
+  toast(n?`«${c.title}» copiado a ${n} atleta${n>1?'s':''} · ${dmy(r.date)}${sk?` · ${sk} omitido${sk>1?'s':''}`:''}${rem?` · ${rem} reemplazada${rem>1?'s':''}`:''}`:'No se copió: todos ya tenían entrenamiento ese día')}
 function dupPlan(id){const p=JSON.parse(JSON.stringify(S.plans.find(x=>x.id===id)));p.id=uid();p.name+=' (copia)';p.src='';S.plans.push(p);commit();toast('Plantilla duplicada')}
 const emptyRow=()=>({name:'',cat:'Principal',ph:[['4','12'],['4','12'],['4','12'],['4','12']],tempo:'',rir:'',rest:'',video:'',unit:'kg',link:false,gtype:'',drop:false});
 function openPlanEditor(id){
@@ -4489,7 +4545,7 @@ function assignPlan(){
 const repsNum=r=>{const m=String(r||'').match(/\d+/);return m?+m[0]:0};
 const fmtN=v=>Math.round(v||0).toLocaleString('es-MX');
 function trimpOf(z){if(!z||!z.some(v=>+v>0))return null;return z.reduce((s,v,i)=>s+(+v||0)*(i+1),0)}
-function volOf(t){let v=0;(t.data.blocks||[]).forEach((b,bi)=>isWarmBlock(b)||b.exercises.forEach((e,ei)=>{const kg=toKg(+(t.progress?.kg?.[`${bi}-${ei}`])||0,wUnit(t,`${bi}-${ei}`,e));if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;v+=d*repsNum(e.reps)*kg}));return Math.round(v)}
+function volOf(t){let v=0;(t.data.blocks||[]).forEach((b,bi,A)=>warmSet(A).has(bi)||b.exercises.forEach((e,ei)=>{const kg=toKg(+(t.progress?.kg?.[`${bi}-${ei}`])||0,wUnit(t,`${bi}-${ei}`,e));if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;v+=d*repsNum(e.reps)*kg}));return Math.round(v)}
 function karvonen(a){if(!a||!+a.age||!+a.hrRest)return null;const max=220-(+a.age),rest=+a.hrRest,res=max-rest;if(res<=0)return null;return {max,rest,res,z:ZONES.map((q,i)=>{const plo=0.5+i*0.1,phi=plo+0.1;return {plo,phi,lo:Math.round(rest+res*plo),hi:Math.round(rest+res*phi)-(i<4?1:0)}})}}
 function hrZone(a,bpm){const k=karvonen(a);if(!k||!bpm)return null;for(let i=4;i>=0;i--)if(bpm>=k.z[i].lo)return i+1;return 0}
 function sessTrimp(f,a){if(!f)return null;const t=trimpOf(f.zones);if(t)return t;const z=hrZone(a,+f.hrAvg)||+f.zoneMain;return z?(+f.durMin||0)*z:null}
@@ -4500,7 +4556,7 @@ function sessionsOf(aid){
   S.acts.forEach(x=>{if(x.athleteId!==aid)return;const T=tt(x,+x.durMin);out.push({date:x.date,title:x.kind,kind:'Actividad',min:+x.durMin,rpe:+x.rpe,load:x.durMin*x.rpe,trimp:T.v,trimpTxt:T.txt,vol:0,ready:null,rd:null,hr:+x.hrAvg||null,zones:x.zones||null,zm:hrZone(a,+x.hrAvg)||+x.zoneMain||null})});
   return out.sort((p,q)=>p.date.localeCompare(q.date));
 }
-function volRows(t){const out=[];(t.data.blocks||[]).forEach((b,bi)=>isWarmBlock(b)||b.exercises.forEach((e,ei)=>{const raw=+(t.progress?.kg?.[`${bi}-${ei}`])||0,un=wUnit(t,`${bi}-${ei}`,e),kg=Math.round(toKg(raw,un)*10)/10;if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;const reps=repsNum(e.reps);out.push({name:e.name,d,reps,kg,wt:un==='lb'?`${raw} lb (${kg} kg)`:`${kg} kg`,v:Math.round(d*reps*kg)})}));return out}
+function volRows(t){const out=[];(t.data.blocks||[]).forEach((b,bi,A)=>warmSet(A).has(bi)||b.exercises.forEach((e,ei)=>{const raw=+(t.progress?.kg?.[`${bi}-${ei}`])||0,un=wUnit(t,`${bi}-${ei}`,e),kg=Math.round(toKg(raw,un)*10)/10;if(!kg)return;const n=Math.max(1,parseInt(e.sets)||1);let d=0;for(let s=0;s<n;s++)if(t.progress?.sets?.[`${bi}-${ei}-${s}`])d++;const reps=repsNum(e.reps);out.push({name:e.name,d,reps,kg,wt:un==='lb'?`${raw} lb (${kg} kg)`:`${kg} kg`,v:Math.round(d*reps*kg)})}));return out}
 function calcData(aid){
   const a=S.athletes.find(x=>x.id===aid),st=loadStats(aid);
   const last7=[...Array(7)].map((_,i)=>addDays(TODAY,i-6)).map(ds=>({ds,v:st.daily[ds]||0}));

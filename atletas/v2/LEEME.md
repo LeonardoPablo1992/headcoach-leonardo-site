@@ -180,3 +180,12 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - En plantillas: categoría «Calentamiento» en el selector de cada ejercicio; al asignar el plan va primero en la sesión. Excel: Grupo = Calentamiento.
 - No suma al volumen total (series, reps, ejercicios, tonelaje ni series hechas). El recuadro lo muestra aparte como «🔥 Calentamiento · no cuentan». También cuenta como calentamiento cualquier bloque llamado «Calentamiento» o «Warm up».
 - El calentamiento tampoco suma en «Carga y estadísticas» (volumen/tonelaje por sesión y por ejercicio), también en sesiones pasadas. Sí cuenta para el % de cumplimiento de la sesión (si el atleta lo hizo o no).
+
+## Entrenamientos guardados y copiar a atletas (21/11/2026)
+
+- Detalle de una sesión: «📋 Copiar a atletas» (pegarla a uno o varios atletas en una fecha) y «💾 Guardar» (guardarla con un nombre).
+- Editor de sesión: «💾 Guardar entrenamiento» y el selector «💾 Cargar entrenamiento guardado…» para empezar desde uno guardado.
+- Plantillas → «💾 Entrenamientos guardados»: ver, copiar a atletas, renombrar y eliminar.
+- Copiar a atletas: fecha, buscador, seleccionar todos, aviso si el atleta ya tiene entrenamiento ese día (agregar, omitir o reemplazar el pendiente) y «Editar antes» para un solo atleta. Se copia todo (bloques, calentamiento, notas, videos, adjuntos) sin registros.
+- Se guardan en la tabla `pt_templates` con `kind: 'workout'` (no requiere SQL nuevo); las plantillas de plan siguen igual.
+- Las sesiones nuevas empiezan con el bloque «Principal» (antes «Calentamiento»). Si en una sesión todos los bloques son de calentamiento, se cuentan normal en el volumen (protege sesiones viejas).

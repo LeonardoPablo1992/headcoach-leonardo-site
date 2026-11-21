@@ -168,6 +168,12 @@ svg{flex-shrink:0}
 .cell.sel{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-50)}
 .cal .chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .chip.cdg-src{opacity:.35}
+.exnote-ed{display:flex;gap:6px;align-items:flex-start;margin-top:8px}
+.exnote-ed textarea{flex:1;min-height:38px;resize:vertical;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--card);color:var(--ink);font-family:inherit}
+.exnote-ed .del{border:0;background:transparent;color:#9ca3af;padding:6px;cursor:pointer}
+.tchip.note.on{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+.exnote{width:100%;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:8px;padding:7px 10px;font-size:13px;color:#78350f;white-space:pre-wrap;line-height:1.45}
+.npill{font-size:13px;line-height:1}
 .volbox{margin-top:14px;border:1.5px solid var(--green);border-radius:14px;background:var(--green-50);padding:12px 14px}
 .volbox .vt{font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .volbox .vk{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
@@ -3103,7 +3109,7 @@ function blkRepHTML(b,bi){
 function blkRepRaw(b,d){const t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date),[f,to]=blkRange(b,ds);return repDates({days:b.rep.days,from:f,to},ds,t?t.athleteId:S.ui.athleteId).length}
 function blkRep(bi){collectDraft();const d=S.ui.draft,b=d.blocks[bi],t=d.editId?taskById(d.editId):null,ds=S.ui.addDate||(t&&t.date);b.rep=b.rep?null:{days:[],from:ds,to:d.to&&d.to>ds?d.to:addDays(ds,27)};rerenderBuilder()}
 function blkRepQuick(bi,arr){collectDraft();const b=S.ui.draft.blocks[bi],ds=S.ui.addDate;b.rep=b.rep||{days:[],from:ds,to:addDays(ds,27)};b.rep.days=arr.slice();rerenderBuilder()}
-const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;return b});
+const stripRep=bs=>JSON.parse(JSON.stringify(bs)).map(b=>{delete b.rep;(b.exercises||[]).forEach(e=>{delete e._nt;if(!String(e.note||'').trim())delete e.note;else e.note=String(e.note).trim()});return b});
 function applyBlockReps(d,aid,ds){let add=0,neu=0,upd=0;
   d.blocks.forEach((b,bi)=>{const xs=blkRepPlan(b,d).filter(x=>!x.dup);if(!xs.length)return;const copy=stripRep([b])[0],nm=(copy.name||'').trim()||'Bloque de ejercicios',key=blkKey(nm);copy.name=nm;let sid=null;
     xs.forEach(x=>{const tk=x.into&&taskById(x.into),cp=JSON.parse(JSON.stringify(copy));
@@ -3989,8 +3995,16 @@ function aeroCard(mode,a,i,e,lab,P,at,vid){
     <div class="pf"><label>Inclinación</label>${!oth&&mq==='Caminadora'?`<span class="incl">${stp('incl',at('incline'),e.incline,'0')}<b>%</b></span>`:'<span class="na-pill">No aplica</span>'}</div>
     ${P?'':`<div class="pf"><label>FCE ${qm('fce')}</label><span class="fce fce-big">${fceTxt(ath,e.zone)||'—'}</span></div>`}
    </div>
+   <div style="margin-top:6px">${exNoteChip(mode,a,i,e)}</div>${exNoteEd(mode,a,i,e,at)}
    <div class="ex-vp" id="${vid}">${vInfo(e.video)?inlineVid(e.video,e.name):''}</div></div>`;
 }
+/* Nota opcional por ejercicio (casos especiales): la ve el atleta debajo de las indicaciones */
+function exNoteChip(mode,a,i,e){const on=!!String(e.note||'').trim();return `<button type="button" class="tchip note ${on?'on':''}" title="Nota opcional para el atleta (casos especiales)" onclick="exNoteOpen('${mode}',${a},${i})">📝 ${on?'Nota':'＋ Nota'}</button>`}
+function exNoteEd(mode,a,i,e,at){if(!e._nt&&!String(e.note||'').trim())return '';return `<div class="exnote-ed"><textarea ${at('note')} rows="2" maxlength="400" placeholder="Nota opcional para el atleta. Ej. Rodilla izquierda: rango parcial, sin bloquear al final.">${esc(e.note||'')}</textarea><button type="button" class="del" title="Quitar nota" onclick="exNoteDel('${mode}',${a},${i})">${ic('trash',14)}</button></div>`}
+function exNoteRow(mode,a,i){return mode==='p'?(S.ui.pd&&S.ui.pd.days[a]&&S.ui.pd.days[a].rows[i]):(S.ui.draft&&S.ui.draft.blocks[a]&&S.ui.draft.blocks[a].exercises[i])}
+function exNoteOpen(mode,a,i){mode==='p'?collectPlan():collectDraft();const e=exNoteRow(mode,a,i);if(!e)return;e._nt=true;exRerender(mode);setTimeout(()=>{const el=document.querySelector(`[data-${mode==='p'?'pf':'ef'}="${a}|${i}|note"]`);if(el)el.focus()},30)}
+function exNoteDel(mode,a,i){mode==='p'?collectPlan():collectDraft();const e=exNoteRow(mode,a,i);if(!e)return;delete e._nt;delete e.note;exRerender(mode)}
+const exNoteV=e=>String(e.note||'').trim()?`<div class="exnote">📝 ${esc(String(e.note).trim())}</div>`:'';
 function exCard(mode,a,i,e,lab,g){
   const P=mode==='p',at=f=>P?`data-pf="${a}|${i}|${f}"`:`data-ef="${a}|${i}|${f}"`,vid=`vp_${mode}${a}_${i}`,inG=g.n>1;
   if(P?e.cat===AERO:e.cardio)return aeroCard(mode,a,i,e,lab,P,at,vid);
@@ -4001,7 +4015,7 @@ function exCard(mode,a,i,e,lab,g){
     <span class="vwrap vw"><input class="yt-in" ${at('video')} value="${esc(e.video||'')}" placeholder="Link del video" oninput="rowPrev(this,'${vid}')"><button type="button" class="vprev" title="Vista previa" onclick="prevInput(this)">${ic('play',12,true)}</button></span>
     <span class="mv"><button type="button" title="Subir" onclick="exMove('${mode}',${a},${i},-1)">↑</button><button type="button" title="Bajar" onclick="exMove('${mode}',${a},${i},1)">↓</button></span>
     <button type="button" class="del" title="Quitar" onclick="${P?`planDelRow(${i})`:`delEx(${a},${i})`}">${ic('trash',15)}</button></div>
-   <div class="tchips">${inG?'':TYPE_LIST.filter(t=>t!=='Dropset').map(t=>`<button type="button" class="tchip ${t==='Aislado'?'on':''}" title="${esc(TYPE_TIP[t])}" onclick="exType('${mode}',${a},${i},'${t}')">${t}</button>`).join('')}<button type="button" class="tchip drop ${e.drop?'on':''}" title="${esc(TYPE_TIP.Dropset)}" onclick="exType('${mode}',${a},${i},'Dropset')">${e.drop?'✓ ':''}Dropset</button><button type="button" class="tchip aero-t" title="Convertir en trabajo aeróbico: quita series, reps, RIR, tempo y descanso" onclick="toAero('${mode}',${a},${i})">🏃 Aeróbico</button>${inG?`<button type="button" class="tchip ghost" onclick="exType('${mode}',${a},${i},'Aislado')">Sacar del grupo</button>`:''}</div>
+   <div class="tchips">${inG?'':TYPE_LIST.filter(t=>t!=='Dropset').map(t=>`<button type="button" class="tchip ${t==='Aislado'?'on':''}" title="${esc(TYPE_TIP[t])}" onclick="exType('${mode}',${a},${i},'${t}')">${t}</button>`).join('')}<button type="button" class="tchip drop ${e.drop?'on':''}" title="${esc(TYPE_TIP.Dropset)}" onclick="exType('${mode}',${a},${i},'Dropset')">${e.drop?'✓ ':''}Dropset</button><button type="button" class="tchip aero-t" title="Convertir en trabajo aeróbico: quita series, reps, RIR, tempo y descanso" onclick="toAero('${mode}',${a},${i})">🏃 Aeróbico</button>${inG?`<button type="button" class="tchip ghost" onclick="exType('${mode}',${a},${i},'Aislado')">Sacar del grupo</button>`:''}${exNoteChip(mode,a,i,e)}</div>
    ${P?`<div class="phs">${[0,1,2,3].map(f=>`<div class="phc ${e.ph[f]?'':'off'}"><b>Fase ${f+1}</b>${stp('sets',`data-pp="${a}|${i}|${f}|0"`,e.ph[f]?e.ph[f][0]:'','—')}<span class="by">series × reps</span>${stp('reps',`data-pp="${a}|${i}|${f}|1"`,e.ph[f]?e.ph[f][1]:'','—','w')}</div>`).join('')}</div>`:''}
    <div class="prm">
     ${P?'':`<div class="pf"><label>Series</label>${stp('sets',at('sets'),e.sets,'3')}</div><div class="pf"><label>Reps</label>${stp('reps',at('reps'),e.reps,'10-12','w')}</div>`}
@@ -4010,6 +4024,7 @@ function exCard(mode,a,i,e,lab,g){
     <div class="pf"><label>Descanso</label>${stp('rest',at('rest'),e.rest,'60 s','w')}</div>
     <div class="pf"><label>Peso en</label>${unitTog(mode,a,i,e.unit)}</div>
    </div>
+   ${exNoteEd(mode,a,i,e,at)}
    <div class="ex-vp" id="${vid}">${vInfo(e.video)?inlineVid(e.video,e.name):''}</div></div>`;
 }
 function exEditList(mode,a,list){
@@ -4025,13 +4040,14 @@ const toKg=(v,u)=>u==='lb'?v*0.45359237:v;
 function grpHint(g,list){const labs=g.lab,last=list[g.e]||{};return `Haz ${labs.slice(0,-1).join(', ')} y ${labs[labs.length-1]} seguidos, sin descanso entre ellos. Descansa ${last.rest?esc(last.rest):'lo indicado'} al terminar la vuelta.`}
 function exvHTML(t,bi,ei,e,lab,live,nx){
   if(e.cardio){const key=`${bi}-${ei}`,[sc,sl]=exStatus(t,bi,ei,e),vurl=e.video||libFind(e.name)?.video||'',vid=vInfo(vurl),on=t.progress?.sets?.[`${key}-0`],ath=S.athletes.find(x=>x.id===t.athleteId);
-    return `<details class="exv aero-v" ${live&&sc!=='done'?'open':''}><summary><span class="n">🏃</span><span class="nm">${esc(e.name)}</span>${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
-      <div class="exv-b"><span>${aeroLine(e.machine,e.time,e.zone,e.incline,ath)} ${qm('fce')}</span>
+    return `<details class="exv aero-v" ${live&&sc!=='done'?'open':''}><summary><span class="n">🏃</span><span class="nm">${esc(e.name)}</span>${String(e.note||'').trim()?'<span class="npill" title="Tiene nota del coach">📝</span>':''}${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
+      <div class="exv-b"><span>${aeroLine(e.machine,e.time,e.zone,e.incline,ath)} ${qm('fce')}</span>${exNoteV(e)}
       ${vid?`<div style="width:100%">${inlineVid(vurl,e.name)}</div><button class="vbtn" onclick="playVideo('${jsq(vurl)}','${jsq(e.name)}')">${ic('ext',12)} Pantalla completa</button>`:''}
       <div class="setpills" style="width:100%"><button class="setp ${on?'on':''}" ${live?`onclick="toggleSet('${t.id}','${key}-0')"`:'disabled'}>${on?ic('check',12):''} ${on?'Hecho':'Marcar como hecho'}</button></div></div></details>`}
   const key=`${bi}-${ei}`,[sc,sl]=exStatus(t,bi,ei,e),n=Math.max(1,parseInt(e.sets)||1),vurl=e.video||libFind(e.name)?.video||'',vid=vInfo(vurl),kg=t.progress?.kg?.[key],u=wUnit(t,key,e);
-  return `<details class="exv" ${live&&sc!=='done'?'open':''}><summary><span class="n">${lab}</span><span class="nm">${esc(e.name)}</span>${e.drop?'<span class="kpill drop">Dropset</span>':''}${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
+  return `<details class="exv" ${live&&sc!=='done'?'open':''}><summary><span class="n">${lab}</span><span class="nm">${esc(e.name)}</span>${e.drop?'<span class="kpill drop">Dropset</span>':''}${String(e.note||'').trim()?'<span class="npill" title="Tiene nota del coach">📝</span>':''}${vid?`<span style="color:var(--tt-e11d48);display:flex">${ic('video',16)}</span>`:''}<span class="pill ${sc}">${sl}</span><span class="chev">${ic('chev',16)}</span></summary>
       <div class="exv-b"><span><b>${esc(e.sets||1)}</b> × <b>${esc(e.reps||'—')}</b>${e.tempo?` · tempo ${esc(e.tempo)}`:''}${e.rir!==''&&e.rir!=null?` · RIR ${esc(e.rir)}`:''}${nx?` · <b>sin descanso</b>, sigue con ${nx}`:e.rest?` · descanso ${esc(e.rest)}`:''}${!live&&kg?` · <b>${esc(kg)} ${u}</b>`:''}</span>
+      ${exNoteV(e)}
       ${e.drop?`<div class="dtip">${ic('flame',13)} <span><b>Dropset</b> ${qm('dropset')}: ${TYPE_TIP.Dropset}</span></div>`:''}
       ${vid?`<div style="width:100%">${inlineVid(vurl,e.name)}</div><button class="vbtn" onclick="playVideo('${jsq(vurl)}','${jsq(e.name)}')">${ic('ext',12)} Pantalla completa</button>`:''}
       ${live?`<span class="wt"><input class="kg" type="number" step="0.5" min="0" inputmode="decimal" placeholder="Peso" title="Peso usado" value="${esc(kg??'')}" onchange="setKg('${t.id}','${key}',this.value)"><span class="unit" role="group" aria-label="Unidad de peso">${['kg','lb'].map(x=>`<button type="button" class="${u===x?'on':''}" onclick="setUnit('${t.id}','${key}','${x}')">${x}</button>`).join('')}</span>${qm('kg')}</span>`:''}
@@ -4135,7 +4151,7 @@ function refreshPlanTasks(p,orig){
 /* ---- Excel: plantilla, exportar y subir ---- */
 const XLSX_SRC='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 function loadXLSX(){return window.XLSX?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement('script');s.src=XLSX_SRC;s.onload=ok;s.onerror=()=>ko(new Error('No se pudo cargar el lector de Excel. Revisa tu conexión.'));document.head.appendChild(s)})}
-const XL_HEAD=['Grupo','Combinación','Tipo','Ejercicio','F1 Series','F1 Reps','F2 Series','F2 Reps','F3 Series','F3 Reps','F4 Series','F4 Reps','Tempo','RIR','Descanso','Unidad','Video','Modalidad','Inclinación'];
+const XL_HEAD=['Grupo','Combinación','Tipo','Ejercicio','F1 Series','F1 Reps','F2 Series','F2 Reps','F3 Series','F3 Reps','F4 Series','F4 Reps','Tempo','RIR','Descanso','Unidad','Video','Modalidad','Inclinación','Nota'];
 const catShort=c=>c===CATS[0]?'Rezagado':c===CATS[2]?'Complementario':c===AERO?'Aeróbico':'Principal';
 function xlSheetName(n,used){let s=String(n||'Día').replace(/[\[\]:*?\/\\]/g,' ').trim().slice(0,31)||'Día',b=s,k=2;while(used.has(s.toLowerCase()))s=`${b.slice(0,28)} ${k++}`;used.add(s.toLowerCase());return s}
 async function exportPlanXlsx(id){
@@ -4148,8 +4164,8 @@ async function exportPlanXlsx(id){
   p.days.forEach(d=>{
     const comb=[],kind=[];exGroups(d.rows).forEach(g=>{for(let i=g.s;i<=g.e;i++){comb[i]=g.L;kind[i]=g.n>1?g.kind+(d.rows[i].drop?' + Dropset':''):(d.rows[i].drop?'Dropset':'Aislado')}});
     const aoa=[[String(d.name).toUpperCase()],['Misma letra en Combinación (filas seguidas) = biserie, triserie o megaserie. Deja vacías las series de una fase si ese ejercicio no va en esa fase.'],XL_HEAD];
-    d.rows.forEach((r,i)=>aoa.push([catShort(r.cat),r.cat===AERO?'':comb[i]||'',r.cat===AERO?'Aeróbico':kind[i],r.name,...[0,1,2,3].flatMap(f=>r.ph[f]?[r.ph[f][0],r.ph[f][1]]:['','']),r.cat===AERO?'':r.tempo||'',r.cat===AERO?'':r.rir??'',r.cat===AERO?'':r.rest||'',r.unit||'kg',r.video||'',r.cat===AERO?r.machine||'Caminadora':'',r.cat===AERO?r.incline??'':'']));
-    const ws=X.aoa_to_sheet(aoa);ws['!cols']=[14,12,18,34,9,9,9,9,9,9,9,9,10,6,10,8,36,14,11].map(w=>({wch:w}));
+    d.rows.forEach((r,i)=>aoa.push([catShort(r.cat),r.cat===AERO?'':comb[i]||'',r.cat===AERO?'Aeróbico':kind[i],r.name,...[0,1,2,3].flatMap(f=>r.ph[f]?[r.ph[f][0],r.ph[f][1]]:['','']),r.cat===AERO?'':r.tempo||'',r.cat===AERO?'':r.rir??'',r.cat===AERO?'':r.rest||'',r.unit||'kg',r.video||'',r.cat===AERO?r.machine||'Caminadora':'',r.cat===AERO?r.incline??'':'',r.note||'']));
+    const ws=X.aoa_to_sheet(aoa);ws['!cols']=[14,12,18,34,9,9,9,9,9,9,9,9,10,6,10,8,36,14,11,40].map(w=>({wch:w}));
     X.book_append_sheet(wb,ws,xlSheetName(d.name,used));
   });
   XLSX.writeFile(wb,`${(p.name||'plan').replace(/[^\wáéíóúñü -]/gi,'').trim().replace(/\s+/g,'-')||'plan'}.xlsx`);
@@ -4171,14 +4187,14 @@ function parseTrainingWorkbook(wb,fname){
       else if(/^series?$/.test(h))col.sets=c;else if(/^reps?$|repetici/.test(h))col.reps=c;
       else if(/grupo|categor/.test(h))col.cat=c;else if(/combin/.test(h))col.combo=c;else if(/^tipo/.test(h))col.type=c;
       else if(/^ejercicio$/.test(h))col.name=c;else if(/tempo/.test(h))col.tempo=c;else if(/^rir/.test(h))col.rir=c;
-      else if(/m[aá]quina|equipo|modalidad/.test(h))col.machine=c;else if(/inclin/.test(h))col.incline=c;else if(/desc|rest/.test(h))col.rest=c;else if(/unidad|unit/.test(h))col.unit=c;else if(/video|link/.test(h))col.video=c}
+      else if(/^(nota|notas|observaci|indicaci)/.test(h))col.note=c;else if(/m[aá]quina|equipo|modalidad/.test(h))col.machine=c;else if(/inclin/.test(h))col.incline=c;else if(/desc|rest/.test(h))col.rest=c;else if(/unidad|unit/.test(h))col.unit=c;else if(/video|link/.test(h))col.video=c}
     const na=v=>/^(na|n\/a|-|—|–)$/i.test(v)?'':v,rows=[];let lastCat='Principal';
     for(let r=hr+1;r<=R.e.r;r++){
       const name=txt(r,col.name);if(!name)continue;if(/^total$/i.test(name))break;
       const cv=txt(r,col.cat).toLowerCase(),cat=/aer[oó]b|cardio/.test(cv)?AERO:/rezag|activ/.test(cv)?CATS[0]:/complem|acces/.test(cv)?CATS[2]:/princ/.test(cv)?CATS[1]:lastCat;lastCat=cat;
       const ph=[0,1,2,3].map(f=>{const sc=col.ph[f][0]!=null?col.ph[f][0]:col.sets,rc=col.ph[f][1]!=null?col.ph[f][1]:col.reps,s=na(txt(r,sc)),rp=na(txt(r,rc));return s?[s,rp]:null});
       const tv=TYPE_ALIAS(txt(r,col.type)),vc=cell(r,col.video);
-      rows.push({name,cat,ph,tempo:na(txt(r,col.tempo)),rir:na(txt(r,col.rir)),rest:na(txt(r,col.rest)),video:vc?String((vc.l&&vc.l.Target)||vc.v||'').trim():'',unit:/lb|libra/i.test(txt(r,col.unit))?'lb':'kg',...(cat===AERO?{machine:normMachine(txt(r,col.machine)),incline:na(txt(r,col.incline)).replace('%','').trim(),tempo:'',rir:'',rest:''}:{}),link:false,gtype:'',drop:/drop/.test(tv),_c:txt(r,col.combo).toUpperCase(),_t:Object.keys(GSIZE).find(k=>tv.includes(k.toLowerCase()))||''});
+      rows.push({name,cat,ph,note:na(txt(r,col.note)),tempo:na(txt(r,col.tempo)),rir:na(txt(r,col.rir)),rest:na(txt(r,col.rest)),video:vc?String((vc.l&&vc.l.Target)||vc.v||'').trim():'',unit:/lb|libra/i.test(txt(r,col.unit))?'lb':'kg',...(cat===AERO?{machine:normMachine(txt(r,col.machine)),incline:na(txt(r,col.incline)).replace('%','').trim(),tempo:'',rir:'',rest:''}:{}),link:false,gtype:'',drop:/drop/.test(tv),_c:txt(r,col.combo).toUpperCase(),_t:Object.keys(GSIZE).find(k=>tv.includes(k.toLowerCase()))||''});
     }
     if(!rows.length)return;
     rows.forEach(x=>{if(x.cat===AERO){x._c='';x._t='';x.drop=false;x.ph=x.ph.map(q=>q?[String(parseInt(q[0])||q[0]),zIdx(q[1])?'Z'+zIdx(q[1]):'']:null)}});
@@ -4358,7 +4374,7 @@ function guessGroup(day){const k=day.toLowerCase();return /chest|pecho/.test(k)?
 function savePlan(assign){
   collectPlan();const p=S.ui.pd;
   if(!p.name){toast('Ponle nombre al plan');return}
-  const days=p.days.map(d=>({...d,rows:d.rows.filter(r=>r.name.trim())})).filter(d=>d.rows.length);
+  const days=p.days.map(d=>({...d,rows:d.rows.filter(r=>r.name.trim()).map(r=>{const x={...r};delete x._nt;if(!String(x.note||'').trim())delete x.note;else x.note=String(x.note).trim();return x})})).filter(d=>d.rows.length);
   if(!days.length){toast('Agrega al menos un ejercicio');return}
   if(days.some(d=>d.rows.some(r=>r.video&&!vInfo(r.video)))){toast('Hay un link de video que no es válido');return}
   p.days=days;
@@ -4425,8 +4441,8 @@ function renderAssignPlan(){
 function apSync(){const ap=S.ui.ap;ap.start=gv('ap_s')||ap.start;if(ap.start<TODAY)ap.start=TODAY;ap.wpp=+gv('ap_w');ap.aid=gv('ap_a');document.querySelectorAll('.ap_m').forEach(el=>ap.map[+el.dataset.i]=+el.value);renderAssignPlan()}
 function dayToBlocks(d,phase){
   return CATS.map(c=>{const all=d.rows.filter(r=>(CATS.includes(r.cat)?r.cat:'Principal')===c);
-    if(c===AERO)return {name:c,exercises:all.filter(r=>r.ph[phase]).map(r=>({name:r.name,cardio:true,sets:'1',reps:'',time:String(r.ph[phase][0]),zone:String(r.ph[phase][1]||''),machine:r.machine||'Caminadora',incline:r.incline??'',video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):'')}))};
-    return {name:c,exercises:all.map((r,i)=>r.ph[phase]?{name:r.name,sets:String(r.ph[phase][0]),reps:String(r.ph[phase][1]??''),rest:r.rest||'',tempo:r.tempo||'',rir:r.rir??'',video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):''),link:!!(r.link&&all[i+1]&&all[i+1].ph[phase]),gtype:r.gtype||'',drop:!!r.drop,unit:r.unit||'kg'}:null).filter(Boolean)}}).filter(b=>b.exercises.length);
+    if(c===AERO)return {name:c,exercises:all.filter(r=>r.ph[phase]).map(r=>({name:r.name,cardio:true,sets:'1',reps:'',time:String(r.ph[phase][0]),zone:String(r.ph[phase][1]||''),machine:r.machine||'Caminadora',incline:r.incline??'',...(String(r.note||'').trim()?{note:String(r.note).trim()}:{}),video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):'')}))};
+    return {name:c,exercises:all.map((r,i)=>r.ph[phase]?{name:r.name,sets:String(r.ph[phase][0]),reps:String(r.ph[phase][1]??''),rest:r.rest||'',tempo:r.tempo||'',rir:r.rir??'',video:r.video||(typeof S!=='undefined'&&S&&S.library?(libFind(r.name)?.video||''):''),link:!!(r.link&&all[i+1]&&all[i+1].ph[phase]),gtype:r.gtype||'',drop:!!r.drop,unit:r.unit||'kg',...(String(r.note||'').trim()?{note:String(r.note).trim()}:{})}:null).filter(Boolean)}}).filter(b=>b.exercises.length);
 }
 function assignPlan(){
   const ap=S.ui.ap,p=S.plans.find(x=>x.id===ap.pid),aid=ap.aid,dates=planSchedule(p,ap);

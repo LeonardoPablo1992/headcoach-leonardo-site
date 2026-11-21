@@ -161,3 +161,9 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Suma series totales, repeticiones totales, ejercicios y minutos aeróbicos, con desglose por bloque.
 - Reps «12» = 12 por serie; «8-12» se suma como rango mínimo–máximo; «12/10/8» suma cada serie. Reps por tiempo («30 s») o AMRAP no suman reps (sí series).
 - En sesiones con registros del atleta muestra también series hechas y tonelaje (peso anotado × reps × series hechas; lb se convierte a kg).
+
+## Nota opcional por ejercicio (21/11/2026)
+
+- En el editor de sesión y en el editor de plantillas, cada ejercicio (incluido el aeróbico) tiene el botón «📝 ＋ Nota». Abre un campo de texto (máx. 400 caracteres) para casos especiales; el bote de basura la quita.
+- El atleta la ve en un recuadro amarillo debajo de series × reps, y el ícono 📝 aparece junto al nombre del ejercicio aunque esté cerrado.
+- Las notas de una plantilla pasan a las sesiones al asignar el plan. Excel: columna «Nota» al final (exportar y cargar).

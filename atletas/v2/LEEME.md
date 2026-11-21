@@ -154,3 +154,10 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - Se guarda al soltar (igual que «Mover») y el atleta recibe el aviso. El mensaje de confirmación trae **Deshacer** por 7 segundos.
 - Para cambiar de mes mientras arrastras, deja la tarea sobre las flechas ‹ › del calendario.
 - Las sesiones ya completadas no se pueden mover. Si el día destino ya tiene otro entrenamiento, el aviso lo indica.
+
+## Volumen total del entrenamiento (21/11/2026)
+
+- Recuadro «📊 Volumen total» al final de cada entrenamiento (detalle de la sesión, vista coach) y en el editor (se actualiza mientras escribes).
+- Suma series totales, repeticiones totales, ejercicios y minutos aeróbicos, con desglose por bloque.
+- Reps «12» = 12 por serie; «8-12» se suma como rango mínimo–máximo; «12/10/8» suma cada serie. Reps por tiempo («30 s») o AMRAP no suman reps (sí series).
+- En sesiones con registros del atleta muestra también series hechas y tonelaje (peso anotado × reps × series hechas; lb se convierte a kg).

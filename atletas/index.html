@@ -168,6 +168,19 @@ svg{flex-shrink:0}
 .cell.sel{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-50)}
 .cal .chip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .chip.cdg-src{opacity:.35}
+.volbox{margin-top:14px;border:1.5px solid var(--green);border-radius:14px;background:var(--green-50);padding:12px 14px}
+.volbox .vt{font-size:13px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.volbox .vk{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.volbox .vk>div{background:var(--card);border-radius:10px;padding:8px 10px}
+.volbox .vk .l{font-size:11px;color:var(--muted);font-weight:600}
+.volbox .vk .v{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.volbox .vk .v small{font-size:11px;font-weight:600;color:var(--muted)}
+.volbox table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.volbox th,.volbox td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line-2)}
+.volbox th:first-child,.volbox td:first-child{text-align:left}
+.volbox th{color:var(--muted);font-weight:700;font-size:11px}
+.volbox tfoot td{font-weight:800;border-bottom:0}
+.volbox .vn{font-size:11px;color:var(--muted);margin-top:6px}
 .cell.cdg-over{background:var(--green-50);outline:2px dashed var(--green);outline-offset:-3px}
 .cell.cdg-over.cdg-bad{background:#fef2f2;outline-color:#ef4444}
 .cdg-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-130%) rotate(-2deg);max-width:200px;padding:6px 10px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:color-mix(in srgb,var(--c) 18%,var(--card));border-left:4px solid var(--c);color:var(--ink);box-shadow:var(--shadow-lg)}
@@ -3031,6 +3044,7 @@ function builderInner(){
     <div class="blk-f"><button onclick="addEx(${bi})">+ Ejercicio</button></div>
   </div>`).join('')}
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="addBlock()">${ic('plus',14)} Agregar bloque</button><button class="btn soft sm aero-add" onclick="addAeroBlock()">🏃 Agregar bloque aeróbico</button></div>
+  <div id="volBox">${volHTML(d.blocks)}</div>
   <div class="attach-bar">
     <div class="lbl">Agregar a esta sesión</div>
     <div class="ico-chips">${ATTACH_TYPES.map(k=>`<button class="ico-chip" style="--c:${TYPES[k].color}" onclick="addAttach('${k}')"><i></i>${ic(TYPES[k].icon,14)} ${TYPES[k].label}</button>`).join('')}</div>
@@ -3242,6 +3256,7 @@ function trainingView(t,role){
     h+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">${tm?`<span class="timer"><span class="pulse"></span><span class="live-timer" data-start="${S.ui.timer.start}">00:00:00</span></span>`:`<button class="btn primary" onclick="openReadiness('${t.id}')">${ic('play',14,true)} Iniciar entrenamiento</button>`}<span class="muted" style="font-size:12px;display:inline-flex;align-items:center">Toca cada serie al terminarla y anota el peso ${qm('kg')}</span></div>`;
   }
   h+=blocksViewHTML(t,live);
+  if(role==='coach')h+=volHTML(t.data.blocks||[],t);
   h+=attachPills(t,role);
   if(t.status==='done'&&t.feedback?.comment) h+=`<div style="margin-top:14px"><div class="muted" style="font-size:12px;font-weight:600;margin-bottom:6px">Comentario del atleta</div><div class="note">💬 ${esc(t.feedback.comment)}</div></div>`;
   if(live) h+=finishHTML(t);
@@ -4022,6 +4037,35 @@ function exvHTML(t,bi,ei,e,lab,live,nx){
       ${live?`<span class="wt"><input class="kg" type="number" step="0.5" min="0" inputmode="decimal" placeholder="Peso" title="Peso usado" value="${esc(kg??'')}" onchange="setKg('${t.id}','${key}',this.value)"><span class="unit" role="group" aria-label="Unidad de peso">${['kg','lb'].map(x=>`<button type="button" class="${u===x?'on':''}" onclick="setUnit('${t.id}','${key}','${x}')">${x}</button>`).join('')}</span>${qm('kg')}</span>`:''}
       <div class="setpills" style="width:100%">${Array.from({length:n},(_,s)=>{const on=t.progress?.sets?.[`${key}-${s}`];return `<button class="setp ${on?'on':''}" ${live?`onclick="toggleSet('${t.id}','${key}-${s}')"`:'disabled'}>${on?ic('check',12):''} Serie ${s+1}</button>`}).join('')}</div></div></details>`;
 }
+/* Volumen total del entrenamiento: series y repeticiones (por bloque y total). Los ejercicios aeróbicos suman minutos.
+   Reps: "12" → 12 por serie · "8-12" → rango · "12/10/8" → suma por serie · tiempo ("30 s", "1'") o AMRAP no cuentan como reps. */
+function volReps(r,sets){const s=String(r??'').trim().toLowerCase();if(!s||!sets)return null;
+  if(/\d\s*(s|seg|segs|segundos|min|minutos|'|"|″|’)(?![a-z])/.test(s)||/amrap|fallo|m[aá]x/.test(s))return null;
+  const rg=s.match(/(\d+)\s*(?:-|–|a)\s*(\d+)/);if(rg)return {lo:+rg[1]*sets,hi:+rg[2]*sets};
+  const ls=s.split(/[\/,;]/).map(x=>parseInt(x)).filter(n=>!isNaN(n));
+  if(ls.length>1){const sum=ls.reduce((a,b)=>a+b,0);if(ls.length===sets)return {lo:sum,hi:sum};const v=Math.round(sum/ls.length*sets);return {lo:v,hi:v}}
+  const n=parseInt(s.match(/\d+/)?.[0]);return n?{lo:n*sets,hi:n*sets}:null}
+function volCalc(blocks,t){const rows=[],T={ex:0,sets:0,lo:0,hi:0,min:0,noRep:0,done:0,ton:0};
+  (blocks||[]).forEach((b,bi)=>{const r={name:(b.name||'').trim()||'Bloque',ex:0,sets:0,lo:0,hi:0,min:0};
+    (b.exercises||[]).forEach((e,ei)=>{if(!String(e.name||'').trim())return;r.ex++;
+      if(e.cardio||isAeroBlock(b.name)){r.min+=parseFloat(e.time)||0;return}
+      const n=parseInt(e.sets)||0;r.sets+=n;const v=volReps(e.reps,n);if(v){r.lo+=v.lo;r.hi+=v.hi}else if(n)T.noRep++;
+      if(t&&t.progress){const key=`${bi}-${ei}`,pr=t.progress,dn=Array.from({length:n},(_,k)=>pr.sets&&pr.sets[`${key}-${k}`]).filter(Boolean).length;T.done+=dn;
+        const kg=pr.kg&&pr.kg[key];if(kg&&dn&&v){const w=(pr.u&&pr.u[key]==='lb')?kg*0.4536:kg;T.ton+=w*((v.lo+v.hi)/2/n)*dn}}});
+    if(r.ex){rows.push(r);['ex','sets','lo','hi','min'].forEach(k=>T[k]+=r[k])}});
+  return {rows,T}}
+function volHTML(blocks,t){const {rows,T}=volCalc(blocks,t);if(!rows.length)return '';
+  const R=(lo,hi)=>lo===hi?fmtN(lo):`${fmtN(lo)}–${fmtN(hi)}`,showDone=t&&(t.status==='done'||T.done>0);
+  return `<div class="volbox"><div class="vt">📊 Volumen total del entrenamiento</div>
+    <div class="vk"><div><div class="l">Series totales</div><div class="v">${fmtN(T.sets)}</div></div>
+      <div><div class="l">Repeticiones totales</div><div class="v">${T.hi?R(T.lo,T.hi):'—'}</div></div>
+      <div><div class="l">Ejercicios</div><div class="v">${T.ex}</div></div>
+      ${T.min?`<div><div class="l">Aeróbico</div><div class="v">${fmtN(T.min)} <small>min</small></div></div>`:''}
+      ${showDone?`<div><div class="l">Series hechas</div><div class="v">${T.done}<small> / ${T.sets}</small></div></div>`:''}
+      ${showDone&&T.ton?`<div><div class="l">Tonelaje</div><div class="v">${fmtN(Math.round(T.ton))} <small>kg</small></div></div>`:''}</div>
+    ${rows.length>1?`<table><thead><tr><th>Bloque</th><th>Ejercicios</th><th>Series</th><th>Reps</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.ex}</td><td>${r.min&&!r.sets?`${fmtN(r.min)} min`:r.sets}</td><td>${r.hi?R(r.lo,r.hi):'—'}</td></tr>`).join('')}</tbody><tfoot><tr><td>Total</td><td>${T.ex}</td><td>${T.sets}</td><td>${T.hi?R(T.lo,T.hi):'—'}</td></tr></tfoot></table>`:''}
+    ${T.noRep?`<div class="vn">${T.noRep} ejercicio${T.noRep>1?'s':''} con reps por tiempo o sin número no suma${T.noRep>1?'n':''} repeticiones (sí sus series).</div>`:''}${T.lo!==T.hi?'<div class="vn">Los rangos (ej. 8–12) se suman como mínimo–máximo.</div>':''}${showDone&&T.ton?'<div class="vn">Tonelaje = peso anotado × reps × series hechas.</div>':''}</div>`}
+let volT=null;const volUpd=e=>{if(!e.target.closest||!e.target.closest('#builder'))return;clearTimeout(volT);volT=setTimeout(()=>{const vb=document.getElementById('volBox');if(!vb||!S.ui.draft)return;collectDraft();vb.innerHTML=volHTML(S.ui.draft.blocks)},250)};document.addEventListener('input',volUpd);document.addEventListener('change',volUpd);
 function blocksViewHTML(t,live){
   let h='';const cnt={L:0,k:0};
   (t.data.blocks||[]).forEach((b,bi)=>{

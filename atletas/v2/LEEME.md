@@ -167,3 +167,9 @@ Nueva versión del portal. Vive en la raíz `https://atletas.headcoachleonardopa
 - En el editor de sesión y en el editor de plantillas, cada ejercicio (incluido el aeróbico) tiene el botón «📝 ＋ Nota». Abre un campo de texto (máx. 400 caracteres) para casos especiales; el bote de basura la quita.
 - El atleta la ve en un recuadro amarillo debajo de series × reps, y el ícono 📝 aparece junto al nombre del ejercicio aunque esté cerrado.
 - Las notas de una plantilla pasan a las sesiones al asignar el plan. Excel: columna «Nota» al final (exportar y cargar).
+
+## Unir bloques repetidos ya cargados (21/11/2026)
+
+- Al entrar el coach, si hay sesiones sueltas creadas por el «Repetir bloque» anterior (sesión con el nombre del bloque en un día que ya tiene entrenamiento), aparece «🔁 Unir bloques repetidos» con el conteo por cliente.
+- «Unir» mete el bloque dentro del entrenamiento de ese día (activación/rezagado/calentamiento al inicio; si ya lo trae, lo actualiza) y quita la sesión suelta. «Ahora no» lo vuelve a ofrecer en la siguiente sesión del navegador.
+- Solo pendientes sin registros del atleta; las completadas no se tocan. Las sesiones de historial (plan anterior) no se pueden arrastrar.
